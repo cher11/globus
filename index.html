@@ -297,10 +297,10 @@ const U = {
   factory:    { cost: 10, dom: 'land', move: 0,  guns: [], yield: 5, val: 16, shape: 'square' },
   artillery:  { cost: 10, dom: 'land', move: 0,  guns: [{ range: 5, mask: ALL & ~BIT.aircraft }], val: 12, shape: 'square' },
   aa:         { cost: 10, dom: 'land', move: 0,  guns: [{ range: 5, mask: BIT.aircraft }], val: 10, shape: 'square' },
-  tank:       { cost: 20, dom: 'land', move: 5,  cls: 'land', guns: [{ range: 1, mask: ALL }], val: 22, shape: 'round' },
+  tank:       { cost: 20, dom: 'land', move: 5,  cls: 'land', guns: [{ range: 1, mask: ALL & ~BIT.aircraft }], val: 22, shape: 'round' },
   sub:        { cost: 30, dom: 'sea',  move: 5,  cls: 'sea', guns: [{ range: 1, mask: BIT.sub | BIT.battleship }], val: 28, shape: 'round' },
   aircraft:   { cost: 40, dom: 'any',  move: 10, cls: 'air', guns: [{ range: 1, mask: ALL & ~BIT.sub }], val: 36, shape: 'round' },
-  battleship: { cost: 50, dom: 'sea',  move: 5,  cls: 'sea', guns: [{ range: 5, mask: ALL & ~BIT.sub }], val: 46, shape: 'round' },
+  battleship: { cost: 50, dom: 'sea',  move: 5,  cls: 'sea', guns: [{ range: 5, mask: ALL & ~BIT.sub & ~BIT.aircraft }], val: 46, shape: 'round' },
 };
 const AA_GUN = { range: 5, mask: BIT.aircraft, aa: true };
 function gunsOf(u) { const g = U[u.type].guns.slice(); if (u.type === 'battleship' && u.cargo === 'aa') g.unshift(AA_GUN); return g; }
@@ -1006,10 +1006,10 @@ const STR = {
       factory: 'Урожай +5 кр.',
       artillery: 'Не ходит. Огонь до 5 клеток по всему, кроме самолётов.',
       aa: 'Не ходит. Огонь до 5 клеток по самолётам. Можно поставить на линкор.',
-      tank: 'Ход ровно на 5 клеток по суше, огонь на 1. Давит людей, поля и заводы на пути, таранит технику.',
+      tank: 'Ход ровно на 5 клеток по суше, огонь на 1 (не по самолётам). Давит людей, поля и заводы на пути, таранит технику.',
       sub: 'Ход ровно на 5 клеток по морю, огонь на 1 — по подлодкам и линкорам.',
       aircraft: 'Ход ровно на 10 клеток где угодно, огонь на 1 по всему, кроме подлодок.',
-      battleship: 'Ход ровно на 5 клеток по морю, огонь до 5 (не по подлодкам). Везёт человека или зенитку.',
+      battleship: 'Ход ровно на 5 клеток по морю, огонь до 5 (не по подлодкам и самолётам). Везёт человека или зенитку — с зениткой сбивает самолёты.',
     },
     lPlace: c => `первый человек на ${c}`,
     lBuild: (u, c) => `построено: ${u} на ${c}`,
@@ -1060,10 +1060,10 @@ const STR = {
       factory: 'Harvest +5 cr.',
       artillery: 'Cannot move. Fires up to 5 cells at anything except aircraft.',
       aa: 'Cannot move. Fires up to 5 cells at aircraft. Can be mounted on a battleship.',
-      tank: 'Moves exactly 5 cells on land, fires at 1. Crushes humans, fields and factories on its path, rams machinery.',
+      tank: 'Moves exactly 5 cells on land, fires at 1 (not at aircraft). Crushes humans, fields and factories on its path, rams machinery.',
       sub: 'Moves exactly 5 cells at sea, fires at 1, only at submarines and battleships.',
       aircraft: 'Moves exactly 10 cells anywhere, fires at 1 at anything except submarines.',
-      battleship: 'Moves exactly 5 cells at sea, fires up to 5 (not at submarines). Carries a human or an AA gun.',
+      battleship: 'Moves exactly 5 cells at sea, fires up to 5 (not at submarines or aircraft). Carries a human or an AA gun; with the AA gun it can shoot down aircraft.',
     },
     lPlace: c => `first human at ${c}`,
     lBuild: (u, c) => `built ${u} at ${c}`,
@@ -1093,8 +1093,8 @@ function rulesHTML() {
     const mv = u.move ? (LANG === 'ru' ? `${u.move}, ${{ land: 'суша', sea: 'море', air: 'везде' }[u.cls]}` : `${u.move}, ${{ land: 'land', sea: 'sea', air: 'anywhere' }[u.cls]}`) : '—';
     const rg = u.guns.length ? u.guns[0].range : '—';
     const tg = LANG === 'ru'
-      ? { human: 'строит соседние клетки', field: 'урожай +1', factory: 'урожай +5', artillery: 'всё, кроме самолётов', aa: 'только самолёты', tank: 'всё; давит людей, поля и заводы на пути, таранит технику', sub: 'подлодки и линкоры', aircraft: 'всё, кроме подлодок', battleship: 'всё, кроме подлодок' }[ty]
-      : { human: 'builds on neighbouring cells', field: 'harvest +1', factory: 'harvest +5', artillery: 'anything but aircraft', aa: 'aircraft only', tank: 'anything; crushes humans, fields and factories on its path, rams machinery', sub: 'submarines and battleships', aircraft: 'anything but submarines', battleship: 'anything but submarines' }[ty];
+      ? { human: 'строит соседние клетки', field: 'урожай +1', factory: 'урожай +5', artillery: 'всё, кроме самолётов', aa: 'только самолёты', tank: 'всё, кроме самолётов; давит людей, поля и заводы на пути, таранит технику', sub: 'подлодки и линкоры', aircraft: 'всё, кроме подлодок', battleship: 'всё, кроме подлодок и самолётов' }[ty]
+      : { human: 'builds on neighbouring cells', field: 'harvest +1', factory: 'harvest +5', artillery: 'anything but aircraft', aa: 'aircraft only', tank: 'anything but aircraft; crushes humans, fields and factories on its path, rams machinery', sub: 'submarines and battleships', aircraft: 'anything but submarines', battleship: 'anything but submarines and aircraft' }[ty];
     return `<tr><td>${uname(ty, true)}</td><td class="n">${u.cost}</td><td class="n">${mv}</td><td class="n">${rg}</td><td>${tg}</td></tr>`;
   }).join('');
   const head = LANG === 'ru' ? ['Юнит', 'Цена', 'Ход', 'Огонь', 'По кому / что даёт'] : ['Unit', 'Cost', 'Move', 'Range', 'Targets / effect'];
@@ -1117,7 +1117,7 @@ function rulesHTML() {
 <p>Линкор может везти человека или зенитку, но не обоих. Чтобы погрузить их, постройте человека или зенитку прямо в клетке линкора, когда он стоит рядом с вашим человеком. Человека с линкора можно высадить на соседнюю сушу, в том числе на остров, — так появляется новая колония.</p>
 <h3>Как прочитаны неясные места</h3>
 <ul>
-<li>Зенитка стреляет только по самолётам (в исходном тексте опечатка).</li>
+<li>Зенитка стреляет только по самолётам (в исходном тексте опечатка). Самолёт могут сбить только зенитка — на суше или на линкоре — и другой самолёт.</li>
 <li>Выстрел не тратит ход: за ход можно сделать одно действие и один выстрел любым юнитом. Линкор с зениткой тоже стреляет один раз — из пушки или из зенитки.</li>
 <li>Стрелять можно только по вражеским юнитам.</li>
 <li>Подлодка, как и остальные, ходит ровно на 5 клеток.</li>
@@ -1152,7 +1152,7 @@ function rulesHTML() {
 <p>A battleship can carry a human or an AA gun, not both. To load one, build a human or an AA gun directly on the battleship's cell while it is next to one of your humans. A carried human can land on adjacent land, islands included, to start a new colony.</p>
 <h3>How unclear points are read</h3>
 <ul>
-<li>The AA gun fires only at aircraft (the original text has a typo).</li>
+<li>The AA gun fires only at aircraft (the original text has a typo). Aircraft can be shot down only by AA guns, on land or aboard a battleship, and by other aircraft.</li>
 <li>Firing does not use up the turn: one action plus one shot with any unit per turn. A battleship carrying an AA gun also fires once, with either gun.</li>
 <li>Only enemy units can be fired at.</li>
 <li>Submarines move exactly 5 cells, like everything else.</li>

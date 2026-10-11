@@ -84,6 +84,24 @@ const { open, clickCell, check, failures, W } = require('./helpers');
   check('battleship cannot end on a submarine', arr.shipOnSub === false, arr);
   check('battleship passing over a submarine leaves it alive', arr.overSub.alive && arr.overSub.unburnt && arr.overSub.events === 0 && arr.overSub.shipAt, arr.overSub);
 
+  // ---------- only AA guns and aircraft can shoot aircraft
+  const air = await page.evaluate(() => {
+    const g = __globus, G = g.G, L = g.lib, W = 41;
+    const put = (type, owner, c, cargo = null) => { const id = G.nextId++; G.units[id] = { id, type, owner, cell: c, cargo }; G.grid[c] = id; return G.units[id]; };
+    const s0 = G.terrain.findIndex((t, c) => t === 1 && G.terrain[c + 2] === 1 && !G.grid[c] && !G.grid[c + 2] && Math.floor((c + 2) / W) === Math.floor(c / W));
+    const ship = put('battleship', 0, s0), plane = put('aircraft', 1, s0 + 2);
+    const tank = put('tank', 0, 30 * W + 20), plane2 = put('aircraft', 1, 30 * W + 21);
+    const hits = (u, c) => L.gunsOf(u).some(gun => L.targetsFrom(G, u.owner, u.cell, gun).includes(c));
+    const out = { ship: hits(ship, plane.cell), tank: hits(tank, plane2.cell) };
+    ship.cargo = 'aa'; out.shipAA = hits(ship, plane.cell);
+    out.planeVsPlane = hits(plane2, tank.cell) === true && hits(put('aircraft', 0, 31 * W + 21), plane2.cell);
+    for (const u of [ship, plane, tank, plane2]) { G.grid[u.cell] = 0; delete G.units[u.id]; }
+    const p3 = G.units[G.grid[31 * W + 21]]; G.grid[p3.cell] = 0; delete G.units[p3.id];
+    return out;
+  });
+  check('battleship and tank cannot shoot aircraft', air.ship === false && air.tank === false, air);
+  check('battleship with an AA gun and aircraft can', air.shipAA === true && air.planeVsPlane === true, air);
+
   // ---------- one action + one shot per turn (through the interface)
   await start();
   await clickCell(page, 0); await clickCell(page, 40);            // both place their first human
