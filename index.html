@@ -362,33 +362,44 @@ function applyBuild(g, p, type, cell, info) {
   g.units[u.id] = u; g.grid[cell] = u.id;
   if (info.mode === 'place') P.placed = true;
 }
+// A unit may end its move on an enemy: a human, field or factory is destroyed and the cell taken ('take');
+// enemy machinery means a ram and both die ('ram'). Tanks and ships cannot reach aircraft, aircraft cannot see
+// submarines (''); a battleship that stops on a submarine simply sinks it.
+const STRUCT = BIT.human | BIT.field | BIT.factory;
+function arrival(mover, v) {
+  if (mover === 'aircraft' ? v.type === 'sub' : v.type === 'aircraft') return '';
+  return (BIT[v.type] & STRUCT) || (mover === 'battleship' && v.type === 'sub') ? 'take' : 'ram';
+}
 function killAt(g, c) { const u = unitAt(g, c); if (u) { delete g.units[u.id]; g.grid[c] = 0; } g.burnt[c] = 1; return u; }
 function targetsFrom(g, owner, from, gun) {
   const out = [];
   forLanes(from, gun.range, c => { const t = unitAt(g, c); if (t && t.owner !== owner && (gun.mask & BIT[t.type])) out.push(c); });
   return out;
 }
-// Cells a move will destroy (tank crush, battleship over an enemy sub). The last entry may be the
-// tank's own final cell when an enemy stands there: that unit is crushed but the cell is not burnt.
+// Cells on the way that a move destroys: a tank crushes everything except aircraft (it drives under them),
+// a battleship sinks enemy submarines it passes over. The final cell is handled by arrival().
 function pathVictims(g, u, path, crush) {
   const out = [], to = path[path.length - 1], seen = new Set();
   for (let i = 0; i < path.length - 1; i++) {
     const c = path[i];
     if (c === to || seen.has(c)) continue;
     const v = unitAt(g, c);
-    if (u.type === 'tank' && crush) { if (g.burnt[c] || (v && v.owner === u.owner)) continue; seen.add(c); out.push(c); }
+    if (u.type === 'tank' && crush) { if (g.burnt[c] || (v && (v.owner === u.owner || v.type === 'aircraft'))) continue; seen.add(c); out.push(c); }
     else if (u.type === 'battleship' && v && v.owner !== u.owner && v.type === 'sub') { seen.add(c); out.push(c); }
   }
-  if (u.type === 'tank') { const v = unitAt(g, to); if (v && v.owner !== u.owner) out.push(to); }
   return out;
 }
 function applyMove(g, id, path, crush) {
   const u = g.units[id], victims = pathVictims(g, u, path, crush), ev = [], to = path[path.length - 1];
   g.grid[u.cell] = 0; g.burnt[u.cell] = 1;
-  for (const c of victims) {
-    if (c === to) { const v = unitAt(g, c); delete g.units[v.id]; g.grid[c] = 0; ev.push({ cell: c, victim: v }); }
-    else ev.push({ cell: c, victim: killAt(g, c) });
+  for (const c of victims) ev.push({ cell: c, victim: killAt(g, c), kind: u.type === 'tank' ? 'crush' : 'bomb' });
+  const v = unitAt(g, to);
+  if (v && arrival(u.type, v) === 'ram') {
+    delete g.units[v.id]; delete g.units[u.id]; g.grid[to] = 0; g.burnt[to] = 1;
+    ev.push({ cell: to, victim: v, kind: 'ram' });
+    return ev;
   }
+  if (v) { delete g.units[v.id]; ev.push({ cell: to, victim: v, kind: u.type === 'tank' ? 'crush' : v.type === 'sub' ? 'bomb' : 'smash' }); }
   u.cell = to; g.grid[to] = u.id;
   return ev;
 }
@@ -448,14 +459,14 @@ function nextDirs(pass, c, dir) {
 }
 class Solver {
   constructor(g, u) {
-    this.g = g; this.n = U[u.type].move; this.start = u.cell; this.owner = u.owner; this.crushes = u.type === 'tank';
+    this.g = g; this.n = U[u.type].move; this.start = u.cell; this.owner = u.owner; this.type = u.type;
     this.pass = statics(g).pass[U[u.type].cls];
     this.memo = new Uint8Array(N * 8 * (this.n + 1));
   }
   dest(c) {
     if (c === this.start || this.g.burnt[c]) return false;
     const v = unitAt(this.g, c);
-    return !v || (this.crushes && v.owner !== this.owner);
+    return !v || (v.owner !== this.owner && arrival(this.type, v) !== '');
   }
   dirs(c, dir) { return nextDirs(this.pass, c, dir); }
   good(c, dir, k) {
@@ -522,8 +533,10 @@ function aiContext(g, p) {
     if (ut.move) {
       const r = new Solver(g, e).reach();
       for (const s of r.dests) for (const gun of guns) forLanes(s, gun.range, c => add(zm, c, gun.mask));
-      if (e.type === 'tank') for (const c of r.inter) add(zm, c, ALL);
+      if (e.type === 'tank') for (const c of r.inter) add(zm, c, ALL & ~BIT.aircraft);
       if (e.type === 'battleship') for (const c of r.inter) add(zm, c, BIT.sub);
+      const endMask = e.type === 'aircraft' ? ALL & ~BIT.sub : e.type === 'tank' ? ALL & ~BIT.aircraft : BIT.sub | BIT.battleship;
+      for (const c of r.dests) if (g.grid[c]) add(zm, c, endMask);
     }
     let tv = 0;
     const score = (z, w) => { for (const [c, m] of z) {
@@ -614,7 +627,7 @@ function aiCrushNext(g, ctx) {
     if (!pass[c] || g.burnt[c]) continue;
     const v = unitAt(g, c);
     if (!v) prev.fill(0, c * 8, c * 8 + 8);
-    else if (v.owner !== ctx.p) prev.fill(killValue(g, ctx, v), c * 8, c * 8 + 8);
+    else if (v.owner !== ctx.p && v.type !== 'aircraft') prev.fill(killValue(g, ctx, v) - (BIT[v.type] & STRUCT ? 0 : U.tank.val), c * 8, c * 8 + 8);
   }
   for (let k = 1; k < K; k++) {
     const cur = new Float32Array(N * 8).fill(NEG);
@@ -703,43 +716,45 @@ function aiScoreBuild(g, ctx, type, c, info) {
 function aiCrushGain(g, ctx, c) {
   if (g.burnt[c]) return 0;
   const v = unitAt(g, c);
-  if (v) return v.owner === ctx.p ? 0 : killValue(g, ctx, v);
+  if (v) return v.owner === ctx.p || v.type === 'aircraft' ? 0 : killValue(g, ctx, v);
   let s = -0.05;
   for (let d = 0; d < 8; d++) { const w = unitAt(g, NB[c * 8 + d]); if (w && w.type === 'human') s += w.owner === ctx.p ? -1.5 : 1.2; }
   return s;
 }
-function aiEvalUnit(g, ctx, u, consider) {
+// Best single shot by any of my units (a shot does not use up the turn's action)
+function aiBestShot(g, ctx) {
+  let best = null;
+  for (const u of ctx.mine) gunsOf(u).forEach((gun, gi) => {
+    for (const c of targetsFrom(g, ctx.p, u.cell, gun)) { const v = killValue(g, ctx, unitAt(g, c)); if (!best || v > best.v) best = { id: u.id, gi, c, v }; }
+  });
+  return best;
+}
+function aiEvalUnit(g, ctx, u, consider, shotFree, v0) {
   const p = ctx.p, guns = gunsOf(u), ut = U[u.type], me = valueOf(u);
-  const shotsFrom = from => {
-    let total = 0; const picks = [], used = new Set();
-    guns.forEach((gun, gi) => {
-      let bv = 0, bc = -1;
-      for (const c of targetsFrom(g, p, from, gun)) { if (used.has(c)) continue; const v = killValue(g, ctx, unitAt(g, c)); if (v > bv) { bv = v; bc = c; } }
-      if (bc >= 0) { used.add(bc); total += bv; picks.push({ gi, c: bc }); }
-    });
-    return { total, picks };
-  };
-  const riskAt = c => aiRisk(ctx, c, u.type) * me;
-  const riskNow = riskAt(u.cell), now = shotsFrom(u.cell);
-  if (now.total > 0) consider({ kind: 'act', id: u.id, before: now.picks, after: [], st: null, crush: false, score: now.total - riskNow * 0.15 });
   if (!ut.move) return;
+  const shotFrom = from => {
+    let best = null;
+    guns.forEach((gun, gi) => { for (const c of targetsFrom(g, p, from, gun)) { const v = killValue(g, ctx, unitAt(g, c)); if (!best || v > best.v) best = { gi, c, v }; } });
+    return best;
+  };
+  const riskAt = c => aiRisk(ctx, c, u.type) * me, riskNow = riskAt(u.cell);
   const sv = new Solver(g, u);
   if (!sv.good(u.cell, -1, ut.move)) return;
   let gainFn = () => 0;
   if (u.type === 'tank') gainFn = c => aiCrushGain(g, ctx, c);
   if (u.type === 'battleship') gainFn = c => { const v = unitAt(g, c); return v && v.owner !== p && v.type === 'sub' ? killValue(g, ctx, v) : 0; };
-  const finalFn = u.type === 'tank' ? (c => killValue(g, ctx, unitAt(g, c))) : () => 0;
+  const finalFn = c => { const v = unitAt(g, c); if (!v || v.owner === p) return 0; return killValue(g, ctx, v) - (arrival(u.type, v) === 'ram' ? me * 1.1 : 0); };
   const plans = sv.plan(u.cell, -1, ut.move, gainFn, finalFn), dm = ctx.dist[u.type], d0 = dm[u.cell];
   for (const [c, pl] of plans) {
-    const crush = u.type === 'tank';
-    const gain = u.type === 'tank' ? pl.gain : Math.max(0, pl.gain);
+    const crush = u.type === 'tank', gain = u.type === 'tank' ? pl.gain : Math.max(0, pl.gain);
+    const v = unitAt(g, c);
+    if (v && arrival(u.type, v) === 'ram') { consider({ kind: 'act', id: u.id, st: pl.state, crush, after: null, score: pl.gain - 0.4 }); continue; }
     const d1 = dm[c];
     const prog = (isFinite(d0) && isFinite(d1)) ? clamp(d0 - d1, -4, 8) : (isFinite(d1) ? 3 : 0);
     const risk = riskAt(c), escape = riskNow > 0 && risk === 0 ? riskNow * 0.8 : 0;
     const base = gain + prog * ctx.aggr * 0.5 + 0.45 * ctx.next[u.type][c] - risk + escape - 0.4;
-    const after = shotsFrom(c);
-    consider({ kind: 'act', id: u.id, before: [], after: after.picks, st: pl.state, crush, score: base + after.total });
-    if (now.total > 0) consider({ kind: 'act', id: u.id, before: now.picks, after: [], st: pl.state, crush, score: base + now.total });
+    const after = shotFree ? shotFrom(c) : null;
+    consider({ kind: 'act', id: u.id, st: pl.state, crush, after, score: base + (after ? Math.max(0, after.v - v0) : 0) });
   }
 }
 function aiPlace(g, p) {
@@ -755,10 +770,12 @@ function aiPlace(g, p) {
   }
   return { kind: 'build', type: 'human', cell: best };
 }
-function aiThink(g, p, dbg) {
+// Picks the turn's action (build, move or harvest). With shotFree, also returns the best shot available now;
+// a move whose own follow-up shot beats that shot is scored up and fires after moving.
+function aiThink(g, p, dbg, shotFree = true) {
   const P = g.players[p];
   if (!P.placed) return aiPlace(g, p);
-  const ctx = aiContext(g, p);
+  const ctx = aiContext(g, p), shot = shotFree ? aiBestShot(g, ctx) : null, v0 = shot ? shot.v : 0;
   let best = null;
   const consider = a => { a.score += Math.random() * 0.8; if (dbg) dbg.push(a); if (!best || a.score > best.score) best = a; };
   consider({ kind: 'harvest', score: ctx.R > 0 ? ctx.R * 1.4 * 45 / (45 + ctx.credits) : -3 });
@@ -769,8 +786,9 @@ function aiThink(g, p, dbg) {
       if (s > -50) consider({ kind: 'build', type, cell: c, score: s });
     }
   }
-  for (const u of ctx.mine) if (canAct(u)) aiEvalUnit(g, ctx, u, consider);
-  if (best.kind === 'act') best.path = best.st ? Solver.pathOf(best.st) : null;
+  for (const u of ctx.mine) if (U[u.type].move) aiEvalUnit(g, ctx, u, consider, shotFree, v0);
+  if (best.kind === 'act') best.path = Solver.pathOf(best.st);
+  best.shot = shot;
   return best;
 }
 
@@ -786,7 +804,7 @@ const STR = {
     colors: { red: 'Красные', blue: 'Синие', green: 'Зелёные', violet: 'Фиолетовые' },
     ctlHuman: 'Человек', ctlAI: 'Компьютер', aiTag: 'ИИ',
     setupTitle: 'Новая игра',
-    setupLead: 'Цель — уничтожить всех людей противника. За ход — одно действие: построить юнит, походить и выстрелить одним юнитом или собрать урожай.',
+    setupLead: 'Цель — уничтожить всех людей противника. За ход — одно действие (построить юнит, походить одним юнитом или собрать урожай) и ещё один выстрел любым своим юнитом.',
     playersL: 'Игроки', addPlayer: 'Добавить игрока', remove: 'Убрать игрока', nameL: 'Имя игрока',
     mapN: n => `Карта № ${n}`, reroll: 'Другая карта', start: 'Начать игру', back: 'Вернуться к игре',
     cr: 'кр.', perHarvest: n => `+${n} за урожай`, humansN: n => `людей: ${n}`, outL: 'выбыли',
@@ -794,11 +812,11 @@ const STR = {
     placeHint: 'Поставьте первого человека в любую клетку у края поля — они подсвечены.',
     harvestBtn: 'Собрать урожай', passBtn: 'Пропустить ход', noYield: 'урожая нет',
     buildL: 'Построить', buildHint: 'Кликните по подсвеченной клетке рядом со своим человеком.',
-    actHint: 'Чтобы стрелять или ходить, кликните по своей пушке, танку, подлодке, самолёту или линкору.',
+    actHint: 'Чтобы ходить или стрелять, кликните по своему юниту. Выстрел не тратит ход: за ход можно одно действие и один выстрел любым юнитом.',
     gunMain: 'Выстрел', gunAA: 'Зенитка', ready: 'готов', used: 'сделан', noTargets: 'целей нет',
     moveL: 'Ход', moveN: n => `${n} кл.`, moveDone: 'сделан', moveNone: 'некуда',
-    crush: 'Давить клетки на пути', crushHint: 'Вражеские юниты на пути погибнут, пустые клетки сгорят. Свои юниты не пострадают. Врага в конечной клетке танк давит всегда.',
-    actHelp: 'Красный прицел — выстрел. Кольцо — где может закончиться ход: наведите, чтобы увидеть путь. Точка — следующий шаг, если хотите проложить путь сами.',
+    crush: 'Давить клетки на пути', crushHint: 'Вражеские юниты на пути погибнут, пустые клетки сгорят. Свои юниты и самолёты (под ними танк проезжает) не пострадают.',
+    actHelp: 'Красный прицел — выстрел. Кольцо — где может закончиться ход: наведите, чтобы увидеть путь. Точка — следующий шаг. Встать можно и на врага: человек, поле или завод уничтожаются, вражеская техника — таран, гибнут оба.',
     undo: 'Шаг назад', cancel: 'Отмена', endTurn: 'Завершить ход',
     logL: 'Журнал', logEmpty: 'Здесь появятся ходы.',
     terrLand: 'суша', terrSea: 'море', terrBurnt: 'клетка уничтожена', cargoL: 'на борту',
@@ -814,7 +832,7 @@ const STR = {
       factory: 'Урожай +5 кр.',
       artillery: 'Не ходит. Огонь до 5 клеток по всему, кроме самолётов.',
       aa: 'Не ходит. Огонь до 5 клеток по самолётам. Можно поставить на линкор.',
-      tank: 'Ход ровно на 5 клеток по суше, огонь на 1. Давит всё на пути и может встать на вражеский юнит.',
+      tank: 'Ход ровно на 5 клеток по суше, огонь на 1. Давит всё на пути, кроме самолётов.',
       sub: 'Ход ровно на 5 клеток по морю, огонь на 1 — по подлодкам и линкорам.',
       aircraft: 'Ход ровно на 10 клеток где угодно, огонь на 1 по всему, кроме подлодок.',
       battleship: 'Ход ровно на 5 клеток по морю, огонь до 5 (не по подлодкам). Топит подлодки на пути, везёт человека или зенитку.',
@@ -828,6 +846,10 @@ const STR = {
     lKill: (u, a, c, v, vp, gd) => `${u} ${a} бьёт по ${c}: ${['уничтожен', 'уничтожена', 'уничтожено'][gd]} ${v} (${vp})`,
     lCrush: (c, v, vp, gd) => `на ${c} ${['раздавлен', 'раздавлена', 'раздавлено'][gd]} ${v} (${vp})`,
     lBomb: (c, vp) => `линкор топит подлодку (${vp}) на ${c}`,
+    lSmash: (u, c, v, vp, gd) => `${u} встаёт на ${c}: ${['уничтожен', 'уничтожена', 'уничтожено'][gd]} ${v} (${vp})`,
+    lRam: (u, c, v, vp) => `таран на ${c}: ${u} и ${v} (${vp}) уничтожены`,
+    actLeft: 'Действие: есть', actDone: 'Действие: сделано', shotLeft: 'Выстрел: есть', shotDone: 'Выстрел: сделан',
+    afterActHint: 'Действие сделано. Можно ещё выстрелить любым своим юнитом (кликните по нему) или завершить ход.',
     lOut: 'людей не осталось, игрок выбывает', lWin: 'победа!',
     withCargo: { human: ' с человеком на борту', aa: ' с зениткой на борту' },
   },
@@ -837,7 +859,7 @@ const STR = {
     colors: { red: 'Red', blue: 'Blue', green: 'Green', violet: 'Violet' },
     ctlHuman: 'Human', ctlAI: 'Computer', aiTag: 'AI',
     setupTitle: 'New game',
-    setupLead: 'Destroy every enemy human to win. One action per turn: build a unit, move and fire with one unit, or collect the harvest.',
+    setupLead: 'Destroy every enemy human to win. Each turn: one action (build a unit, move one unit or collect the harvest) plus one shot with any of your units.',
     playersL: 'Players', addPlayer: 'Add player', remove: 'Remove player', nameL: 'Player name',
     mapN: n => `Map No. ${n}`, reroll: 'Another map', start: 'Start game', back: 'Back to game',
     cr: 'cr', perHarvest: n => `+${n} per harvest`, humansN: n => `humans: ${n}`, outL: 'out',
@@ -845,11 +867,11 @@ const STR = {
     placeHint: 'Place your first human on any cell along the edge of the field. Those cells are highlighted.',
     harvestBtn: 'Collect harvest', passBtn: 'Pass the turn', noYield: 'nothing to collect',
     buildL: 'Build', buildHint: 'Click a highlighted cell next to one of your humans.',
-    actHint: 'To fire or move, click one of your guns, tanks, submarines, aircraft or battleships.',
+    actHint: 'To move or fire, click one of your units. Firing does not use up the turn: one action and one shot with any unit per turn.',
     gunMain: 'Shot', gunAA: 'AA gun', ready: 'ready', used: 'used', noTargets: 'no targets',
     moveL: 'Move', moveN: n => `${n} cells`, moveDone: 'done', moveNone: 'blocked',
-    crush: 'Crush cells along the path', crushHint: 'Enemy units on the path are destroyed and empty cells burn. Your own units are spared. An enemy on the final cell is always crushed.',
-    actHelp: 'Red crosshair: fire. Ring: where the move can end; hover it to see the path. Dot: the next step, if you want to lay the path yourself.',
+    crush: 'Crush cells along the path', crushHint: 'Enemy units on the path are destroyed and empty cells burn. Your own units and aircraft (the tank drives under them) are spared.',
+    actHelp: 'Red crosshair: fire. Ring: where the move can end; hover it to see the path. Dot: the next step. You may end on an enemy: a human, field or factory is destroyed; enemy machinery means a ram and both are destroyed.',
     undo: 'Step back', cancel: 'Cancel', endTurn: 'End turn',
     logL: 'Log', logEmpty: 'Moves will appear here.',
     terrLand: 'land', terrSea: 'sea', terrBurnt: 'destroyed cell', cargoL: 'aboard',
@@ -865,7 +887,7 @@ const STR = {
       factory: 'Harvest +5 cr.',
       artillery: 'Cannot move. Fires up to 5 cells at anything except aircraft.',
       aa: 'Cannot move. Fires up to 5 cells at aircraft. Can be mounted on a battleship.',
-      tank: 'Moves exactly 5 cells on land, fires at 1. Crushes everything on its path and can end its move on an enemy unit.',
+      tank: 'Moves exactly 5 cells on land, fires at 1. Crushes everything on its path except aircraft.',
       sub: 'Moves exactly 5 cells at sea, fires at 1, only at submarines and battleships.',
       aircraft: 'Moves exactly 10 cells anywhere, fires at 1 at anything except submarines.',
       battleship: 'Moves exactly 5 cells at sea, fires up to 5 (not at submarines). Sinks submarines it passes over; carries a human or an AA gun.',
@@ -879,6 +901,10 @@ const STR = {
     lKill: (u, a, c, v, vp) => `${u} ${a} fires at ${c}: ${vp} ${v} destroyed`,
     lCrush: (c, v, vp) => `${vp} ${v} crushed at ${c}`,
     lBomb: (c, vp) => `battleship sinks ${vp} submarine at ${c}`,
+    lSmash: (u, c, v, vp) => `${u} lands on ${c}: ${vp} ${v} destroyed`,
+    lRam: (u, c, v, vp) => `ram at ${c}: ${u} and ${vp} ${v} destroyed`,
+    actLeft: 'Action: available', actDone: 'Action: done', shotLeft: 'Shot: available', shotDone: 'Shot: used',
+    afterActHint: 'Action done. You can still fire with any of your units (click it) or end the turn.',
     lOut: 'no humans left, out of the game', lWin: 'wins!',
     withCargo: { human: ' carrying a human', aa: ' carrying an AA gun' },
   },
@@ -895,8 +921,8 @@ function rulesHTML() {
     const mv = u.move ? (LANG === 'ru' ? `${u.move}, ${{ land: 'суша', sea: 'море', air: 'везде' }[u.cls]}` : `${u.move}, ${{ land: 'land', sea: 'sea', air: 'anywhere' }[u.cls]}`) : '—';
     const rg = u.guns.length ? u.guns[0].range : '—';
     const tg = LANG === 'ru'
-      ? { human: 'строит соседние клетки', field: 'урожай +1', factory: 'урожай +5', artillery: 'всё, кроме самолётов', aa: 'только самолёты', tank: 'всё; давит всё на пути, может встать на врага', sub: 'подлодки и линкоры', aircraft: 'всё, кроме подлодок', battleship: 'всё, кроме подлодок; топит подлодки на пути' }[ty]
-      : { human: 'builds on neighbouring cells', field: 'harvest +1', factory: 'harvest +5', artillery: 'anything but aircraft', aa: 'aircraft only', tank: 'anything; crushes its path, can end on an enemy', sub: 'submarines and battleships', aircraft: 'anything but submarines', battleship: 'anything but submarines; sinks submarines on its path' }[ty];
+      ? { human: 'строит соседние клетки', field: 'урожай +1', factory: 'урожай +5', artillery: 'всё, кроме самолётов', aa: 'только самолёты', tank: 'всё; давит всё на пути, кроме самолётов', sub: 'подлодки и линкоры', aircraft: 'всё, кроме подлодок', battleship: 'всё, кроме подлодок; топит подлодки на пути' }[ty]
+      : { human: 'builds on neighbouring cells', field: 'harvest +1', factory: 'harvest +5', artillery: 'anything but aircraft', aa: 'aircraft only', tank: 'anything; crushes its path except aircraft', sub: 'submarines and battleships', aircraft: 'anything but submarines', battleship: 'anything but submarines; sinks submarines on its path' }[ty];
     return `<tr><td>${uname(ty, true)}</td><td class="n">${u.cost}</td><td class="n">${mv}</td><td class="n">${rg}</td><td>${tg}</td></tr>`;
   }).join('');
   const head = LANG === 'ru' ? ['Юнит', 'Цена', 'Ход', 'Огонь', 'По кому / что даёт'] : ['Unit', 'Cost', 'Move', 'Range', 'Targets / effect'];
@@ -908,11 +934,11 @@ function rulesHTML() {
 <p>Суша белая, море синее. Море лежит в центре, не ближе 7 клеток к краю поля, берег извилистый (до 2 клеток), в море есть несколько островов. В клетке может стоять только один юнит. Клетка, которую юнит покинул или по которой попали, сгорает — чернеет до конца игры, и занять её больше нельзя.</p>
 <h3>Ход</h3>
 <p>Игроки ходят по очереди. Первым ходом каждый ставит человека в любую клетку у края поля. Дальше за ход — ровно одно действие:</p>
-<ol><li><b>Построить</b> юнит в одной из 8 клеток вокруг своего человека.</li><li><b>Действовать</b> одним юнитом: переместить его и выстрелить — до или после перемещения.</li><li><b>Собрать урожай</b> со всех своих полей и заводов.</li></ol>
+<ol><li><b>Построить</b> юнит в одной из 8 клеток вокруг своего человека.</li><li><b>Переместить</b> один юнит.</li><li><b>Собрать урожай</b> со всех своих полей и заводов.</li></ol><p>Кроме того, за ход можно один раз выстрелить любым своим юнитом — до или после действия.</p>
 <p>Кредиты всех игроков видны всем.</p>
 <h3>Юниты</h3>${table}
 <h3>Движение</h3>
-<p>Юнит идёт по прямой в одном из 8 направлений ровно на свою дальность — остановиться раньше нельзя. Конечная клетка должна быть свободной и целой, а по пути можно проходить через любые клетки. Свернуть можно, только упёршись в границу: если следующая клетка по ходу — берег или край поля, юнит «отражается» и может продолжить путь в любом направлении. Идя вдоль границы, свернуть в произвольный момент нельзя. Самолёт отражается только от краёв поля. Танки не выходят в море, корабли — на сушу.</p>
+<p>Юнит идёт по прямой в одном из 8 направлений ровно на свою дальность — остановиться раньше нельзя. Конечная клетка должна быть целой и не занятой своим юнитом (про вражеские — ниже), а по пути можно проходить через любые клетки. Свернуть можно, только упёршись в границу: если следующая клетка по ходу — берег или край поля, юнит «отражается» и может продолжить путь в любом направлении. Идя вдоль границы, свернуть в произвольный момент нельзя. Самолёт отражается только от краёв поля. Танки не выходят в море, корабли — на сушу.</p>
 <h3>Стрельба</h3>
 <p>По прямой в 8 направлениях на любое расстояние от 1 до дальности юнита, поверх других клеток. Поражённый юнит гибнет, клетка сгорает.</p>
 <h3>Линкор</h3>
@@ -920,12 +946,11 @@ function rulesHTML() {
 <h3>Как прочитаны неясные места</h3>
 <ul>
 <li>Зенитка стреляет только по самолётам (в исходном тексте опечатка).</li>
-<li>Артиллерия и зенитка не ходят, поэтому их действие — выстрел. Подвижные юниты тоже могут только выстрелить или только переместиться.</li>
-<li>Один выстрел за действие. Линкор с зениткой на борту может выстрелить ещё раз — по самолёту.</li>
+<li>Выстрел не тратит ход: за ход можно сделать одно действие и один выстрел любым юнитом. Линкор с зениткой тоже стреляет один раз — из пушки или из зенитки.</li>
 <li>Стрелять можно только по вражеским юнитам.</li>
 <li>Подлодка, как и остальные, ходит ровно на 5 клеток.</li>
-<li>Танк по умолчанию давит всё на пути: вражеские юниты гибнут, пустые клетки сгорают, свои юниты не страдают. Давку можно отключить.</li>
-<li>Танк может закончить ход на клетке с вражеским юнитом: юнит раздавлен, танк занимает клетку. Самолёт на занятую клетку садиться не может.</li>
+<li>Танк по умолчанию давит всё на пути: вражеские юниты гибнут, пустые клетки сгорают. Свои юниты и самолёты (под ними танк проезжает) не страдают. Давку можно отключить.</li>
+<li>Любой юнит может закончить ход на клетке с вражеским юнитом. Человек, поле или завод уничтожаются, и юнит занимает клетку. Вражеская техника — таран: гибнут оба, клетка сгорает. Танк, линкор и подлодка не достают самолёт, самолёт не видит подлодку; линкор, вставший на подлодку, топит её.</li>
 <li>Высаженный человек покидает линкор, и линкор можно загрузить снова.</li>
 <li>Ничья объявляется, если ни у кого не осталось ни места для постройки, ни выстрела, ни хода, а также если 150 ходов подряд никто никого не уничтожил, — чтобы партия не тянулась бесконечно.</li>
 </ul>
@@ -942,11 +967,11 @@ function rulesHTML() {
 <p>Land is white, sea is blue. The sea sits in the centre, at least 7 cells from the edge, with a shoreline that wanders by up to 2 cells and a few islands. A cell holds one unit. A cell that a unit leaves or that gets hit is destroyed: it turns black for the rest of the game and can never be used again.</p>
 <h3>Turns</h3>
 <p>Players move in order. On their first turn each player places a human on any cell along the edge of the field. After that, every turn is exactly one action:</p>
-<ol><li><b>Build</b> a unit on one of the 8 cells around one of your humans.</li><li><b>Act</b> with one unit: move it and fire, before or after the move.</li><li><b>Collect the harvest</b> from all your fields and factories.</li></ol>
+<ol><li><b>Build</b> a unit on one of the 8 cells around one of your humans.</li><li><b>Move</b> one unit.</li><li><b>Collect the harvest</b> from all your fields and factories.</li></ol><p>In addition, once per turn you may fire with any one of your units, before or after the action.</p>
 <p>Everyone can see everyone's credits.</p>
 <h3>Units</h3>${table}
 <h3>Movement</h3>
-<p>A unit moves in a straight line in one of 8 directions for exactly its full range; it cannot stop early. The final cell must be free and intact; the path may cross any cells. A unit may turn only when it runs into a boundary: if the next cell ahead is a shore or the edge of the field, it bounces and may continue in any direction. Moving along a boundary, it cannot turn whenever it likes. Aircraft bounce only off the edges of the field. Tanks never enter the sea, ships never go ashore.</p>
+<p>A unit moves in a straight line in one of 8 directions for exactly its full range; it cannot stop early. The final cell must be intact and not hold one of your own units (enemy units: see below); the path may cross any cells. A unit may turn only when it runs into a boundary: if the next cell ahead is a shore or the edge of the field, it bounces and may continue in any direction. Moving along a boundary, it cannot turn whenever it likes. Aircraft bounce only off the edges of the field. Tanks never enter the sea, ships never go ashore.</p>
 <h3>Firing</h3>
 <p>In a straight line in 8 directions, at any distance from 1 to the unit's range, over other cells. The hit unit is destroyed and the cell burns.</p>
 <h3>Battleships</h3>
@@ -954,12 +979,11 @@ function rulesHTML() {
 <h3>How unclear points are read</h3>
 <ul>
 <li>The AA gun fires only at aircraft (the original text has a typo).</li>
-<li>Artillery and AA guns cannot move, so their action is a shot. Mobile units may also just fire or just move.</li>
-<li>One shot per action. A battleship carrying an AA gun gets one extra shot, at an aircraft.</li>
+<li>Firing does not use up the turn: one action plus one shot with any unit per turn. A battleship carrying an AA gun also fires once, with either gun.</li>
 <li>Only enemy units can be fired at.</li>
 <li>Submarines move exactly 5 cells, like everything else.</li>
-<li>A tank crushes everything on its path by default: enemy units die, empty cells burn, your own units are spared. Crushing can be switched off.</li>
-<li>A tank may end its move on an enemy unit's cell: the unit is crushed and the tank takes the cell. Aircraft cannot land on occupied cells.</li>
+<li>A tank crushes everything on its path by default: enemy units die, empty cells burn. Your own units and aircraft (the tank drives under them) are spared. Crushing can be switched off.</li>
+<li>Any unit may end its move on an enemy unit's cell. A human, field or factory is destroyed and the cell taken. Enemy machinery means a ram: both are destroyed and the cell burns. Tanks and ships cannot reach aircraft, aircraft cannot see submarines; a battleship stopping on a submarine sinks it.</li>
 <li>A landed human leaves the battleship, which can then be loaded again.</li>
 <li>The game is a draw if nobody has room to build, a shot or a move left, or if nothing is destroyed for 150 turns in a row, so a game cannot drag on forever.</li>
 </ul>
@@ -1038,7 +1062,7 @@ function drawToken(c, type, cargo, x, y, s, color, alpha = 1) {
 
 // ===================== App state =====================
 let G = null;
-let UI = { view: 'setup', mode: 'none', sel: null, hover: -1, busy: false, hidden: 0 };
+let UI = { view: 'setup', mode: 'none', sel: null, hover: -1, busy: false, hidden: 0, turn: { act: false, shot: false } };
 let setup = { players: [{ color: 0, name: '', ai: false }, { color: 1, name: '', ai: true }], seed: newSeed() };
 let gameToken = 0;
 let anims = [];
@@ -1105,7 +1129,7 @@ function floatText(cell, text, color) {
 }
 function animMove(u, path, crush) {
   const color = pcolor(u.owner), pts = [u.cell, ...path], steps = path.length;
-  const burn = new Set(pathVictims(G, u, path, crush).filter(c => c !== path[path.length - 1]));
+  const burn = new Set(pathVictims(G, u, path, crush));
   UI.hidden = u.id;
   return anim(steps * 95 + 80, (c, p) => {
     const f = Math.min(steps, p * (steps + 0.5)), i = Math.min(steps - 1, Math.floor(f)), r = Math.min(1, f - i);
@@ -1167,7 +1191,7 @@ async function doMove(id, path, crush) {
   if (ev.some(e => e.victim)) G.lastKill = G.turn;
   track('trail', [from, ...path]);
   addLog({ k: 'move', p: u.owner, t: u.type, from, c: path[path.length - 1], crush: u.type === 'tank' && crush });
-  for (const e of ev) if (e.victim) addLog({ k: u.type === 'tank' ? 'crush' : 'bomb', p: u.owner, c: e.cell, v: e.victim.type, vc: e.victim.cargo, vp: e.victim.owner });
+  for (const e of ev) if (e.victim) addLog({ k: e.kind, p: u.owner, t: u.type, c: e.cell, v: e.victim.type, vc: e.victim.cargo, vp: e.victim.owner });
   renderAll();
   const killed = ev.filter(e => e.victim);
   if (killed.length) await Promise.all(killed.map(e => boom(e.cell)));
@@ -1188,7 +1212,7 @@ function beginTurn(resumed) {
   if (UI.mode !== 'play') { renderAll(); return; }
   const P = G.players[G.cur];
   if (!G.now) G.now = { p: G.cur, trail: [], shots: [], marks: [] };
-  UI.sel = null; UI.busy = false;
+  UI.sel = null; UI.busy = false; UI.turn = { act: false, shot: false };
   if (!P.ai && !P.placed) UI.sel = { kind: 'build', type: 'human', targets: buildTargets(G, G.cur, 'human') };
   renderAll();
   const people = G.players.filter(q => !q.ai && q.alive).length;
@@ -1209,39 +1233,55 @@ let gateWaiters = [];
 const gate = () => UI.view === 'setup' ? new Promise(r => gateWaiters.push(r)) : Promise.resolve();
 function releaseGate() { const w = gateWaiters; gateWaiters = []; w.forEach(r => r()); }
 async function aiTurn() {
-  const tok = gameToken, ok = () => tok === gameToken && UI.mode === 'play';
+  const tok = gameToken, ok = () => tok === gameToken && UI.mode === 'play', p = G.cur;
   UI.busy = true; renderPanel();
   await sleep(320);
   await gate();
   if (!ok()) return;
-  let a;
-  try { a = aiThink(G, G.cur); } catch (err) { console.error(err); a = { kind: 'harvest' }; }
-  const validShot = s => { const u = G.units[a.id]; if (!u) return false; const gun = gunsOf(u)[s.gi]; return !!gun && targetsFrom(G, u.owner, u.cell, gun).includes(s.c); };
-  if (a.kind === 'harvest') await doHarvest();
-  else if (a.kind === 'build') await doBuild(a.type, a.cell);
-  else {
-    for (const s of a.before) { await gate(); if (!ok()) return; if (validShot(s)) await doShot(a.id, s.gi, s.c); }
-    if (ok() && a.path && G.units[a.id] && new Solver(G, G.units[a.id]).dest(a.path[a.path.length - 1])) { await gate(); if (!ok()) return; await doMove(a.id, a.path, a.crush); }
-    for (const s of a.after) { await gate(); if (!ok()) return; if (validShot(s)) await doShot(a.id, s.gi, s.c); }
+  const think = shotFree => { try { return aiThink(G, p, null, shotFree); } catch (err) { console.error(err); return { kind: 'harvest' }; } };
+  const validShot = (id, gi, c) => { const u = G.units[id], gun = u && gunsOf(u)[gi]; return !!gun && targetsFrom(G, p, u.cell, gun).includes(c); };
+  const act = async a => {
+    if (a.kind === 'harvest') await doHarvest();
+    else if (a.kind === 'build') await doBuild(a.type, a.cell);
+    else if (a.path && G.units[a.id] && new Solver(G, G.units[a.id]).dest(a.path[a.path.length - 1])) await doMove(a.id, a.path, a.crush);
+  };
+  let a = think(true), shot = false;
+  if (a.kind === 'act' && a.after && (!a.shot || a.after.v > a.shot.v)) {
+    await act(a);
+    await gate(); if (!ok()) return;
+    if (validShot(a.id, a.after.gi, a.after.c)) { await doShot(a.id, a.after.gi, a.after.c); shot = true; }
+  } else {
+    if (a.shot && G.players[p].placed) {
+      await doShot(a.shot.id, a.shot.gi, a.shot.c); shot = true;
+      await gate(); if (!ok()) return;
+      a = think(false);
+    }
+    await act(a);
+  }
+  await gate(); if (!ok()) return;
+  if (!shot && G.players[p].placed) {
+    let s2 = null;
+    try { s2 = aiBestShot(G, aiContext(G, p)); } catch (err) { console.error(err); }
+    if (s2 && s2.v > 0) await doShot(s2.id, s2.gi, s2.c);
   }
   await gate();
   if (ok()) finishTurn();
 }
 
 // ===================== People's turn =====================
-async function humanAction(fn, endsTurn) {
+// A turn is one action (build, move or harvest) plus one shot with any unit, in either order.
+function anyShot(p) { for (const u of unitList(G)) if (u.owner === p) for (const gun of gunsOf(u)) if (targetsFrom(G, p, u.cell, gun).length) return true; return false; }
+async function humanAction(fn, kind) {
   if (!isHumanTurn()) return;
   const tok = gameToken;
   UI.busy = true; renderPanel(); requestDraw();
   try { await fn(); } catch (err) { console.error(err); }
   if (tok !== gameToken || UI.mode !== 'play') return;
-  if (endsTurn) { finishTurn(); return; }
+  UI.turn[kind] = true;
   UI.busy = false;
-  const s = UI.sel;
-  if (s && s.kind === 'act') {
-    recomputeAct();
-    if (!UI.sel || (UI.sel.targets.size === 0 && (UI.sel.moved || !UI.sel.canMove))) { finishTurn(); return; }
-  }
+  if (UI.sel && UI.sel.kind === 'build') UI.sel = null;
+  if (UI.sel && UI.sel.kind === 'act') { recomputeAct(); const s = UI.sel; if (s && !s.targets.size && (UI.turn.act || !s.canMove)) UI.sel = null; }
+  if (UI.turn.act && (UI.turn.shot || !anyShot(G.cur))) { finishTurn(); return; }
   renderAll();
 }
 function uiGain(u, s) {
@@ -1251,7 +1291,7 @@ function uiGain(u, s) {
   return () => 0;
 }
 function selectUnit(u) {
-  UI.sel = { kind: 'act', id: u.id, used: gunsOf(u).map(() => false), moved: false, committed: false, path: [], dirs: [], crush: u.type === 'tank' };
+  UI.sel = { kind: 'act', id: u.id, path: [], dirs: [], crush: u.type === 'tank' };
   recomputeAct(); renderAll();
 }
 function recomputeAct() {
@@ -1259,61 +1299,58 @@ function recomputeAct() {
   if (!u) { UI.sel = null; return; }
   const guns = gunsOf(u);
   s.targets = new Map(); s.perGun = guns.map(() => 0);
-  guns.forEach((gun, gi) => { if (s.used[gi]) return; for (const c of targetsFrom(G, u.owner, u.cell, gun)) { s.perGun[gi]++; if (!s.targets.has(c)) s.targets.set(c, gi); } });
+  guns.forEach((gun, gi) => { if (UI.turn.shot) return; for (const c of targetsFrom(G, u.owner, u.cell, gun)) { s.perGun[gi]++; if (!s.targets.has(c)) s.targets.set(c, gi); } });
   s.steps = new Map(); s.plans = new Map(); s.canMove = false;
   const n = U[u.type].move;
-  if (!n || s.moved) return;
+  if (!n || UI.turn.act) { s.path = []; s.dirs = []; return; }
   const sv = new Solver(G, u);
   if (!sv.good(u.cell, -1, n)) { s.path = []; s.dirs = []; return; }
   s.canMove = true;
   let last = s.path.length ? s.path[s.path.length - 1] : u.cell, dir = s.dirs.length ? s.dirs[s.dirs.length - 1] : -1, k = n - s.path.length;
   if (s.path.length && !sv.good(last, dir, k)) { s.path = []; s.dirs = []; last = u.cell; dir = -1; k = n; }
   for (const d of sv.dirs(last, dir)) { const nc = NB[last * 8 + d]; if (sv.good(nc, d, k - 1)) s.steps.set(nc, d); }
-  s.plans = sv.plan(last, dir, k, uiGain(u, s), u.type === 'tank' ? (c => { const v = unitAt(G, c); return v && v.owner !== u.owner ? 10 + U[v.type].val : 0; }) : undefined);
+  s.plans = sv.plan(last, dir, k, uiGain(u, s));
 }
 function previewPath(s) {
-  if (!s || s.kind !== 'act' || s.moved || !s.plans || !s.plans.has(UI.hover)) return null;
+  if (!s || s.kind !== 'act' || UI.turn.act || !s.plans || !s.plans.has(UI.hover)) return null;
   return s.path.concat(Solver.pathOf(s.plans.get(UI.hover).state));
 }
 function onBoardClick(c) {
   if (!isHumanTurn() || c < 0) return;
   const P = G.players[G.cur], s = UI.sel;
   if (s && s.kind === 'build') {
-    if (s.targets.has(c)) { const type = s.type; UI.sel = null; humanAction(() => doBuild(type, c), true); return; }
+    if (s.targets.has(c)) { const type = s.type; UI.sel = null; humanAction(() => doBuild(type, c), 'act'); return; }
     if (!P.placed) return;
   }
   if (s && s.kind === 'act') {
     const u = G.units[s.id];
-    if (s.targets.has(c)) { const gi = s.targets.get(c); humanAction(async () => { await doShot(s.id, gi, c); s.used[gi] = true; s.committed = true; }); return; }
-    if (!s.moved && s.plans.has(c)) {
+    if (s.targets.has(c)) { const gi = s.targets.get(c); humanAction(() => doShot(s.id, gi, c), 'shot'); return; }
+    if (!UI.turn.act && s.plans.has(c)) {
       const path = s.path.concat(Solver.pathOf(s.plans.get(c).state)), crush = s.crush;
-      humanAction(async () => { await doMove(s.id, path, crush); s.moved = true; s.committed = true; s.path = []; s.dirs = []; });
+      humanAction(async () => { await doMove(s.id, path, crush); s.path = []; s.dirs = []; }, 'act');
       return;
     }
-    if (!s.moved && s.steps.has(c)) { s.path.push(c); s.dirs.push(s.steps.get(c)); recomputeAct(); renderAll(); return; }
+    if (!UI.turn.act && s.steps.has(c)) { s.path.push(c); s.dirs.push(s.steps.get(c)); recomputeAct(); renderAll(); return; }
     if (u && c === u.cell) return;
-    if (s.committed) return;
   }
   const u = unitAt(G, c);
-  if (u && u.owner === G.cur && canAct(u)) { selectUnit(u); return; }
-  if (s) { UI.sel = null; renderAll(); }
+  if (u && u.owner === G.cur && ((gunsOf(u).length && !UI.turn.shot) || (U[u.type].move && !UI.turn.act))) { selectUnit(u); return; }
+  if (s && P.placed) { UI.sel = null; renderAll(); }
 }
 function toggleBuild(type) {
-  if (!isHumanTurn() || !G.players[G.cur].placed) return;
-  if (UI.sel && UI.sel.kind === 'act' && UI.sel.committed) return;
+  if (!isHumanTurn() || !G.players[G.cur].placed || UI.turn.act) return;
   if (UI.sel && UI.sel.kind === 'build' && UI.sel.type === type) UI.sel = null;
   else { const targets = buildTargets(G, G.cur, type); if (!targets.size) return; UI.sel = { kind: 'build', type, targets }; }
   renderAll();
 }
 function harvestNow() {
-  if (!isHumanTurn() || !G.players[G.cur].placed) return;
-  if (UI.sel && UI.sel.kind === 'act' && UI.sel.committed) return;
+  if (!isHumanTurn() || !G.players[G.cur].placed || UI.turn.act) return;
   UI.sel = null;
-  humanAction(doHarvest, true);
+  humanAction(doHarvest, 'act');
 }
 function undoStep() { const s = UI.sel; if (!isHumanTurn() || !s || s.kind !== 'act' || !s.path.length) return; s.path.pop(); s.dirs.pop(); recomputeAct(); renderAll(); }
-function cancelSel() { const s = UI.sel; if (!isHumanTurn() || !s || (s.kind === 'act' && s.committed) || !G.players[G.cur].placed) return; UI.sel = null; renderAll(); }
-function endTurnNow() { const s = UI.sel; if (isHumanTurn() && s && s.kind === 'act' && s.committed) finishTurn(); }
+function cancelSel() { if (!isHumanTurn() || !UI.sel || !G.players[G.cur].placed) return; UI.sel = null; renderAll(); }
+function endTurnNow() { if (isHumanTurn() && UI.turn.act) finishTurn(); }
 
 // ===================== Setup =====================
 function openSetup() {
@@ -1328,7 +1365,7 @@ function startGame() {
   const players = setup.players.map(sp => ({ name: sp.name.trim() || STR[LANG].colors[PCOLORS[sp.color].id], color: sp.color, ai: sp.ai }));
   gameToken++; flushAnims(); releaseGate();
   G = makeGame({ seed: setup.seed, players });
-  UI = { view: 'game', mode: 'play', sel: null, hover: -1, busy: false, hidden: 0 };
+  UI = { view: 'game', mode: 'play', sel: null, hover: -1, busy: false, hidden: 0, turn: { act: false, shot: false } };
   buildTerrain(); commit();
   beginTurn(false);
 }
@@ -1459,14 +1496,14 @@ function drawActUnder(s) {
   const u = G.units[s.id]; if (!u) return;
   const color = pcolor(u.owner), pv = previewPath(s), from = pv ? pv[pv.length - 1] : u.cell;
   ctx.fillStyle = hexA(PAL.target, 0.08);
-  gunsOf(u).forEach((gun, gi) => { if (!s.used[gi]) forLanes(from, gun.range, c => { const [x, y] = cellXY(c); ctx.fillRect(x + 1, y + 1, CS - 1, CS - 1); }); });
+  if (!UI.turn.shot) gunsOf(u).forEach(gun => forLanes(from, gun.range, c => { const [x, y] = cellXY(c); ctx.fillRect(x + 1, y + 1, CS - 1, CS - 1); }));
   if (s.path.length) drawPath([u.cell, ...s.path], color, 0.85, false);
   if (pv) drawPath([u.cell, ...pv], color, 0.6, true);
 }
 function drawActOver(s, now) {
   const u = G.units[s.id]; if (!u) return;
   const color = pcolor(u.owner), pv = previewPath(s);
-  if (pv) for (const c of pathVictims(G, u, pv, s.crush)) drawCross(c, PAL.target, 0.9);
+  if (pv) { for (const c of pathVictims(G, u, pv, s.crush)) drawCross(c, PAL.target, 0.9); if (unitAt(G, pv[pv.length - 1])) drawCross(pv[pv.length - 1], PAL.target, 0.9); }
   for (const c of s.plans.keys()) {
     const [x, y] = center(c);
     ctx.fillStyle = hexA(color, 0.14); ctx.strokeStyle = hexA(color, 0.9); ctx.lineWidth = 1.6;
@@ -1560,7 +1597,9 @@ function renderActions() {
   if (P.ai) return h + `<p class="hint">${t('thinking')}</p>`;
   if (!P.placed) return h + `<p class="hint">${t('placeHint')}</p>`;
   const s = UI.sel, dis = UI.busy ? 'disabled' : '';
-  if (s && s.kind === 'act') return h + renderActPanel(s);
+  h += `<div class="chips"><span class="chip ${UI.turn.act ? 'done' : ''}">${t(UI.turn.act ? 'actDone' : 'actLeft')}</span><span class="chip ${UI.turn.shot ? 'done' : ''}">${t(UI.turn.shot ? 'shotDone' : 'shotLeft')}</span></div>`;
+  if (s && s.kind === 'act' && G.units[s.id]) return h + renderActPanel(s);
+  if (UI.turn.act) return h + `<p class="hint">${t('afterActHint')}</p><div class="row-btns"><button type="button" class="btn primary" data-act="end" ${dis}>${t('endTurn')}</button></div>`;
   const R = yieldOf(G, p);
   h += `<button type="button" class="btn harvest" data-act="harvest" ${dis}><span>${t(R ? 'harvestBtn' : 'passBtn')}</span>${R ? `<b>+${R} ${t('cr')}</b>` : `<small>${t('noYield')}</small>`}</button>`;
   h += `<p class="label">${t('buildL')}</p><div class="unit-grid">`;
@@ -1577,16 +1616,16 @@ function renderActPanel(s) {
   let h = `<div class="act-card"><canvas data-icon="${u.type}" data-cargo="${u.cargo || ''}"></canvas><div><div class="act-name">${uname(u.type, true)}</div><div class="mono hint">${coord(u.cell)}${u.cargo ? ` · ${t('cargoL')}: ${uname(u.cargo)}` : ''}</div></div></div>`;
   h += `<p class="hint">${esc(STR[LANG].udesc[u.type])}</p><div class="chips">`;
   gunsOf(u).forEach((gun, gi) => {
-    const st = s.used[gi] ? t('used') : s.perGun[gi] ? t('ready') : t('noTargets');
-    h += `<span class="chip ${s.used[gi] || !s.perGun[gi] ? 'done' : ''}">${gun.aa ? t('gunAA') : t('gunMain')}: ${st}</span>`;
+    const st = UI.turn.shot ? t('used') : s.perGun[gi] ? t('ready') : t('noTargets');
+    h += `<span class="chip ${UI.turn.shot || !s.perGun[gi] ? 'done' : ''}">${gun.aa ? t('gunAA') : t('gunMain')}: ${st}</span>`;
   });
-  if (ut.move) h += `<span class="chip ${s.moved || !s.canMove ? 'done' : ''}">${t('moveL')}: ${s.moved ? t('moveDone') : s.canMove ? t('moveN', ut.move) : t('moveNone')}</span>`;
+  if (ut.move) h += `<span class="chip ${UI.turn.act || !s.canMove ? 'done' : ''}">${t('moveL')}: ${UI.turn.act ? t('moveDone') : s.canMove ? t('moveN', ut.move) : t('moveNone')}</span>`;
   h += `</div>`;
-  if (u.type === 'tank' && !s.moved && s.canMove) h += `<label class="check" for="crushBox"><input type="checkbox" id="crushBox" ${s.crush ? 'checked' : ''} ${dis}><span>${t('crush')}<small>${t('crushHint')}</small></span></label>`;
+  if (u.type === 'tank' && !UI.turn.act && s.canMove) h += `<label class="check" for="crushBox"><input type="checkbox" id="crushBox" ${s.crush ? 'checked' : ''} ${dis}><span>${t('crush')}<small>${t('crushHint')}</small></span></label>`;
   h += `<p class="hint">${t('actHelp')}</p><div class="row-btns">`;
-  if (s.path.length && !s.moved) h += `<button type="button" class="btn" data-act="undo" ${dis}>${t('undo')}</button>`;
-  if (!s.committed) h += `<button type="button" class="btn" data-act="cancel" ${dis}>${t('cancel')}</button>`;
-  else h += `<button type="button" class="btn primary" data-act="end" ${dis}>${t('endTurn')}</button>`;
+  if (s.path.length && !UI.turn.act) h += `<button type="button" class="btn" data-act="undo" ${dis}>${t('undo')}</button>`;
+  h += `<button type="button" class="btn" data-act="cancel" ${dis}>${t('cancel')}</button>`;
+  if (UI.turn.act) h += `<button type="button" class="btn primary" data-act="end" ${dis}>${t('endTurn')}</button>`;
   return h + `</div>`;
 }
 function fmtLog(e) {
@@ -1603,6 +1642,8 @@ function fmtLog(e) {
     case 'kill': return t('lKill', uname(e.t), coord(e.from), coord(e.c), vic, vp, S.gender[e.v] || 0);
     case 'crush': return t('lCrush', coord(e.c), vic, vp, S.gender[e.v] || 0);
     case 'bomb': return t('lBomb', coord(e.c), vp);
+    case 'smash': return t('lSmash', uname(e.t), coord(e.c), vic, vp, S.gender[e.v] || 0);
+    case 'ram': return t('lRam', uname(e.t), coord(e.c), vic, vp);
     case 'out': return t('lOut');
     case 'win': return `<span class="win">${t('lWin')}</span>`;
     case 'draw': return `<span class="win">${cap(G.draw === 'calm' ? t('lDrawCalm', CALM_TURNS) : t('lDraw'))}</span>`;
@@ -1741,7 +1782,8 @@ window.__globus = {
   get G() { return G; }, get UI() { return UI; },
   setInstant(v) { INSTANT = !!v; },
   start(players, seed) { setup = { players, seed: seed || newSeed() }; startGame(); },
-  aiThink, aiContext, aiNextValue, aiCrushNext, Solver, buildTargets, genMap, render: () => renderAll(), cells: c => ({ x: cx(c), y: cy(c) }),
+  aiThink, aiContext, aiNextValue, aiCrushNext, aiBestShot, Solver, buildTargets, genMap, applyMove, arrival, pathVictims,
+  render: () => renderAll(), cells: c => ({ x: cx(c), y: cy(c) }),
 };
 if (window.claude?.hot?.ready) window.claude.hot.ready(boot); else boot(window.claude?.hot?.data ?? {});
 })();

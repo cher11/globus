@@ -1,0 +1,10 @@
+{
+  "name": "globus-tests",
+  "private": true,
+  "description": "Headless browser tests for index.html",
+  "scripts": {
+    "test": "node rules.test.js",
+    "ai": "node ai-batch.js 2 6 400"
+  },
+  "devDependencies": { "playwright": "^1.56.0" }
+}
