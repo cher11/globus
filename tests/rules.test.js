@@ -123,6 +123,19 @@ const { open, clickCell, check, failures, W } = require('./helpers');
   await page.click('[data-act="end"]'); await page.waitForTimeout(400);
   check('end turn skips the shot', await page.evaluate(() => __globus.G.cur) === 1);
 
+  // ---------- a unit built this turn fires from the next turn
+  await start();
+  await clickCell(page, 0); await clickCell(page, 40);
+  await put('field', 1, 5 * W + 1);                          // in the lane of a gun built at (1,1)
+  await page.evaluate(() => { __globus.G.players[0].credits = 50; __globus.render(); });
+  await page.click('[data-act="build"][data-type="artillery"]'); await page.waitForTimeout(100);
+  await clickCell(page, 1 * W + 1, 900);
+  const fr = await page.evaluate(() => ({ cur: __globus.G.cur, field: !!__globus.G.grid[5 * 41 + 1] }));
+  check('a gun built this turn cannot fire: the turn passes', fr.cur === 1 && fr.field, fr);
+  await page.click('[data-act="harvest"]'); await page.waitForTimeout(900);
+  await clickCell(page, 1 * W + 1);
+  check('next turn the new gun can fire', await page.evaluate(() => !!(__globus.UI.sel && __globus.UI.sel.targets && __globus.UI.sel.targets.has(5 * 41 + 1))));
+
   // ---------- boxed in with nothing to do but harvest = out
   await start();
   await clickCell(page, 0); await clickCell(page, 40);   // A at (0,0), B at (40,0)

@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Глобус</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="stylesheet" href="fonts/fonts.css">
 <style>
 /* Layout: the board is a sheet of squared notebook paper on a desk; beside it, a margin-ruled score page holds players, actions and the log. */
@@ -23,7 +26,7 @@
   --shadow: 0 1px 2px rgba(27, 35, 49, .08), 0 8px 24px rgba(27, 35, 49, .10);
   --p-red: #c3302c; --p-blue: #1f4f9e; --p-green: #28783a; --p-violet: #7a3cb4;
   /* board (paper) */
-  --b-land: #fdfdfb; --b-sea: #c5dcf1; --b-hatch: #a8c6e4; --b-grid: #d0dae7; --b-shore: #2d6195;
+  --b-land: #fdfdfb; --b-sea: #c5dcf1; --b-hatch: #a8c6e4; --b-grid: #d0dae7; --b-sea-grid: #edf5fd; --b-shore: #2d6195;
   --b-burnt: #22252c; --b-burnt2: #3c414b; --b-label: #8b97a9; --b-label-hi: #2152a3; --b-target: #d3222a;
   --font-hand: 'Caveat', 'Segoe Print', 'Bradley Hand', 'Comic Sans MS', cursive;
   --font-body: 'PT Sans', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -36,7 +39,7 @@
     --btn: #242c38; --btn-hover: #2d3745; --scrim: rgba(0, 0, 0, .6);
     --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px rgba(0, 0, 0, .35);
     --p-red: #ff8077; --p-blue: #86aef2; --p-green: #74c886; --p-violet: #be93f2;
-    --b-land: #e1e5eb; --b-sea: #a3c1de; --b-hatch: #89aacb; --b-grid: #bdc8d5; --b-shore: #29527c;
+    --b-land: #e1e5eb; --b-sea: #a3c1de; --b-hatch: #89aacb; --b-grid: #bdc8d5; --b-sea-grid: #d6e5f3; --b-shore: #29527c;
     --b-burnt: #101216; --b-burnt2: #2a2e36; --b-label: #7d899b; --b-label-hi: #2152a3; --b-target: #d6232b;
     color-scheme: dark;
   }
@@ -47,7 +50,7 @@
   --btn: #242c38; --btn-hover: #2d3745; --scrim: rgba(0, 0, 0, .6);
   --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px rgba(0, 0, 0, .35);
   --p-red: #ff8077; --p-blue: #86aef2; --p-green: #74c886; --p-violet: #be93f2;
-  --b-land: #e1e5eb; --b-sea: #a3c1de; --b-hatch: #89aacb; --b-grid: #bdc8d5; --b-shore: #29527c;
+  --b-land: #e1e5eb; --b-sea: #a3c1de; --b-hatch: #89aacb; --b-grid: #bdc8d5; --b-sea-grid: #d6e5f3; --b-shore: #29527c;
   --b-burnt: #101216; --b-burnt2: #2a2e36; --b-label: #7d899b; --b-label-hi: #2152a3; --b-target: #d6232b;
   color-scheme: dark;
 }
@@ -303,7 +306,13 @@ const U = {
   battleship: { cost: 50, dom: 'sea',  move: 5,  cls: 'sea', guns: [{ range: 5, mask: ALL & ~BIT.sub & ~BIT.aircraft }], val: 46, shape: 'round' },
 };
 const AA_GUN = { range: 5, mask: BIT.aircraft, aa: true };
-function gunsOf(u) { const g = U[u.type].guns.slice(); if (u.type === 'battleship' && u.cargo === 'aa') g.unshift(AA_GUN); return g; }
+// A unit built this turn, or an AA gun just loaded aboard, fires from the next turn on (flags cleared at turn end).
+function gunsOf(u) {
+  if (u.fresh) return [];
+  const g = U[u.type].guns.slice();
+  if (u.type === 'battleship' && u.cargo === 'aa' && !u.aaFresh) g.unshift(AA_GUN);
+  return g;
+}
 const canAct = u => gunsOf(u).length > 0 || U[u.type].move > 0;
 const hasHuman = u => u.type === 'human' || u.cargo === 'human';
 const valueOf = u => U[u.type].val + (u.cargo === 'human' ? U.human.val : u.cargo === 'aa' ? U.aa.val : 0);
@@ -356,9 +365,9 @@ function buildTargets(g, p, type) {
 function applyBuild(g, p, type, cell, info) {
   const P = g.players[p];
   P.credits -= U[type].cost;
-  if (info.mode === 'load') { g.units[info.ship].cargo = type; return; }
+  if (info.mode === 'load') { const ship = g.units[info.ship]; ship.cargo = type; if (type === 'aa') ship.aaFresh = 1; return; }
   if (info.mode === 'land') g.units[info.ship].cargo = null;
-  const u = { id: g.nextId++, type, owner: p, cell, cargo: null };
+  const u = { id: g.nextId++, type, owner: p, cell, cargo: null, fresh: 1 };
   g.units[u.id] = u; g.grid[cell] = u.id;
   if (info.mode === 'place') P.placed = true;
 }
@@ -567,18 +576,6 @@ function aiThreats(g, foes) {
     for (const [c, m] of zf) for (let t = 0; t < 9; t++) if (m >> t & 1) Z.nf[c * 9 + t]++;
     for (const [c, m] of zm) for (let t = 0; t < 9; t++) if (m >> t & 1) Z.nm[c * 9 + t]++;
     Z.by.set(e.id, { zf, zm });
-  }
-  // a gun can be built next to a human and fire in the same turn
-  const owners = new Map();
-  for (const e of foes) if (e.type === 'human') { if (!owners.has(e.owner)) owners.set(e.owner, new Set()); for (let d = 0; d < 8; d++) { const n = NB[e.cell * 8 + d]; if (n >= 0 && isFree(g, n)) owners.get(e.owner).add(n); } }
-  for (const [o, cells] of owners) {
-    const cr = g.players[o].credits, zb = new Map(), add = (c, m) => zb.set(c, (zb.get(c) || 0) | m);
-    if (cr < 10) continue;
-    for (const b of cells) {
-      if (g.terrain[b] === LAND) { forLanes(b, 5, c => add(c, ALL)); if (cr >= 20) for (let d = 0; d < 8; d++) { const n = NB[b * 8 + d]; if (n >= 0) add(n, ALL); } }
-      else if (cr >= 50) forLanes(b, 5, c => add(c, ALL & ~BIT.sub));
-    }
-    for (const [c, m] of zb) for (let t = 0; t < 9; t++) if (m >> t & 1) Z.nm[c * 9 + t]++;
   }
   return Z;
 }
@@ -1114,7 +1111,7 @@ function rulesHTML() {
 <p>Суша белая, море синее. Море лежит в центре, не ближе 7 клеток к краю поля, берег извилистый (до 2 клеток), в море есть несколько островов. В клетке может стоять только один юнит. Клетка, которую юнит покинул или по которой попали, сгорает — чернеет до конца игры, и занять её больше нельзя.</p>
 <h3>Ход</h3>
 <p>Игроки ходят по очереди. Первым ходом каждый ставит человека в любую клетку у края поля. Дальше за ход — ровно одно действие:</p>
-<ol><li><b>Построить</b> юнит в одной из 8 клеток вокруг своего человека.</li><li><b>Переместить</b> один юнит.</li><li><b>Собрать урожай</b> со всех своих полей и заводов.</li></ol><p>Кроме того, за ход можно один раз выстрелить любым своим юнитом — до или после действия.</p>
+<ol><li><b>Построить</b> юнит в одной из 8 клеток вокруг своего человека.</li><li><b>Переместить</b> один юнит.</li><li><b>Собрать урожай</b> со всех своих полей и заводов.</li></ol><p>Кроме того, за ход можно один раз выстрелить любым своим юнитом — до или после действия. Только что построенный юнит (и зенитка, только что поставленная на линкор) стреляет со следующего хода.</p>
 <p>Кредиты всех игроков видны всем.</p>
 <h3>Юниты</h3>${table}
 <h3>Движение</h3>
@@ -1149,7 +1146,7 @@ function rulesHTML() {
 <p>Land is white, sea is blue. The sea sits in the centre, at least 7 cells from the edge, with a shoreline that wanders by up to 2 cells and a few islands. A cell holds one unit. A cell that a unit leaves or that gets hit is destroyed: it turns black for the rest of the game and can never be used again.</p>
 <h3>Turns</h3>
 <p>Players move in order. On their first turn each player places a human on any cell along the edge of the field. After that, every turn is exactly one action:</p>
-<ol><li><b>Build</b> a unit on one of the 8 cells around one of your humans.</li><li><b>Move</b> one unit.</li><li><b>Collect the harvest</b> from all your fields and factories.</li></ol><p>In addition, once per turn you may fire with any one of your units, before or after the action.</p>
+<ol><li><b>Build</b> a unit on one of the 8 cells around one of your humans.</li><li><b>Move</b> one unit.</li><li><b>Collect the harvest</b> from all your fields and factories.</li></ol><p>In addition, once per turn you may fire with any one of your units, before or after the action. A unit built this turn (or an AA gun just loaded aboard a battleship) fires from the next turn on.</p>
 <p>Everyone can see everyone's credits.</p>
 <h3>Units</h3>${table}
 <h3>Movement</h3>
@@ -1415,6 +1412,7 @@ function beginTurn(resumed) {
 function finishTurn() {
   if (UI.mode !== 'play') return;
   G.last = G.now; G.now = null;
+  for (const u of unitList(G)) { delete u.fresh; delete u.aaFresh; }
   if (checkDraw(G)) { addLog({ k: 'draw', p: G.cur }); UI.mode = 'over'; UI.sel = null; UI.busy = false; commit(); renderAll(); return; }
   nextPlayer(G);
   commit();
@@ -1567,7 +1565,7 @@ function startGame() {
 // ===================== Board rendering =====================
 function readPalette() {
   const cs = getComputedStyle(document.documentElement), v = k => cs.getPropertyValue(k).trim();
-  PAL = { land: v('--b-land'), sea: v('--b-sea'), hatch: v('--b-hatch'), grid: v('--b-grid'), shore: v('--b-shore'), burnt: v('--b-burnt'), burnt2: v('--b-burnt2'), label: v('--b-label'), labelHi: v('--b-label-hi'), target: v('--b-target') };
+  PAL = { land: v('--b-land'), sea: v('--b-sea'), hatch: v('--b-hatch'), grid: v('--b-grid'), seaGrid: v('--b-sea-grid'), shore: v('--b-shore'), burnt: v('--b-burnt'), burnt2: v('--b-burnt2'), label: v('--b-label'), labelHi: v('--b-label-hi'), target: v('--b-target') };
 }
 function layout() {
   const col = $('.board-col'); if (!col) return;
@@ -1589,18 +1587,21 @@ function buildTerrain() {
   const c = tc.getContext('2d'), gw = W * CS, gh = H * CS;
   c.setTransform(DPR, 0, 0, DPR, 0, 0);
   c.fillStyle = PAL.land; c.fillRect(0, 0, CW, CH);
-  c.fillStyle = PAL.sea; c.beginPath();
-  for (let i = 0; i < N; i++) if (G.terrain[i] === SEA) c.rect(OX + cx(i) * CS, OY + cy(i) * CS, CS, CS);
-  c.fill();
+  const seaPath = () => { c.beginPath(); for (let i = 0; i < N; i++) if (G.terrain[i] === SEA) c.rect(OX + cx(i) * CS, OY + cy(i) * CS, CS, CS); };
+  const grid = color => {
+    c.strokeStyle = color; c.lineWidth = 1; c.beginPath();
+    for (let x = 0; x <= W; x++) { const px = OX + x * CS + 0.5; c.moveTo(px, OY); c.lineTo(px, OY + gh); }
+    for (let y = 0; y <= H; y++) { const py = OY + y * CS + 0.5; c.moveTo(OX, py); c.lineTo(OX + gw, py); }
+    c.stroke();
+  };
+  c.fillStyle = PAL.sea; seaPath(); c.fill();
   c.save(); c.clip();
   c.strokeStyle = PAL.hatch; c.lineWidth = 1; c.beginPath();
   const step = Math.max(4, Math.round(CS / 3.2));
   for (let k = -gh; k < gw; k += step) { c.moveTo(OX + k, OY + gh); c.lineTo(OX + k + gh, OY); }
   c.stroke(); c.restore();
-  c.strokeStyle = PAL.grid; c.lineWidth = 1; c.beginPath();
-  for (let x = 0; x <= W; x++) { const px = OX + x * CS + 0.5; c.moveTo(px, OY); c.lineTo(px, OY + gh); }
-  for (let y = 0; y <= H; y++) { const py = OY + y * CS + 0.5; c.moveTo(OX, py); c.lineTo(OX + gw, py); }
-  c.stroke();
+  grid(PAL.grid);
+  c.save(); seaPath(); c.clip(); grid(PAL.seaGrid); c.restore();
   c.strokeStyle = PAL.shore; c.lineWidth = Math.max(1.5, CS / 11); c.lineCap = 'round'; c.beginPath();
   for (let i = 0; i < N; i++) {
     if (G.terrain[i] !== LAND) continue;
