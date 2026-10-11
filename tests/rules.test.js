@@ -40,7 +40,8 @@ const { open, clickCell, check, failures, W } = require('./helpers');
     const clear = c => { const u = G.units[G.grid[c]]; if (u) delete G.units[u.id]; G.grid[c] = 0; G.burnt[c] = 0; };
     const out = {};
     const A = (m, v) => g.arrival(m, { type: v });
-    out.table = [A('tank', 'human'), A('tank', 'tank'), A('tank', 'aircraft'), A('aircraft', 'factory'), A('aircraft', 'battleship'), A('aircraft', 'sub'), A('battleship', 'sub'), A('sub', 'battleship')].join(',');
+    out.table = [A('tank', 'human'), A('tank', 'tank'), A('tank', 'artillery'), A('tank', 'aa'), A('tank', 'aircraft'), A('aircraft', 'factory'), A('aircraft', 'aircraft'), A('aircraft', 'tank'), A('aircraft', 'battleship'),
+      A('aircraft', 'sub'), A('battleship', 'battleship'), A('battleship', 'sub'), A('sub', 'sub'), A('sub', 'battleship')].join(',');
     // tank drives along row 2 from x=5 to x=10: enemy aircraft at x=7 survives, enemy field at x=8 is crushed, human at x=10 is taken
     const tank = put('tank', 0, 2 * W + 5); const plane = put('aircraft', 1, 2 * W + 7); put('field', 1, 2 * W + 8); put('human', 1, 2 * W + 10);
     const ev = g.applyMove(G, tank.id, [2 * W + 6, 2 * W + 7, 2 * W + 8, 2 * W + 9, 2 * W + 10], true);
@@ -54,12 +55,34 @@ const { open, clickCell, check, failures, W } = require('./helpers');
     const t3 = put('tank', 0, 5 * W + 0); const pl2 = put('aircraft', 1, 5 * W + 5);
     out.tankOnPlane = new g.Solver(G, t3).dest(5 * W + 5);
     out.tankOnTankOk = new g.Solver(G, t3).dest(2 * W + 10) === false; // own tank there
+    // tank runs into enemy artillery mid-path at x=7: a ram there, the move ends; the field at x=9 beyond is untouched
+    const t4 = put('tank', 0, 6 * W + 5), gun = put('artillery', 1, 6 * W + 7), fld = put('field', 1, 6 * W + 9);
+    const sv4 = new g.Solver(G, t4), pl = sv4.plan(t4.cell, -1, 5, () => 0).get(6 * W + 7);
+    out.ramPlan = { end: !!pl, len: pl ? g.Solver.pathOf(pl.state).length : 0, beyond: sv4.reach().inter.has(6 * W + 7) };
+    const ev4 = g.applyMove(G, t4.id, [6 * W + 6, 6 * W + 7, 6 * W + 8, 6 * W + 9, 6 * W + 10], false);
+    out.midRam = { both: !G.units[t4.id] && !G.units[gun.id], burnt: G.burnt[6 * W + 7] === 1, kind: ev4.map(e => e.kind).join(','),
+      after: !G.burnt[6 * W + 8] && !G.burnt[6 * W + 10] && !!G.units[fld.id] && !G.grid[6 * W + 10] };
+    // aircraft cannot end on an enemy tank
+    const pl3 = put('aircraft', 0, 7 * W + 0); put('tank', 1, 7 * W + 10);
+    out.planeOnTank = new g.Solver(G, pl3).dest(7 * W + 10);
+    // at sea: a battleship cannot end on an enemy submarine, and passing over it leaves it alive
+    let row = -1, x0 = -1;
+    for (let y = 0; y < 34 && row < 0; y++) for (let x = 0; x + 6 < W; x++) { let ok = true; for (let i = 0; i <= 6; i++) if (G.terrain[y * W + x + i] !== 1) ok = false; if (ok) { row = y; x0 = x; break; } }
+    const bs = put('battleship', 0, row * W + x0), sub = put('sub', 1, row * W + x0 + 2);
+    out.shipOnSub = new g.Solver(G, bs).dest(sub.cell);
+    const ev5 = g.applyMove(G, bs.id, [1, 2, 3, 4, 5].map(i => row * W + x0 + i), false);
+    out.overSub = { alive: !!G.units[sub.id] && G.grid[sub.cell] === sub.id, unburnt: !G.burnt[sub.cell], events: ev5.length, shipAt: G.units[bs.id].cell === row * W + x0 + 5 };
     return out;
   });
-  check('arrival table (tank/aircraft/ships)', arr.table === 'take,ram,,take,ram,,take,ram', arr.table);
-  check('tank passes under aircraft, crushes the rest, takes the human', arr.crush.planeAlive && arr.crush.fieldGone && arr.crush.tankOnHuman, arr.crush);
+  check('arrival table (tank/aircraft/ships)', arr.table === 'take,ram,ram,ram,,take,ram,,,,ram,,ram,', arr.table);
+  check('tank passes under aircraft, crushes the field, takes the human', arr.crush.planeAlive && arr.crush.fieldGone && arr.crush.tankOnHuman, arr.crush);
   check('ram destroys both, cell burns', arr.ram.both && arr.ram.burnt && arr.ram.kind === 'ram', arr.ram);
   check('tank cannot end on an aircraft', arr.tankOnPlane === false, arr);
+  check('tank rams enemy machinery mid-path: both gone, cell burnt, move ends there', arr.midRam.both && arr.midRam.burnt && arr.midRam.kind === 'ram' && arr.midRam.after, arr.midRam);
+  check('solver ends a tank move at the ram', arr.ramPlan.end && arr.ramPlan.len === 2 && !arr.ramPlan.beyond, arr.ramPlan);
+  check('aircraft cannot end on a tank', arr.planeOnTank === false, arr);
+  check('battleship cannot end on a submarine', arr.shipOnSub === false, arr);
+  check('battleship passing over a submarine leaves it alive', arr.overSub.alive && arr.overSub.unburnt && arr.overSub.events === 0 && arr.overSub.shipAt, arr.overSub);
 
   // ---------- one action + one shot per turn (through the interface)
   await start();
