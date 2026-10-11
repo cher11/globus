@@ -123,6 +123,14 @@ const { open, clickCell, check, failures, W } = require('./helpers');
   await page.click('[data-act="end"]'); await page.waitForTimeout(400);
   check('end turn skips the shot', await page.evaluate(() => __globus.G.cur) === 1);
 
+  // ---------- boxed in with nothing to do but harvest = out
+  await start();
+  await clickCell(page, 0); await clickCell(page, 40);   // A at (0,0), B at (40,0)
+  await page.evaluate(() => { const G = __globus.G, W = 41; for (const c of [39, 39 + W, 40 + W]) G.burnt[c] = 1; __globus.render(); });
+  await page.click('[data-act="harvest"]'); await page.waitForTimeout(900);
+  const boxed = await page.evaluate(() => ({ winner: __globus.G.winner, out: !__globus.G.players[1].alive, log: __globus.G.log.slice(-3).map(e => e.k) }));
+  check('a boxed-in player with nothing to do but harvest is out', boxed.out && boxed.winner === 0 && boxed.log.includes('stuck'), boxed);
+
   // ---------- AI vs AI smoke: a few turns without errors
   await page.evaluate(() => { __globus.setInstant(true); __globus.start([{ color: 0, name: '', ai: true }, { color: 1, name: '', ai: true }], 99); });
   await page.waitForFunction(() => __globus.G.turn >= 40 || __globus.G.winner >= 0, null, { timeout: 120000 });

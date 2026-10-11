@@ -410,21 +410,30 @@ function applyMove(g, id, path, crush) {
   u.cell = to; g.grid[to] = u.id;
   return ev;
 }
-function checkEliminations(g) {
-  const out = [], cells = [];
-  g.players.forEach((P, i) => {
-    if (!P.alive || !P.placed || humansOf(g, i) > 0) return;
-    P.alive = false; out.push(i);
-    for (const u of unitList(g)) if (u.owner === i) { cells.push(u.cell); killAt(g, u.cell); }
-  });
+function eliminate(g, i, cells) {
+  g.players[i].alive = false;
+  for (const u of unitList(g)) if (u.owner === i) { cells.push(u.cell); killAt(g, u.cell); }
+}
+function settleWinner(g) {
   const alive = g.players.map((P, i) => P.alive ? i : -1).filter(i => i >= 0);
   if (g.players.length > 1 && alive.length <= 1 && g.players.every(P => P.placed || !P.alive)) g.winner = alive.length ? alive[0] : g.cur;
+}
+function checkEliminations(g) {
+  const out = [], cells = [];
+  g.players.forEach((P, i) => { if (P.alive && P.placed && humansOf(g, i) === 0) { eliminate(g, i, cells); out.push(i); } });
+  settleWinner(g);
   return { out, cells };
 }
-// Can player p still change anything (build somewhere, load or land, fire, move)? If nobody can, the game is a draw.
+// A player who starts a turn with nothing to do but harvest (no room to build, no move, no shot) is out.
+function checkStuck(g, p) {
+  const P = g.players[p];
+  if (!P.alive || !P.placed || hasOptions(g, p)) return null;
+  const cells = [];
+  eliminate(g, p, cells); settleWinner(g);
+  return cells;
+}
+// Can player p still change anything: build next to a human (one aboard a ship counts: landing), move, fire? A player who can't is out.
 function hasOptions(g, p) {
-  const humans = new Set();
-  for (const u of unitList(g)) if (u.owner === p && u.type === 'human') humans.add(u.cell);
   for (const u of unitList(g)) {
     if (u.owner !== p) continue;
     for (let d = 0; d < 8; d++) {
@@ -432,7 +441,6 @@ function hasOptions(g, p) {
       if (n < 0) continue;
       if (u.type === 'human' && isFree(g, n)) return true;
       if (u.type === 'battleship' && u.cargo === 'human' && isFree(g, n) && g.terrain[n] === LAND) return true;
-      if (u.type === 'battleship' && !u.cargo && humans.has(n)) return true;
     }
     for (const gun of gunsOf(u)) if (targetsFrom(g, p, u.cell, gun).length) return true;
     if (U[u.type].move && new Solver(g, u).good(u.cell, -1, U[u.type].move)) return true;
@@ -1023,7 +1031,7 @@ const STR = {
     lRam: (u, c, v, vp) => `таран на ${c}: ${u} и ${v} (${vp}) уничтожены`,
     actLeft: 'Действие: есть', actDone: 'Действие: сделано', shotLeft: 'Выстрел: есть', shotDone: 'Выстрел: сделан',
     afterActHint: 'Действие сделано. Можно ещё выстрелить любым своим юнитом (кликните по нему) или завершить ход.',
-    lOut: 'людей не осталось, игрок выбывает', lWin: 'победа!',
+    lOut: 'людей не осталось, игрок выбывает', lStuck: 'делать нечего, кроме урожая, — игрок выбывает', lWin: 'победа!',
     withCargo: { human: ' с человеком на борту', aa: ' с зениткой на борту' },
   },
   en: {
@@ -1077,7 +1085,7 @@ const STR = {
     lRam: (u, c, v, vp) => `ram at ${c}: ${u} and ${vp} ${v} destroyed`,
     actLeft: 'Action: available', actDone: 'Action: done', shotLeft: 'Shot: available', shotDone: 'Shot: used',
     afterActHint: 'Action done. You can still fire with any of your units (click it) or end the turn.',
-    lOut: 'no humans left, out of the game', lWin: 'wins!',
+    lOut: 'no humans left, out of the game', lStuck: 'nothing to do but harvest: out of the game', lWin: 'wins!',
     withCargo: { human: ' carrying a human', aa: ' carrying an AA gun' },
   },
 };
@@ -1101,7 +1109,7 @@ function rulesHTML() {
   const table = `<div class="tbl-wrap"><table class="tbl"><thead><tr>${head.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`;
   if (LANG === 'ru') return `
 <h2 class="hand" id="rulesTitle">Правила «Глобуса»</h2>
-<p>Пошаговая стратегия на поле 41×34 клетки. Цель — уничтожить всех людей противника. Игрок, у которого не осталось людей (считая людей на линкорах), выбывает, а его юниты сгорают.</p>
+<p>Пошаговая стратегия на поле 41×34 клетки. Цель — уничтожить всех людей противника. Игрок, у которого не осталось людей (считая людей на линкорах), выбывает, а его юниты сгорают. Выбывает и тот, кому в начале хода нечего делать, кроме урожая: нет места для постройки, ни один юнит не может сходить и выстрелить не по кому.</p>
 <h3>Поле</h3>
 <p>Суша белая, море синее. Море лежит в центре, не ближе 7 клеток к краю поля, берег извилистый (до 2 клеток), в море есть несколько островов. В клетке может стоять только один юнит. Клетка, которую юнит покинул или по которой попали, сгорает — чернеет до конца игры, и занять её больше нельзя.</p>
 <h3>Ход</h3>
@@ -1136,7 +1144,7 @@ function rulesHTML() {
 </ul>`;
   return `
 <h2 class="hand" id="rulesTitle">The rules of Globus</h2>
-<p>A turn-based strategy game on a 41×34 grid. The goal is to destroy every enemy human. A player with no humans left (counting humans aboard battleships) is out, and their units burn.</p>
+<p>A turn-based strategy game on a 41×34 grid. The goal is to destroy every enemy human. A player with no humans left (counting humans aboard battleships) is out, and their units burn. So is a player who starts a turn with nothing to do but harvest: no room to build, no unit that can move and nothing to fire at.</p>
 <h3>The field</h3>
 <p>Land is white, sea is blue. The sea sits in the centre, at least 7 cells from the edge, with a shoreline that wanders by up to 2 cells and a few islands. A cell holds one unit. A cell that a unit leaves or that gets hit is destroyed: it turns black for the rest of the game and can never be used again.</p>
 <h3>Turns</h3>
@@ -1387,6 +1395,14 @@ function postKill() {
 
 function beginTurn(resumed) {
   if (UI.mode !== 'play') { renderAll(); return; }
+  const stuck = checkStuck(G, G.cur);
+  if (stuck) {
+    addLog({ k: 'stuck', p: G.cur });
+    stuck.forEach(c => boom(c));
+    if (G.winner >= 0) { addLog({ k: 'win', p: G.winner }); UI.mode = 'over'; UI.sel = null; UI.busy = false; commit(); renderAll(); return; }
+    nextPlayer(G); commit(); beginTurn(false);
+    return;
+  }
   const P = G.players[G.cur];
   if (!G.now) G.now = { p: G.cur, trail: [], shots: [], marks: [] };
   UI.sel = null; UI.busy = false; UI.turn = { act: false, shot: false };
@@ -1822,6 +1838,7 @@ function fmtLog(e) {
     case 'smash': return t('lSmash', uname(e.t), coord(e.c), vic, vp, S.gender[e.v] || 0);
     case 'ram': return t('lRam', uname(e.t), coord(e.c), vic, vp);
     case 'out': return t('lOut');
+    case 'stuck': return t('lStuck');
     case 'win': return `<span class="win">${t('lWin')}</span>`;
     case 'draw': return `<span class="win">${cap(G.draw === 'calm' ? t('lDrawCalm', CALM_TURNS) : t('lDraw'))}</span>`;
   }
