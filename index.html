@@ -995,7 +995,7 @@ const STR = {
     gunMain: 'Выстрел', gunAA: 'Зенитка', ready: 'готов', used: 'сделан', noTargets: 'целей нет',
     moveL: 'Ход', moveN: n => `${n} кл.`, moveDone: 'сделан', moveNone: 'некуда',
     crush: 'Давить клетки на пути', crushHint: 'Вражеские люди, поля и заводы на пути погибнут, пустые клетки сгорят. Свои юниты и самолёты (под ними танк проезжает) не пострадают. Вражеская техника на пути — всегда таран: гибнут оба, ход кончается там.',
-    actHelp: 'Красный прицел — выстрел. Кольцо — где может закончиться ход: наведите, чтобы увидеть путь. Точка — следующий шаг. Встать можно и на врага: танк и самолёт уничтожают человека, поле или завод; танк на технике, самолёт на самолёте, корабль на таком же корабле — таран, гибнут оба.',
+    actHelp: 'Красный прицел — выстрел. Кольцо — где может закончиться ход: наведите, чтобы увидеть путь. Точка — следующий шаг. Встать можно и на врага: танк и самолёт уничтожают человека, поле или завод; танк на технике, самолёт на самолёте, корабль на таком же корабле — таран, гибнут оба. Красный крест в пунктирном круге — враг, которого танк раздавит, проехав сквозь него: кликните по нему.',
     undo: 'Шаг назад', cancel: 'Отмена', endTurn: 'Завершить ход',
     logL: 'Журнал', logEmpty: 'Здесь появятся ходы.',
     terrLand: 'суша', terrSea: 'море', terrBurnt: 'клетка уничтожена', cargoL: 'на борту',
@@ -1049,7 +1049,7 @@ const STR = {
     gunMain: 'Shot', gunAA: 'AA gun', ready: 'ready', used: 'used', noTargets: 'no targets',
     moveL: 'Move', moveN: n => `${n} cells`, moveDone: 'done', moveNone: 'blocked',
     crush: 'Crush cells along the path', crushHint: 'Enemy humans, fields and factories on the path are destroyed and empty cells burn. Your own units and aircraft (the tank drives under them) are spared. Enemy machinery on the path always means a ram: both are destroyed and the move ends there.',
-    actHelp: 'Red crosshair: fire. Ring: where the move can end; hover it to see the path. Dot: the next step. You may end on an enemy: a tank or aircraft destroys a human, field or factory; a tank on machinery, an aircraft on an aircraft or a ship on a ship of its kind means a ram and both are destroyed.',
+    actHelp: 'Red crosshair: fire. Ring: where the move can end; hover it to see the path. Dot: the next step. You may end on an enemy: a tank or aircraft destroys a human, field or factory; a tank on machinery, an aircraft on an aircraft or a ship on a ship of its kind means a ram and both are destroyed. A red cross in a dashed circle: an enemy the tank can crush by driving through it; click it.',
     undo: 'Step back', cancel: 'Cancel', endTurn: 'End turn',
     logL: 'Log', logEmpty: 'Moves will appear here.',
     terrLand: 'land', terrSea: 'sea', terrBurnt: 'destroyed cell', cargoL: 'aboard',
@@ -1502,10 +1502,23 @@ function recomputeAct() {
   if (s.path.length && !sv.good(last, dir, k)) { s.path = []; s.dirs = []; last = u.cell; dir = -1; k = n; }
   for (const d of sv.dirs(last, dir)) { const nc = NB[last * 8 + d]; if (sv.good(nc, d, k - 1) && !sv.stop(nc)) s.steps.set(nc, d); }
   s.plans = sv.plan(last, dir, k, uiGain(u, s));
+  // enemy humans, fields and factories a tank can crush on the way this move (not only where it can stop)
+  s.crushable = new Map();
+  if (u.type === 'tank' && s.crush) {
+    const base = uiGain(u, s);
+    for (const v of unitList(G)) {
+      if (v.owner === u.owner || !(BIT[v.type] & STRUCT) || cheb(v.cell, last) > k || s.plans.has(v.cell)) continue;
+      let best = null;
+      for (const [, pl] of sv.plan(last, dir, k, c => (c === v.cell ? 1000 : 0) + base(c))) if (pl.gain >= 1000 && (!best || pl.gain > best.gain)) best = pl;
+      if (best) s.crushable.set(v.cell, Solver.pathOf(best.state));
+    }
+  }
 }
 function previewPath(s) {
-  if (!s || s.kind !== 'act' || UI.turn.act || !s.plans || !s.plans.has(UI.hover)) return null;
-  return s.path.concat(Solver.pathOf(s.plans.get(UI.hover).state));
+  if (!s || s.kind !== 'act' || UI.turn.act || !s.plans) return null;
+  if (s.plans.has(UI.hover)) return s.path.concat(Solver.pathOf(s.plans.get(UI.hover).state));
+  if (s.crushable && s.crushable.has(UI.hover)) return s.path.concat(s.crushable.get(UI.hover));
+  return null;
 }
 function onBoardClick(c) {
   if (!isHumanTurn() || c < 0) return;
@@ -1519,6 +1532,11 @@ function onBoardClick(c) {
     if (s.targets.has(c)) { const gi = s.targets.get(c); humanAction(() => doShot(s.id, gi, c), 'shot'); return; }
     if (!UI.turn.act && s.plans.has(c)) {
       const path = s.path.concat(Solver.pathOf(s.plans.get(c).state)), crush = s.crush;
+      humanAction(async () => { await doMove(s.id, path, crush); s.path = []; s.dirs = []; }, 'act');
+      return;
+    }
+    if (!UI.turn.act && s.crushable && s.crushable.has(c)) {
+      const path = s.path.concat(s.crushable.get(c)), crush = s.crush;
       humanAction(async () => { await doMove(s.id, path, crush); s.path = []; s.dirs = []; }, 'act');
       return;
     }
@@ -1705,6 +1723,12 @@ function drawActOver(s, now) {
     ctx.beginPath(); ctx.arc(x, y, CS * 0.27, 0, TAU); ctx.fill(); ctx.stroke();
   }
   for (const c of s.steps.keys()) { const [x, y] = center(c); ctx.fillStyle = hexA(color, 0.9); ctx.beginPath(); ctx.arc(x, y, CS * 0.11, 0, TAU); ctx.fill(); }
+  if (s.crushable) for (const c of s.crushable.keys()) {
+    const [x, y] = center(c);
+    ctx.save(); ctx.strokeStyle = hexA(PAL.target, 0.9); ctx.lineWidth = 1.6; ctx.setLineDash([3, 2]);
+    ctx.beginPath(); ctx.arc(x, y, CS * 0.5, 0, TAU); ctx.stroke(); ctx.restore();
+    drawCross(c, PAL.target, 0.8);
+  }
   const k = RM.matches ? 1 : 0.86 + 0.14 * Math.sin(now / 170);
   for (const c of s.targets.keys()) {
     const [x, y] = center(c), r = CS * 0.46 * k;

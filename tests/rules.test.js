@@ -123,6 +123,17 @@ const { open, clickCell, check, failures, W } = require('./helpers');
   await page.click('[data-act="end"]'); await page.waitForTimeout(400);
   check('end turn skips the shot', await page.evaluate(() => __globus.G.cur) === 1);
 
+  // ---------- a tank shows enemies it can crush on the way, and a click drives through them
+  await start();
+  await clickCell(page, 0); await clickCell(page, 40);
+  await put('tank', 0, 31 * W + 10); await put('human', 1, 31 * W + 12);
+  await clickCell(page, 31 * W + 10, 300);
+  const cr = await page.evaluate(() => { const s = __globus.UI.sel; return { crushable: !!(s && s.crushable && s.crushable.has(31 * 41 + 12)), stop: !!(s && s.plans.has(31 * 41 + 12)) }; });
+  check('an enemy human 2 cells away is offered for crushing', cr.crushable && !cr.stop, cr);
+  await clickCell(page, 31 * W + 12, 1500);
+  const cr2 = await page.evaluate(() => ({ human: !!__globus.G.grid[31 * 41 + 12], log: __globus.G.log.slice(-3).map(e => e.k) }));
+  check('clicking it drives through and crushes the human', !cr2.human && cr2.log.includes('crush'), cr2);
+
   // ---------- a unit built this turn fires from the next turn
   await start();
   await clickCell(page, 0); await clickCell(page, 40);
