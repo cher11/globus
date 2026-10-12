@@ -323,7 +323,7 @@ function makeGame(cfg) {
     v: 1, seed: cfg.seed, terrain: genMap(cfg.seed),
     burnt: new Array(N).fill(0), grid: new Array(N).fill(0), units: {}, nextId: 1,
     players: cfg.players.map(p => ({ name: p.name, color: p.color, ai: !!p.ai, credits: 0, placed: false, alive: true })),
-    cur: 0, turn: 1, log: [], winner: -1, last: null, now: null, lastKill: 1, draw: '',
+    cur: 0, turn: 1, log: [], winner: -1, last: null, now: null, lastKill: 1, draw: '', hist: [],
   };
 }
 const unitAt = (g, c) => (c >= 0 && g.grid[c]) ? g.units[g.grid[c]] : null;
@@ -1279,6 +1279,8 @@ const STR = {
     actHelp: 'Красный прицел — выстрел. Кольцо — где может закончиться ход: наведите, чтобы увидеть путь. Точка — следующий шаг. Встать можно и на врага: танк и самолёт уничтожают человека, поле или завод; танк на технике, самолёт на самолёте, корабль на таком же корабле — таран, гибнут оба. Жирное кольцо вокруг вражеского юнита — на него можно наехать (красный пунктир — таран).',
     undo: 'Шаг назад', cancel: 'Отмена', endTurn: 'Завершить ход',
     logL: 'Журнал', logEmpty: 'Здесь появятся ходы.',
+    recCopy: 'Скопировать запись партии', recSave: 'Скачать запись', recHint: 'Все ходы партии одним текстом — чтобы разобрать игру',
+    recCopied: 'Запись партии скопирована', recSaved: n => `Запись сохранена: ${n}`,
     terrLand: 'суша', terrSea: 'море', terrBurnt: 'клетка уничтожена', cargoL: 'на борту',
     infoIdle: 'Наведите на клетку или коснитесь её, чтобы узнать, что в ней.', boardL: 'Игровое поле',
     winTitle: 'Победа', winText: n => `Победитель — ${n}.`, toastTurn: n => `Ход: ${n}`,
@@ -1346,6 +1348,8 @@ const STR = {
     actHelp: 'Red crosshair: fire. Ring: where the move can end; hover it to see the path. Dot: the next step. You may end on an enemy: a tank or aircraft destroys a human, field or factory; a tank on machinery, an aircraft on an aircraft or a ship on a ship of its kind means a ram and both are destroyed. A bold ring around an enemy unit: you can end your move on it (red dashes: a ram).',
     undo: 'Step back', cancel: 'Cancel', endTurn: 'End turn',
     logL: 'Log', logEmpty: 'Moves will appear here.',
+    recCopy: 'Copy game record', recSave: 'Download record', recHint: 'Every move of the game as one text, to study the game',
+    recCopied: 'Game record copied', recSaved: n => `Record saved: ${n}`,
     terrLand: 'land', terrSea: 'sea', terrBurnt: 'destroyed cell', cargoL: 'aboard',
     infoIdle: 'Hover or tap a cell to see what is in it.', boardL: 'Game board',
     winTitle: 'Victory', winText: n => `Winner: ${n}.`, toastTurn: n => `${n} to move`,
@@ -1685,7 +1689,7 @@ function postKill() {
   if (G.winner >= 0) {
     addLog({ k: 'win', p: G.winner });
     UI.mode = 'over'; UI.sel = null; UI.busy = false; UI.hidden = 0;
-    netMark(); commit(); renderAll();
+    histPush(G.cur, G.now); netMark(); commit(); renderAll();
     netTurnDone(G.cur, G.now);
   } else if (r.out.length) renderAll();
 }
@@ -1716,6 +1720,7 @@ function finishTurn() {
   const p = G.cur, done = G.now;
   G.last = G.now; G.now = null;
   for (const u of unitList(G)) { delete u.fresh; delete u.aaFresh; }
+  histPush(p, done);
   if (checkDraw(G)) { addLog({ k: 'draw', p: G.cur }); UI.mode = 'over'; UI.sel = null; UI.busy = false; netMark(); commit(); renderAll(); netTurnDone(p, done); return; }
   nextPlayer(G);
   netMark();
@@ -1943,6 +1948,7 @@ async function netPerform(a) {
 // Load the board straight from the snapshot (missed turns, a fresh join, or a mismatch after replaying)
 function netResync(p) {
   netApplySnap(G, p.X);
+  G.hist0 = p.X; G.hist = [];
   G.last = null; G.now = null; UI.sel = null; UI.hidden = 0;
   UI.mode = (G.winner >= 0 || G.draw) ? 'over' : 'play';
   NET.n = p.n; NET.turns = p.T.slice(); saveNet(); commit(); renderAll();
@@ -2066,6 +2072,43 @@ function renderNetLine() {
   if (!NET) return '';
   const st = NET.status === 'error' ? t('netErr', NET.err) : t('netSt_' + (NET.status || 'ok'));
   return `<p class="hint mono">${t('netLine', NET.gid, esc(pname(NET.seat)))} · ${esc(st)}</p>`;
+}
+
+// ===================== Game record =====================
+// Every finished turn's actions, so a game can be replayed and studied: from the start, or from the snapshot an online
+// game was last resynced to. The text also carries the current position, to check a replay against.
+const REC_TAG = 'GLOBUS-REC1:';
+function histPush(p, done) { if (G.hist) G.hist.push([p, (done && done.acts) || []]); }
+async function recordText() {
+  const g = committed ? JSON.parse(committed) : G;  // as of the last finished turn
+  const rec = { v: 1, s: g.seed, P: g.players.map(P => [P.name, P.color, P.ai ? 1 : 0]), X0: g.hist0 || null, T: g.hist || null, F: netSnap(g) };
+  return REC_TAG + await pack(rec);
+}
+async function saveRecord(how) {
+  const text = await recordText(), name = `globus-${G.seed}-${G.turn}.txt`;
+  if (how === 'copy') try { await navigator.clipboard.writeText(text); toast(t('recCopied'), 'var(--ink)', 2600); return; } catch (e) { /* no clipboard: download instead */ }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], { type: 'text/plain' })); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  toast(t('recSaved', name), 'var(--ink)', 2600);
+}
+// Replay a record (all seats played as humans, so nothing thinks on its own); stops after `upto` turns
+async function replayRecord(text, upto = Infinity) {
+  const r = await unpack(text.slice(text.indexOf(REC_TAG) + REC_TAG.length).trim());
+  netStop();
+  netStartLocal(r.P.map(([name, color]) => ({ name, color, ai: false })), r.s, null);
+  if (r.X0) { netApplySnap(G, r.X0); G.hist0 = r.X0; UI.mode = (G.winner >= 0 || G.draw) ? 'over' : 'play'; }
+  beginTurn(true);
+  let n = 0;
+  for (const [p, acts] of r.T || []) {
+    if (n >= upto || UI.mode !== 'play' || p !== G.cur) break;
+    G.now = newNow();
+    for (const a of acts) { await netPerform(a); if (UI.mode !== 'play') break; }
+    if (UI.mode === 'play') finishTurn();
+    n++;
+  }
+  renderAll();
+  return { turns: n, of: (r.T || []).length, same: JSON.stringify(netSnap(G)) === JSON.stringify(r.F), rec: r };
 }
 
 // ===================== Setup =====================
@@ -2287,10 +2330,10 @@ function drawMini(cv, seed) {
 }
 
 // ===================== Panel rendering =====================
-function toast(text, color) {
+function toast(text, color, ms = 1150) {
   const el = $('#toast');
   el.textContent = text; el.style.setProperty('--c', color); el.classList.add('show');
-  clearTimeout(toast.timer); toast.timer = setTimeout(() => el.classList.remove('show'), 1150);
+  clearTimeout(toast.timer); toast.timer = setTimeout(() => el.classList.remove('show'), ms);
 }
 const drawText = () => G.draw === 'calm' ? t('drawCalm', CALM_TURNS) : t('drawText');
 function renderHeader() {
@@ -2423,7 +2466,7 @@ function renderPanel() {
   if (UI.mode === 'play') h += `<section>${renderActions()}</section>`;
   else if (UI.mode === 'over' && G.draw) h += `<section><div class="turn-head" style="--c:var(--ink)"><span class="hand">${t('drawTitle')}</span></div><p class="lead">${drawText()}</p><button type="button" class="btn primary big" data-act="newgame">${t('newGame')}</button></section>`;
   else if (UI.mode === 'over') h += `<section><div class="turn-head" style="--c:${pvar(G.winner)}"><span class="sw" style="--c:${pcolor(G.winner)}"></span><span class="hand">${t('winTitle')}</span></div><p class="lead">${esc(t('winText', pname(G.winner)))}</p><button type="button" class="btn primary big" data-act="newgame">${t('newGame')}</button></section>`;
-  h += `<section><p class="label">${t('logL')}</p>${renderLog()}</section>`;
+  h += `<section><p class="label">${t('logL')}</p>${renderLog()}<div class="row-btns"><button type="button" class="btn" data-act="rec-copy" title="${t('recHint')}">${t('recCopy')}</button><button type="button" class="btn" data-act="rec-save" title="${t('recHint')}">${t('recSave')}</button></div></section>`;
   const scroll = panel.querySelector('.log')?.scrollTop || 0;
   panel.innerHTML = h;
   const log = panel.querySelector('.log'); if (log) log.scrollTop = scroll;
@@ -2468,6 +2511,8 @@ document.addEventListener('click', e => {
     case 'undo': undoStep(); break;
     case 'cancel': cancelSel(); break;
     case 'end': endTurnNow(); break;
+    case 'rec-copy': saveRecord('copy'); break;
+    case 'rec-save': saveRecord('save'); break;
     case 'speed': SPEED = +b.dataset.v; save(); renderHeader(); break;
     case 'lang': LANG = LANG === 'ru' ? 'en' : 'ru'; save(); renderAll(); if (!$('#rulesModal').hidden) $('#rulesBody').innerHTML = rulesHTML(); break;
     case 'rules': $('#rulesBody').innerHTML = rulesHTML(); $('#rulesModal').hidden = false; $('#rulesClose').focus(); break;
@@ -2542,6 +2587,7 @@ try { window.claude?.hot?.snapshot?.(() => ({ save: JSON.parse(savedString()) })
 window.__globus = {
   get G() { return G; }, get UI() { return UI; },
   setInstant(v) { INSTANT = !!v; },
+  record: recordText, replay: replayRecord,
   start(players, seed) { setup = { players, seed: seed || newSeed() }; startGame(); },
   aiThink, aiContext, aiNextValue, aiCrushNext, aiBestShot, aiRisk, aiWorth, aiReply, aiPlay, AI_LOOK, Solver, buildTargets, genMap, applyMove, arrival, pathVictims, moveEnd,
   render: () => renderAll(), cells: c => ({ x: cx(c), y: cy(c) }),

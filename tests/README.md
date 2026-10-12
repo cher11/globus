@@ -7,6 +7,7 @@ cd tests
 npm install            # ставит playwright; браузер: npx playwright install chromium
 npm test               # правила и интерфейс (rules.test.js)
 node net.test.js       # игра по сети: два браузера и поддельный Telegram Bot API
+node record.test.js    # запись партии: сохранить, воспроизвести, поле совпадает
 node ai-tactics.test.js            # тактические позиции для компьютера (ai-tactics.test.js ../old.html — для другой версии)
 node ai-batch.js 2 6 400   # партии «компьютер против компьютера»: игроков, партий, лимит ходов
 node ai-duel.js 12 300 new rush            # статистика компьютера: начало партии, потери, время на ход
