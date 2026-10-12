@@ -987,14 +987,14 @@ const STR = {
     playersL: 'Игроки', addPlayer: 'Добавить игрока', remove: 'Убрать игрока', nameL: 'Имя игрока',
     mapN: n => `Карта № ${n}`, reroll: 'Другая карта', start: 'Начать игру', back: 'Вернуться к игре',
     cr: 'кр.', perHarvest: n => `+${n} за урожай`, humansN: n => `людей: ${n}`, outL: 'выбыли',
-    netOn: 'Играть по сети через Telegram-бота', netOnHint: 'Каждый играет со своего устройства, ходы идут через бота в вашей группе.',
-    netSteps: ['Создайте бота: напишите @BotFather команду /newbot и скопируйте токен.', 'Добавьте бота в группу и сделайте администратором с правом закреплять сообщения.', 'Напишите в группе /start и нажмите «Найти чат».', 'Отметьте, за кого играете вы, и начните партию — бот пришлёт в группу ссылку для остальных.'],
+    netOn: 'Играть по сети через Telegram-бота', netOnHint: 'Каждый играет со своего устройства, ходы передаёт ваш бот — через личный чат с ним или через группу.',
+    netSteps: ['Создайте бота: напишите @BotFather команду /newbot и скопируйте токен.', 'Напишите своему боту /start в личные сообщения. Или добавьте его в группу администратором с правом закреплять сообщения и напишите /start в группе.', 'Вставьте токен и нажмите «Найти чат».', 'Отметьте, за кого играете вы, и начните партию. Бот пришлёт ссылку: из личного чата перешлите её соперникам, в группе её увидят все.'],
     netToken: 'Токен бота от @BotFather', netChat: 'ID чата', netFind: 'Найти чат', netChatFound: n => `Чат найден: ${n}.`,
-    netNoChats: 'Бот пока не видел ни одной группы. Напишите в группе /start и нажмите ещё раз.',
+    netNoChats: 'Бот пока не видел ни одного чата. Напишите ему /start (в личные сообщения или в группе) и нажмите ещё раз.', netPrivate: n => `личные сообщения (${n})`, titleTurn: 'Ваш ход',
     netMe: 'Это я', netStart: 'Начать сетевую партию', netNeed: 'Укажите токен бота и чат.', netConnecting: 'Подключаемся к Telegram…',
     netFail: m => `Не получилось: ${m}`, netNoConn: 'нет связи с Telegram', netNeedAdmin: 'сделайте бота администратором группы с правом закреплять сообщения',
     netNoGame: 'в чате не закреплена эта партия', netPinnedNote: 'Служебное сообщение игры «Глобус». Не открепляйте, пока идёт партия.',
-    netInvite: (names, link) => `Новая партия «Глобус»: ${names}.\nОткройте ссылку, выберите себя и играйте: ${link}`,
+    netInvite: (names, link, priv) => priv ? `Новая партия «Глобус»: ${names}.\nПерешлите эту ссылку соперникам. По ней они выберут себя и сыграют, Telegram им не нужен: ${link}` : `Новая партия «Глобус»: ${names}.\nОткройте ссылку, выберите себя и играйте: ${link}`,
     netTurnMsg: (n, who, what, next) => `Ход ${n} · ${who}: ${what}. ${next}`, netNext: n => `Ходят: ${n}.`, netWin: n => `Победа: ${n}!`, netDraw: 'Ничья.',
     netWaiting: n => `Сейчас ходят ${n}. Ждём их ход через Telegram…`, netReplaying: n => `Показываем ход: ${n}…`,
     netLine: (g, me) => `Сеть: партия #${g}, вы — ${me}`, netErr: m => `ошибка связи (${m}), повторим`,
@@ -1054,14 +1054,14 @@ const STR = {
     playersL: 'Players', addPlayer: 'Add player', remove: 'Remove player', nameL: 'Player name',
     mapN: n => `Map No. ${n}`, reroll: 'Another map', start: 'Start game', back: 'Back to game',
     cr: 'cr', perHarvest: n => `+${n} per harvest`, humansN: n => `humans: ${n}`, outL: 'out',
-    netOn: 'Play online through a Telegram bot', netOnHint: 'Everyone plays on their own device; moves go through the bot in your group.',
-    netSteps: ['Create a bot: send /newbot to @BotFather and copy the token.', 'Add the bot to your group and make it an admin allowed to pin messages.', 'Send /start in the group and press “Find chat”.', 'Mark which player is you and start the game; the bot posts a link for the others in the group.'],
+    netOn: 'Play online through a Telegram bot', netOnHint: 'Everyone plays on their own device; your bot passes the moves through a private chat with it or through a group.',
+    netSteps: ['Create a bot: send /newbot to @BotFather and copy the token.', 'Send /start to your bot in a private chat. Or add it to a group as an admin allowed to pin messages and send /start in the group.', 'Paste the token and press “Find chat”.', 'Mark which player is you and start the game. The bot sends a link: from a private chat, forward it to your opponents; in a group, everyone sees it.'],
     netToken: 'Bot token from @BotFather', netChat: 'Chat ID', netFind: 'Find chat', netChatFound: n => `Chat found: ${n}.`,
-    netNoChats: 'The bot has not seen any group yet. Send /start in the group and press again.',
+    netNoChats: 'The bot has not seen any chat yet. Send it /start (privately or in a group) and press again.', netPrivate: n => `private chat (${n})`, titleTurn: 'Your turn',
     netMe: 'This is me', netStart: 'Start online game', netNeed: 'Enter the bot token and the chat.', netConnecting: 'Connecting to Telegram…',
     netFail: m => `That did not work: ${m}`, netNoConn: 'no connection to Telegram', netNeedAdmin: 'make the bot a group admin allowed to pin messages',
     netNoGame: 'this game is not pinned in the chat', netPinnedNote: 'Globus game data. Keep it pinned while the game is on.',
-    netInvite: (names, link) => `New Globus game: ${names}.\nOpen the link, pick yourself and play: ${link}`,
+    netInvite: (names, link, priv) => priv ? `New Globus game: ${names}.\nForward this link to your opponents. They pick themselves there and play, no Telegram needed: ${link}` : `New Globus game: ${names}.\nOpen the link, pick yourself and play: ${link}`,
     netTurnMsg: (n, who, what, next) => `Turn ${n} · ${who}: ${what}. ${next}`, netNext: n => `${n} to move.`, netWin: n => `${n} wins!`, netDraw: 'Draw.',
     netWaiting: n => `${n} to move. Waiting for their move through Telegram…`, netReplaying: n => `Showing ${n}'s move…`,
     netLine: (g, me) => `Online: game #${g}, you are ${me}`, netErr: m => `connection error (${m}), retrying`,
@@ -1659,7 +1659,7 @@ async function netFlush() {
       catch (e) { if (!/not modified/i.test(e.message)) throw e; }
       me.outbox.pinnedDone = true; saveNet();
     }
-    await tg(me.token, 'sendMessage', { chat_id: me.chat, text: me.outbox.line, disable_web_page_preview: true });
+    await tg(me.token, 'sendMessage', { chat_id: me.chat, text: me.outbox.line, disable_web_page_preview: true, disable_notification: !!me.quiet });
     me.outbox = null; saveNet(); me.flushing = false; netStatus('sent');
   } catch (e) {
     me.flushing = false; netStatus('error', e.message);
@@ -1733,10 +1733,11 @@ async function startNetGame() {
     const m = await tg(token, 'sendMessage', { chat_id: chat, text: `${t('netPinnedNote')}\n${NET_TAG}${await pack(payload)}`, disable_notification: true });
     try { await tg(token, 'pinChatMessage', { chat_id: chat, message_id: m.message_id, disable_notification: true }); }
     catch (e) { throw new Error(/right|admin|permission/i.test(e.message) ? t('netNeedAdmin') : e.message); }
-    await tg(token, 'sendMessage', { chat_id: chat, text: t('netInvite', players.map(q => q.name).join(', '), netLink(token, chat, gid)), disable_web_page_preview: true });
+    const priv = /^\d+$/.test(chat);  // a private chat's id is the user's id (positive); groups are negative
+    await tg(token, 'sendMessage', { chat_id: chat, text: t('netInvite', players.map(q => q.name).join(', '), netLink(token, chat, gid), priv), disable_web_page_preview: true });
     sn.note = '';
     netStartLocal(players, setup.seed, gid);
-    NET = { token, chat, gid, seat: Math.min(sn.seat || 0, players.length - 1), msg: m.message_id, n: 0, turns: [], status: 'ok' };
+    NET = { token, chat, gid, seat: Math.min(sn.seat || 0, players.length - 1), msg: m.message_id, n: 0, turns: [], status: 'ok', quiet: priv };  // my own moves need no ping in my own chat
     saveNet();
     beginTurn(false);
   } catch (e) { netNote(t('netFail', e.message)); }
@@ -1747,7 +1748,7 @@ async function netFindChats() {
   netNote(t('netConnecting'));
   try {
     const ups = await tg(token, 'getUpdates', { allowed_updates: '["message","my_chat_member"]' }), seen = new Map();
-    for (const u of ups) { const c = (u.message || u.my_chat_member || u.channel_post || {}).chat; if (c && c.type !== 'private') seen.set(String(c.id), c.title || String(c.id)); }
+    for (const u of ups) { const c = (u.message || u.my_chat_member || {}).chat; if (c) seen.set(String(c.id), c.type === 'private' ? t('netPrivate', c.first_name || c.username || c.id) : c.title || String(c.id)); }
     sn.chats = [...seen].map(([id, title]) => ({ id, title }));
     if (sn.chats.length === 1) sn.chat = sn.chats[0].id;
     netNote(sn.chats.length ? '' : t('netNoChats'));
@@ -2167,7 +2168,12 @@ function renderInfo() {
   if (u) parts.push(`${uname(u.type, true)} (${pname(u.owner)})${u.cargo ? `, ${t('cargoL')}: ${uname(u.cargo)}` : ''}`);
   el.textContent = parts.join(' · ');
 }
-function renderAll() { renderHeader(); renderPanel(); renderInfo(); requestDraw(); }
+const BASE_TITLE = document.title;
+function renderAll() {
+  renderHeader(); renderPanel(); renderInfo(); requestDraw();
+  const mine = NET && UI.view === 'game' && UI.mode === 'play' && NET.seat === G.cur;
+  document.title = mine ? `▶ ${t('titleTurn')} · ${BASE_TITLE}` : BASE_TITLE;
+}
 
 // ===================== Events =====================
 function cellFromEvent(e) {

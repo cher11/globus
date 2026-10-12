@@ -5,13 +5,13 @@ const { chromium } = require('playwright');
 const { clickCell, check, failures, W } = require('./helpers');
 const PAGE = 'file://' + path.resolve(__dirname, '..', 'index.html');
 
-function fakeTelegram() {
-  const chat = { id: -1001234, type: 'supergroup', title: 'Друзья' }, msgs = new Map();
+function fakeTelegram(chat = { id: -1001234, type: 'supergroup', title: 'Друзья' }) {
+  const msgs = new Map();
   let nextId = 100, pinned = null;
   const api = {
     getMe: () => ({ id: 1, is_bot: true, username: 'globus_test_bot' }),
-    getUpdates: () => [{ update_id: 1, my_chat_member: { chat } }],
-    sendMessage: q => { const m = { message_id: ++nextId, chat, text: q.get('text') }; msgs.set(m.message_id, m); return m; },
+    getUpdates: () => [chat.type === 'private' ? { update_id: 1, message: { chat, text: '/start' } } : { update_id: 1, my_chat_member: { chat } }],
+    sendMessage: q => { const m = { message_id: ++nextId, chat, text: q.get('text'), quiet: q.get('disable_notification') === 'true' }; msgs.set(m.message_id, m); return m; },
     pinChatMessage: q => { pinned = +q.get('message_id'); return true; },
     editMessageText: q => {
       const m = msgs.get(+q.get('message_id'));
@@ -34,9 +34,9 @@ function fakeTelegram() {
 
 (async () => {
   const browser = await chromium.launch(), tg = fakeTelegram(), errors = [];
-  const device = async () => {
+  const device = async (fake = tg) => {
     const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
-    await ctx.route('https://api.telegram.org/**', r => tg.route(r));
+    await ctx.route('https://api.telegram.org/**', r => fake.route(r));
     const page = await ctx.newPage();
     page.on('pageerror', e => errors.push(e.message));
     page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
@@ -106,6 +106,32 @@ function fakeTelegram() {
 
   const lines = tg.lines().filter(x => /^Ход \d+ · /.test(x));
   check('a readable line per turn is posted', lines.length === 5, lines);
+
+  // ---------- one on one without a group: the host's private chat with the bot
+  const pm = fakeTelegram({ id: 555, type: 'private', first_name: 'Илья' });
+  const A2 = await device(pm);
+  await A2.goto(PAGE); await A2.waitForTimeout(300); await fast(A2);
+  await A2.check('#netOn');
+  await A2.fill('#netToken', 'TEST-TOKEN');
+  await A2.click('[data-act="net-find"]'); await A2.waitForTimeout(300);
+  check('a private chat with the bot is found', await A2.inputValue('#netChat') === '555');
+  await A2.click('[data-act="start"]');
+  await A2.waitForFunction(() => __globus.UI.mode === 'play', null, { timeout: 10000 });
+  const invite2 = pm.lines().find(x => x.includes('#tg='));
+  check('the invite asks to forward the link', !!invite2 && invite2.includes('Перешлите'), pm.lines());
+  const B2 = await device(pm);
+  await B2.goto(PAGE + invite2.slice(invite2.indexOf('#tg='))); await fast(B2);
+  await B2.waitForSelector('[data-act="net-join"]', { timeout: 10000 });
+  await B2.click('[data-act="net-join"][data-i="1"]');
+  await B2.waitForFunction(() => __globus.UI.mode === 'play', null, { timeout: 10000 });
+  await clickCell(A2, 0);
+  await waitTurn(B2, 1);
+  check('the tab title tells B it is their turn', (await B2.title()).startsWith('▶'));
+  await clickCell(B2, 40);
+  await waitTurn(A2, 0);
+  check('boards match in a private-chat game', await hash(A2) === await hash(B2));
+  const turns = [...pm.msgs.values()].filter(m => /^Ход \d+ · /.test(m.text));
+  check('the host is not pinged for their own move, but is for the opponent\'s', turns.length === 2 && turns[0].quiet && !turns[1].quiet, turns);
   check('no page errors', errors.length === 0, errors.slice(0, 3));
   console.log(failures() ? `${failures()} FAILED` : 'ALL PASSED');
   await browser.close();
