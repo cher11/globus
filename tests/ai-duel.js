@@ -1,7 +1,8 @@
 // Computer player statistics, seeded and reproducible.
 //   node ai-duel.js [games=6] [turnCap=300] [A=new] [B=new] [jobs=3] [ms=80]
 // A and B: new (the AI of ../index.html), rush / rush1 (the scripted raider of rusher.js, careful / reckless), enc (the
-// scripted tank siege of encircler.js) or the path of another version of the game, whose "Computer player" section is
+// scripted tank siege of encircler.js), lander (lander.js: a human landed by battleship by the opponent's base builds
+// tanks there) or the path of another version of the game, whose "Computer player" section is
 // compiled against this page's engine. ms: the computer's thinking budget per turn (AI_LOOK.ms; the game's default is
 // larger), for every side whose AI has one; a game is reproducible as long as no turn runs into it.
 // When A and B differ, every seed is played twice, once from each seat. Per seat it reports the opening (turn of the
@@ -17,7 +18,7 @@ const specs = [arg[2] || 'new', arg[3] || 'new'];
 const label = s => /\.html$/.test(s) ? path.basename(s, '.html') : s;
 const section = f => { const s = fs.readFileSync(f, 'utf8'); return s.slice(s.indexOf('// ===================== Computer player'), s.indexOf('// ===================== Text')); };
 const srcOf = s => /\.html$/.test(s) ? section(path.resolve(s)) : null;
-const rusher = fs.readFileSync(path.join(__dirname, 'rusher.js'), 'utf8') + '\n' + fs.readFileSync(path.join(__dirname, 'encircler.js'), 'utf8');
+const rusher = fs.readFileSync(path.join(__dirname, 'rusher.js'), 'utf8') + '\n' + fs.readFileSync(path.join(__dirname, 'encircler.js'), 'utf8') + '\n' + fs.readFileSync(path.join(__dirname, 'lander.js'), 'utf8');
 
 async function play(browser, k, seats) {
   const page = await browser.newPage({ viewport: { width: 1000, height: 700 } });
@@ -62,6 +63,7 @@ async function play(browser, k, seats) {
       const B = spec === 'new' ? { aiThink: g.aiThink, aiBestShot: g.aiBestShot, aiContext: g.aiContext, look: g.AI_LOOK }
         : /^rush/.test(spec) ? window.__mkRusher(L, spec === 'rush1' ? 1 : 2)
         : spec === 'enc' ? window.__mkEncircler(L)
+        : spec === 'lander' ? window.__mkLander(L)
         : new Function(...Object.keys(L), srcs[p] + '\nreturn { aiThink, aiBestShot, aiContext, look: typeof AI_LOOK === "undefined" ? null : AI_LOOK };')(...Object.values(L));
       if (B.look && B.look.ms) B.look.ms = ms;
       g.brain(p, { ...B, aiThink(G, q, dbg, shotFree) {

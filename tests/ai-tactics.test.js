@@ -14,13 +14,14 @@ const around = (cells, keep = []) => { const out = [], k = c => c[0] + ':' + c[1
 
 (async () => {
   const { browser, page, errors } = await open({ seedRandom: 7 });
+  await page.addScriptTag({ path: path.join(__dirname, 'lander.js') });
   console.log('AI of', path.relative(process.cwd(), file));
   const run = (name, units, opts) => page.evaluate(([src, name, units, opts, TRIES]) => {
     const G = window.__globus, L = G.lib, W = L.W;
     const AI = new Function(...Object.keys(L), src + '\nreturn { aiThink };')(...Object.values(L));
     const at = (x, y) => y * W + x;
     const mk = () => {
-      const g = { v: 1, seed: 1, terrain: new Array(L.N).fill(L.LAND), burnt: new Array(L.N).fill(0), grid: new Array(L.N).fill(0), units: {}, nextId: 1,
+      const g = { v: 1, seed: 1, terrain: opts.map ? G.genMap(opts.map) : new Array(L.N).fill(L.LAND), burnt: new Array(L.N).fill(0), grid: new Array(L.N).fill(0), units: {}, nextId: 1,
         players: [0, 1].map(i => ({ name: 'P' + i, color: i, ai: true, credits: (opts.credits || [0, 0])[i], placed: true, alive: true })),
         cur: 0, turn: opts.turn || 60, log: [], winner: -1, lastKill: 1, draw: '' };
       for (const [x0, y0, x1, y1] of opts.sea || []) for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) g.terrain[at(x, y)] = L.SEA;
@@ -28,36 +29,47 @@ const around = (cells, keep = []) => { const out = [], k = c => c[0] + ':' + c[1
       for (const [type, owner, x, y, cargo] of units) { const id = g.nextId++, c = at(x, y); g.units[id] = { id, type, owner, cell: c, cargo: cargo || null }; g.grid[c] = id; }
       return g;
     };
-    // one turn of player 0, the way aiTurn plays it
-    const play = g => {
+    // one turn of player p, the way aiTurn plays it (player 0: the AI under test; player 1 in a played-out position: the
+    // scripted lander of lander.js, a person's way of moving machinery)
+    const foe = opts.rounds ? window.__mkLander(L) : null;
+    const play = (g, p = 0) => {
+      const B = p ? foe : AI;
       const act = a => {
-        if (a.kind === 'harvest') g.players[0].credits += L.yieldOf(g, 0);
-        else if (a.kind === 'build') { const info = L.buildTargets(g, 0, a.type).get(a.cell); if (info) L.applyBuild(g, 0, a.type, a.cell, info); }
+        if (a.kind === 'harvest') g.players[p].credits += L.yieldOf(g, p);
+        else if (a.kind === 'build') { const info = L.buildTargets(g, p, a.type).get(a.cell); if (info) L.applyBuild(g, p, a.type, a.cell, info); }
         else if (a.path && g.units[a.id]) { const u = g.units[a.id], path = a.path.slice(0, L.moveEnd(g, u, a.path) + 1); L.applyMove(g, a.id, path, a.crush); }
       };
-      const shoot = (id, gi, c) => { const u = g.units[id], gun = u && L.gunsOf(u)[gi]; if (gun && L.targetsFrom(g, 0, u.cell, gun).includes(c)) { L.killAt(g, c); return true; } return false; };
-      let a = AI.aiThink(g, 0, null, true), d = describe(g, a);
+      const shoot = (id, gi, c) => { const u = g.units[id], gun = u && L.gunsOf(u)[gi]; if (gun && L.targetsFrom(g, p, u.cell, gun).includes(c)) { L.killAt(g, c); return true; } return false; };
+      let a = B.aiThink(g, p, null, true), d = describe(g, a);
       if (a.kind === 'act' && a.after && (!a.shot || a.after.v > a.shot.v)) { act(a); shoot(a.id, a.after.gi, a.after.c); d += ' +shot ' + L.coord(a.after.c); }
-      else if (a.shot) { shoot(a.shot.id, a.shot.gi, a.shot.c); d = 'shot ' + L.coord(a.shot.c) + ', '; a = AI.aiThink(g, 0, null, false); d += describe(g, a); act(a); }
+      else if (a.shot) { shoot(a.shot.id, a.shot.gi, a.shot.c); d = 'shot ' + L.coord(a.shot.c) + ', '; a = B.aiThink(g, p, null, false); d += describe(g, a); act(a); }
       else act(a);
       for (const u of Object.values(g.units)) { delete u.fresh; delete u.aaFresh; }
+      g.turn++;
       return d;
     };
     const describe = (g, a) => a.kind === 'harvest' ? 'harvest' : a.kind === 'build' ? `build ${a.type} ${L.coord(a.cell)}` : `move ${g.units[a.id].type} ${L.coord(g.units[a.id].cell)}->${L.coord(a.path[a.path.length - 1])}`;
     const res = [];
     for (let t = 0; t < TRIES; t++) {
-      const g = mk(), ids = Object.keys(g.units), turn = play(g), hc = g.players.map((_, i) => L.humansOf(g, i));
+      const g = mk(), ids = Object.keys(g.units), hc0 = g.players.map((_, i) => L.humansOf(g, i)), mine0 = Object.values(g.units).filter(u => u.owner === 0);
+      let turn = play(g);
+      // a played-out position: the lander answers, then my turns and its turns alternate; what I lost is counted by worth
+      for (let k = 1; k < (opts.rounds || 0) * 2; k++) turn += (k % 2 ? ' / L: ' : ' / ') + play(g, k % 2);
+      const hc = g.players.map((_, i) => L.humansOf(g, i));
+      const lost = Math.round(mine0.filter(u => !g.units[u.id]).reduce((a, u) => a + G.aiWorth(hc0, u), 0));
       const rep = G.aiReply(g, 1, 0, hc), kept = id => !!g.units[id];
       const u = id => g.units[id] && { type: g.units[id].type, cell: L.coord(g.units[id].cell) };
       res.push({ turn, rep: { net: Math.round(rep.net), loss: Math.round(rep.loss), line: rep.line && { ...rep.line, to: rep.line.to !== undefined ? L.coord(rep.line.to) : undefined, dead: (rep.line.dead || []).map(L.coord), shot: rep.line.shot >= 0 ? L.coord(rep.line.shot) : undefined } },
-        humans: hc[0], alive: ids.map(id => [id, u(id)]).filter(x => x[1]).reduce((o, [id, v]) => (o[id] = v, o), {}) });
+        humans: hc[0], lost, alive: ids.map(id => [id, u(id)]).filter(x => x[1]).reduce((o, [id, v]) => (o[id] = v, o), {}) });
     }
     return res;
   }, [src, name, units, opts, TRIES]);
+  // ok judges each try; a played-out position (opts.rounds) is judged by its average loss over the tries (opts.mean)
   const test = async (name, units, opts, ok) => {
-    const res = await run(name, units, opts), bad = res.filter(r => !ok(r));
-    check(name, !bad.length, bad.length ? { turns: res.map(r => r.turn), first: bad[0].rep } : undefined);
-    if (!bad.length) console.log('   ', [...new Set(res.map(r => r.turn))].join(' | '));
+    const res = await run(name, units, opts), mean = res.reduce((a, r) => a + r.lost, 0) / res.length;
+    const bad = opts.mean ? (mean < opts.mean ? [] : res) : res.filter(r => !ok(r));
+    check(name, !bad.length, bad.length ? { turns: res.map(r => r.turn), lost: res.map(r => r.lost), first: bad[0].rep } : undefined);
+    if (!bad.length) console.log('   ', [...new Set(res.map(r => r.turn))].join(' | ') + (opts.rounds ? ' (lost ' + res.map(r => r.lost).join(', ') + ')' : ''));
   };
 
   // 1. An enemy aircraft can land on my human and then shoot whatever stands next to it: taking the enemy factory right
@@ -98,6 +110,28 @@ const around = (cells, keep = []) => { const out = [], k = c => c[0] + ':' + c[1
     ['human', 0, 20, 15], ['field', 0, 19, 16], ['field', 0, 21, 16], ['aircraft', 0, 21, 5],
     ['human', 1, 35, 30], ['human', 1, 36, 30], ['factory', 1, 11, 5], ['aircraft', 1, 30, 15],
   ], {}, r => r.rep.loss < 100);
+
+  // 7. Played out over three rounds against the scripted lander: an enemy human has landed by my base and built a tank
+  //    there; the tank moves to cells my guns do not cover, from which it crushes next turn. I have the credits for a counter.
+  const base = [['human', 0, 3, 30], ['human', 0, 5, 30], ['human', 0, 7, 31], ['human', 0, 4, 32], ['field', 0, 2, 30], ['field', 0, 3, 31], ['field', 0, 6, 31],
+    ['field', 0, 5, 32], ['field', 0, 2, 31], ['factory', 0, 4, 31], ['factory', 0, 6, 30], ['factory', 0, 8, 32], ['factory', 0, 3, 32], ['aa', 0, 8, 30],
+    ['human', 1, 35, 3], ['human', 1, 36, 3], ['factory', 1, 34, 3], ['factory', 1, 37, 3], ['factory', 1, 35, 4]];
+  await test('an invading tank by my base is met (three rounds against the lander)', [...base, ['human', 1, 14, 25], ['tank', 1, 13, 26]],
+    { credits: [40, 30], rounds: 3, mean: 60, sea: [[16, 10, 30, 22]] });
+  await test('a human landed by my base: the tank it builds does little harm (three rounds)', [...base, ['field', 1, 33, 2], ['field', 1, 34, 2], ['field', 1, 35, 2], ['field', 1, 36, 2], ['field', 1, 37, 2], ['human', 1, 15, 24], ['battleship', 1, 17, 23]],
+    { credits: [40, 30], rounds: 3, mean: 60, sea: [[16, 10, 30, 24]] });
+
+  // 9. From a duel against the lander (ai-duel.js seed 1, turn 34, the map of that game): the landed human is dead, but its
+  //    tank stands by my base, out of my guns, and next turn drives in to crush. I have 100 credits.
+  await test('a real game: the invading tank is stopped before it crushes the base (three rounds)', [
+    ['human', 0, 6, 33], ['human', 0, 7, 32], ['human', 0, 8, 31], ['human', 0, 9, 30], ['human', 0, 10, 29], ['human', 0, 5, 32],
+    ['field', 0, 7, 33], ['field', 0, 6, 32], ['field', 0, 5, 33], ['field', 0, 8, 33], ['field', 0, 7, 31],
+    ['factory', 0, 8, 32], ['factory', 0, 9, 31], ['factory', 0, 8, 30], ['factory', 0, 9, 32], ['factory', 0, 10, 31], ['factory', 0, 4, 33], ['factory', 0, 5, 31],
+    ['aa', 0, 10, 30], ['aa', 0, 6, 31], ['artillery', 0, 9, 29], ['artillery', 0, 11, 30], ['artillery', 0, 11, 29],
+    ['human', 1, 40, 2], ['human', 1, 39, 3], ['human', 1, 38, 4], ['human', 1, 37, 5], ['human', 1, 36, 6], ['human', 1, 35, 7], ['human', 1, 34, 6], ['human', 1, 33, 7],
+    ['field', 1, 40, 3], ['field', 1, 40, 4], ['field', 1, 40, 1], ['field', 1, 39, 2], ['field', 1, 39, 1],
+    ['factory', 1, 39, 4], ['factory', 1, 38, 3], ['factory', 1, 38, 2], ['battleship', 1, 17, 24], ['tank', 1, 10, 25],
+  ], { map: 1097, turn: 34, credits: [100, 15], rounds: 3, mean: 60, burnt: [[32, 8], [32, 13], [27, 18], [22, 23], [11, 25], [12, 25], [13, 25], [14, 25], [15, 25], [16, 25]] });
 
   check('no page errors', errors.length === 0, errors.slice(0, 3));
   console.log(failures() ? `${failures()} FAILED` : 'ALL PASSED');
