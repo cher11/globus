@@ -154,6 +154,18 @@ const { open, clickCell, check, failures, W } = require('./helpers');
   const boxed = await page.evaluate(() => ({ winner: __globus.G.winner, out: !__globus.G.players[1].alive, log: __globus.G.log.slice(-3).map(e => e.k) }));
   check('a boxed-in player with nothing to do but harvest is out', boxed.out && boxed.winner === 0 && boxed.log.includes('stuck'), boxed);
 
+  // ---------- only sea left next to the humans: out without harvest or money for a ship, still in with a harvest
+  for (const [field, out] of [[false, true], [true, false]]) {
+    await start();
+    await clickCell(page, 0); await clickCell(page, 40);
+    await page.evaluate(field => { const G = __globus.G, W = 41; G.burnt[39] = G.burnt[40 + W] = 1; G.terrain[39 + W] = __globus.lib.SEA;
+      if (field) { const id = G.nextId++; G.units[id] = { id, type: 'field', owner: 1, cell: 20 * W + 20, cargo: null }; G.grid[20 * W + 20] = id; }
+      __globus.render(); }, field);
+    await page.click('[data-act="harvest"]'); await page.waitForTimeout(900);
+    const r = await page.evaluate(() => ({ out: !__globus.G.players[1].alive, cur: __globus.G.cur }));
+    check(field ? 'only sea next to the humans but a harvest coming: still in' : 'only sea next to the humans, no harvest, no money for a ship: out', r.out === out, r);
+  }
+
   // ---------- AI vs AI smoke: a few turns without errors
   await page.evaluate(() => { __globus.setInstant(true); __globus.start([{ color: 0, name: '', ai: true }, { color: 1, name: '', ai: true }], 99); });
   await page.waitForFunction(() => __globus.G.turn >= 40 || __globus.G.winner >= 0, null, { timeout: 120000 });
