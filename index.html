@@ -974,12 +974,14 @@ function aiCrushGain(g, ctx, c) {
   return s;
 }
 // Best single shot by any of my units (a shot does not use up the turn's action)
-function aiBestShot(g, ctx) {
-  let best = null;
+function aiBestShot(g, ctx) { return aiShots(g, ctx, 1)[0] || null; }
+// The n best shots at different cells, best first
+function aiShots(g, ctx, n) {
+  const by = new Map();
   for (const u of ctx.mine) gunsOf(u).forEach((gun, gi) => {
-    for (const c of targetsFrom(g, ctx.p, u.cell, gun)) { const v = killValue(g, ctx, unitAt(g, c)); if (!best || v > best.v) best = { id: u.id, gi, c, v }; }
+    for (const c of targetsFrom(g, ctx.p, u.cell, gun)) { const v = killValue(g, ctx, unitAt(g, c)), b = by.get(c); if (!b || v > b.v) by.set(c, { id: u.id, gi, c, v }); }
   });
-  return best;
+  return [...by.values()].sort((a, b) => b.v - a.v).slice(0, n);
 }
 // Moves of unit u. A move that ends where the unit is likely to be shot pays for that; one that takes it out of fire
 // gains what staying would cost. ex: the enemy unit the turn's shot kills before the move (shot first).
@@ -1011,8 +1013,188 @@ function aiEvalUnit(g, ctx, u, consider, shotFree, v0, ex) {
     // a trade must be clearly worth it: the unit's own loss weighs a third more than what it gains
     const land = ferry && u.cargo && ctx.landNear[c] ? 6 + ctx.landNear[c] * 0.5 : 0;
     const base = gain + (prog * pw + land + 0.45 * ctx.far[u.type][c]) * (1 - r) - r * me * (r > 0.9 ? 1.7 : 1.3) + riskNow - 0.4;
-    consider({ kind: 'act', id: u.id, st: pl.state, crush, after, risk: r, score: base + (first ? after.v - v0 : 0) });
+    consider({ kind: 'act', id: u.id, st: pl.state, crush, after, risk: r, ab: first ? after.v - v0 : 0, score: base + (first ? after.v - v0 : 0) });
   }
+}
+// ---------- Lookahead: my turn played out on a copy of the state, then each opponent's best reply to it
+// A copy cheap enough to play turns on (the terrain is shared: static caches are keyed by it)
+function aiCopy(g) {
+  const units = {};
+  for (const id in g.units) units[id] = { ...g.units[id] };
+  return { terrain: g.terrain, burnt: g.burnt.slice(), grid: g.grid.slice(), units, nextId: g.nextId, players: g.players.map(P => ({ ...P })), cur: g.cur, turn: g.turn };
+}
+// What losing v costs its owner; hc (humans left per player) counts down, so the last human weighs everything
+function aiTake(hc, v) { const w = aiWorth(hc, v); if (hasHuman(v)) hc[v.owner]--; return w; }
+// The best turn player q has against player p: one move (a tank crushes on its way; a tank or aircraft takes, or rams, where it
+// ends) and one shot by any ready gun of q (the moved unit fires from either end of its move), or a shot alone. Scored for q:
+// net = what p loses less what q loses in a ram. line: the unit moved, where to, the cells hit by the move and the shot.
+function aiReply(g, q, p, hc, keep, lib) {
+  const tg = [];
+  for (const e of unitList(g)) if (e.owner === q) for (const gun of gunsOf(e)) for (const c of targetsFrom(g, q, e.cell, gun)) if (g.units[g.grid[c]].owner === p && !tg.includes(c)) tg.push(c);
+  // the best shot at what is left: from the guns as they stand, or from unit m once on cell `from`
+  const shoot = (h, dead, m, from) => {
+    let w = 0, c0 = -1;
+    const look = c => { if (dead.includes(c)) return; const v = unitAt(g, c); if (v.owner !== p) return; const x = aiWorth(h, v); if (x > w) { w = x; c0 = c; } };
+    tg.forEach(look);
+    if (m) for (const gun of gunsOf(m)) targetsFrom(g, q, from, gun).forEach(look);
+    return { w, c: c0 };
+  };
+  // a player with no room to build, no move and no shot is out: count what a line leaves me of each
+  const out = (dead, shot, burnt) => {
+    if (!lib || lib.shot || lib.n - burnt > 0) return 0;
+    let mob = lib.mob;
+    for (const c of shot >= 0 ? [...dead, shot] : dead) { const v = unitAt(g, c); if (v && U[v.type].move) mob--; }
+    return mob <= 0 ? 3000 : 0;
+  };
+  const s0 = shoot(hc, [], null), lines = [];
+  s0.w += out([], s0.c, 0);
+  let best = { net: s0.w, loss: s0.w, line: s0.w ? { shot: s0.c, dead: [] } : null };
+  for (const m of unitList(g)) {
+    if (m.owner !== q || !U[m.type].move) continue;
+    for (const ln of aiLines(g, m, p, hc, keep, lib)) {
+      const h = hc.slice(), dead = [];
+      let loss = 0;
+      for (const c of ln.hit) { const v = unitAt(g, c); if (v && v.owner === p) { loss += aiTake(h, v); dead.push(c); } }
+      const s = shoot(h, dead, ln.ram ? null : m, ln.to);
+      // a tank burns the free cells on its way
+      let b = 0;
+      if (lib && ln.path) for (const c of new Set(ln.path)) b += lib.mark[c];
+      loss += out(dead, s.c, b);
+      const net = loss + s.w - (ln.ram ? aiWorth(hc, m) : 0);
+      if (net <= 0) continue;
+      const line = { id: m.id, to: ln.to, dead, ram: ln.ram, shot: s.c, net };
+      lines.push(line);
+      if (net > best.net) best = { net, loss: loss + s.w, line };
+    }
+  }
+  // the next threat: the best line that hits none of what the best one does (it is still there a turn later)
+  best.alt = 0;
+  if (best.line) {
+    const hit = best.line.shot >= 0 ? [...best.line.dead, best.line.shot] : best.line.dead;
+    best.alt = shoot(hc, hit, null).w;
+    for (const l of lines) if (l.net > best.alt && !hit.includes(l.shot) && !l.dead.some(c => hit.includes(c))) best.alt = l.net;
+  }
+  return best;
+}
+// Every move of enemy unit m against player p: { to, hit: p's cells it destroys on the way and where it ends, ram }.
+// Aircraft and ships pass over anything, so their end cells come from the terrain alone (aiMoves); a tank crushes and
+// stops on machinery, so its paths are planned, and kept in `keep` for states that differ only farther than a move away.
+function aiLines(g, m, p, hc, keep, lib) {
+  const out = [], q = m.owner;
+  if (m.type !== 'tank') {
+    const mv = aiMoves(g, m.type);
+    for (let i = mv.off[m.cell]; i < mv.off[m.cell + 1]; i++) {
+      const to = mv.ends[i], v = unitAt(g, to), arr = v ? arrival(m.type, v) : '';
+      if (g.burnt[to] || (v && (v.owner === q || !arr))) continue;
+      out.push({ to, hit: v && v.owner === p ? [to] : [], ram: arr === 'ram' });
+    }
+    return out;
+  }
+  const k = keep && keep.tanks.get(m.id);
+  if (k && k.cell === m.cell && !keep.changed.some(x => cheb(x, m.cell) <= U.tank.move)) return k.lines;
+  const sv = new Solver(g, m);
+  if (sv.good(m.cell, -1, U.tank.move)) {
+    // the path that crushes the most on the way to each end cell (and burns the most of p's liberties)
+    const plans = sv.plan(m.cell, -1, U.tank.move, c => { const v = unitAt(g, c); return v && v.owner === p && (BIT[v.type] & STRUCT) ? aiWorth(hc, v) : lib && lib.mark[c] ? 0.5 : 0; });
+    for (const [to, pl] of plans) {
+      const path = Solver.pathOf(pl.state), hit = pathVictims(g, m, path, true).filter(c => { const v = unitAt(g, c); return v && v.owner === p; }), v = unitAt(g, to), arr = v ? arrival('tank', v) : '';
+      if (v && v.owner === p && arr) hit.push(to);
+      out.push({ to, hit, ram: arr === 'ram', path });
+    }
+  }
+  if (keep && !keep.changed.length) keep.tanks.set(m.id, { cell: m.cell, lines: out });
+  return out;
+}
+// My liberties on g (free cells next to my humans, free land next to my ships with a human aboard), how many mobile units
+// I have, and whether I have a shot (moves and shots keep me in the game without liberties)
+function aiLibs(g, p) {
+  const mark = new Uint8Array(N);
+  let n = 0, mob = 0, shot = false;
+  for (const id in g.units) {
+    const u = g.units[id];
+    if (u.owner !== p) continue;
+    if (U[u.type].move) mob++;
+    if (!shot) for (const gun of gunsOf(u)) if (targetsFrom(g, p, u.cell, gun).length) { shot = true; break; }
+    if (!hasHuman(u)) continue;
+    for (let d = 0; d < 8; d++) { const c = NB[u.cell * 8 + d]; if (c >= 0 && !mark[c] && isFree(g, c) && (u.type === 'human' || g.terrain[c] === LAND)) { mark[c] = 1; n++; } }
+  }
+  return { mark, n, mob, shot };
+}
+// Plays my turn a on a copy of g: the shot `pre` first, or the moved unit's shot `after` last. Returns the copy, what the turn
+// won (kills, by what they cost their owners) less what it cost me (rams), the cells it changed and hc counted down for the
+// humans killed; null if the turn is not possible.
+function aiPlay(g, p, a, pre, after, hc) {
+  const g2 = aiCopy(g), changed = [];
+  let gain = 0;
+  const hit = v => { if (v) gain += (v.owner === p ? -1 : 1) * aiTake(hc, v); };
+  if (pre) { hit(killAt(g2, pre.c)); changed.push(pre.c); }
+  if (a.kind === 'build') { applyBuild(g2, p, a.type, a.cell, a.info); changed.push(a.cell); }
+  else if (a.kind === 'harvest') g2.players[p].credits += yieldOf(g2, p);
+  else if (a.kind === 'act') {
+    const u = g2.units[a.id], path = a.path;
+    if (!u || g2.burnt[path[path.length - 1]]) return null;
+    changed.push(u.cell, ...(u.type === 'tank' ? path : [path[path.length - 1]]));
+    for (const e of applyMove(g2, a.id, path, a.crush)) { hit(e.victim); if (e.kind === 'ram') hit(u); }
+    if (after && g2.units[a.id]) { hit(killAt(g2, after.c)); changed.push(after.c); }
+  }
+  for (const id in g2.units) { const u = g2.units[id]; delete u.fresh; delete u.aaFresh; }
+  return { g2, gain, changed, hc };
+}
+// A check of the heuristic's turn one reply ahead: its best turns are played out (the best K and the best `per` of each
+// unit, of building and harvest; at most `max`), each opponent answers with its best reply, and each turn gets a tactical
+// value: what it wins less what the replies take (own losses weigh more: a trade must be clearly worth it). The heuristic's
+// own choice stays unless another turn is tactically better by more than `margin` (the heuristic plans the economy, room
+// and colonies; the lookahead catches what it misses: a move into a move-and-shoot, a gap opened for an enemy tank...).
+// ms: the thinking budget of a turn, a hard cap checked between turns played out (aiThink splits it; the page freezes
+// while it thinks). alt: share of the opponent's next threat; far: weight of later opponents.
+const AI_LOOK = { ms: 1000, K: 12, per: 2, max: 36, own: 1.3, alt: 0.4, far: 0.5, margin: 20 };
+function aiSearch(g, p, all, shots, end) {
+  const n = g.players.length, hc = g.players.map((_, i) => humansOf(g, i)), opp = [], L = AI_LOOK, time = () => performance.now() < end;
+  for (let k = 1; k < n; k++) { const q = (p + k) % n, P = g.players[q]; if (P.alive && P.placed && hc[q] > 0) opp.push(q); }
+  if (!opp.length) return null;
+  // the opponents' tank plans, worked out once and kept for turns that change nothing within a tank move of them
+  const lib0 = aiLibs(g, p), keep = opp.map(q => { const k = { tanks: new Map(), changed: [] }; k.now = aiReply(g, q, p, hc, k, lib0); return k; });
+  all.sort((a, b) => b.score - a.score);
+  const pick = new Set(all.slice(0, L.K)), per = new Map();
+  for (const a of all) {
+    if (pick.size >= L.max) break;
+    const key = a.kind === 'act' ? a.id : a.kind, k = per.get(key) || 0;
+    if (k < (a.kind === 'harvest' ? 1 : L.per)) { pick.add(a); per.set(key, k + 1); }
+  }
+  const res = [];
+  const run = (a, pre, after) => {
+    if (a.kind === 'act' && !a.path) a.path = Solver.pathOf(a.st);
+    const r = aiPlay(g, p, a, pre, after, hc.slice());
+    if (!r) return;
+    // humans left; a new one does not make the others cheaper (it does count when I am down to my last two)
+    const h2 = g.players.map((_, i) => i === p && hc[p] > 2 ? Math.min(r.hc[p], humansOf(r.g2, i)) : humansOf(r.g2, i)), lib = aiLibs(r.g2, p);
+    let take = 0, line = null;
+    opp.forEach((q, i) => {
+      if (h2[q] <= 0) return;
+      keep[i].changed = r.changed;
+      const rep = aiReply(r.g2, q, p, h2, keep[i], lib);
+      take += (rep.net + L.alt * rep.alt) * (i ? L.far : 1);
+      if (!line) line = rep.line;
+    });
+    res.push({ a, pre, after, t: r.gain - take * L.own, h: a.score - (pre ? a.ab || 0 : 0), gain: r.gain, take, line });
+  };
+  // the heuristic's turn (with its shot fired the way aiTurn would) is the reference; the rest differ from it by their
+  // tactical value beyond the margin
+  const a0 = all[0], late = a0.after && (!shots[0] || a0.after.v > shots[0].v);
+  const top = () => {
+    const ref = res.find(r => r.a === a0 && !!r.after === !!late) || res[0];
+    let b = null;
+    for (const r of res) { const d = r.t - ref.t; r.val = r.h + Math.sign(d) * Math.max(0, Math.abs(d) - L.margin); if (!b || r.val > b.val) b = r; }
+    return b;
+  };
+  // the best K always (a slow machine may cut the rest), then other shots for the best turn
+  let k = 0;
+  for (const a of pick) { if (k++ >= L.K && !time()) break; run(a, shots[0], null); if (a.after) run(a, null, a.after); }
+  if (!res.length) return null;
+  let best = top();
+  if (best.pre) { for (const s of shots.slice(1)) if (time()) run(best.a, s, null); best = top(); }
+  best.now = keep[0].now.net;
+  return best;
 }
 function aiPlace(g, p) {
   const opts = [...buildTargets(g, p, 'human').keys()], sd = aiStatics(g).seaDist;
@@ -1033,23 +1215,27 @@ function aiPlace(g, p) {
 // Picks the turn's action (build, move or harvest). With shotFree, also returns the best shot available now;
 // a move whose own follow-up shot beats that shot is scored up and fires after moving.
 function aiThink(g, p, dbg, shotFree = true) {
-  const P = g.players[p];
+  const P = g.players[p], t0 = performance.now();
   if (!P.placed) return aiPlace(g, p);
-  const ctx = aiContext(g, p), shot = shotFree ? aiBestShot(g, ctx) : null, v0 = shot ? shot.v : 0, ex = shot ? g.grid[shot.c] : 0;
+  const ctx = aiContext(g, p), shots = shotFree ? aiShots(g, ctx, 3) : [], shot = shots[0] || null, v0 = shot ? shot.v : 0, ex = shot ? g.grid[shot.c] : 0;
   let best = null;
-  const consider = a => { a.score += Math.random() * 0.8; if (dbg) dbg.push(a); if (!best || a.score > best.score) best = a; };
+  const all = [], consider = a => { a.score += Math.random() * 0.8; if (dbg) dbg.push(a); all.push(a); if (!best || a.score > best.score) best = a; };
   // harvest: while the economy grows, whenever a factory is out of reach; later, the fewer credits the better
   consider({ kind: 'harvest', score: ctx.R > 0 ? Math.max(ctx.R * 1.4 * 45 / (45 + ctx.credits), ctx.R < 30 && ctx.credits < 10 ? 25 : 0) : -3 });
   for (const type of TYPES) {
     if (U[type].cost > P.credits) continue;
     for (const [c, info] of buildTargets(g, p, type)) {
       const s = aiScoreBuild(g, ctx, type, c, info);
-      if (s > -50) consider({ kind: 'build', type, cell: c, score: s });
+      if (s > -50) consider({ kind: 'build', type, cell: c, info, score: s });
     }
   }
   for (const u of ctx.mine) if (U[u.type].move) aiEvalUnit(g, ctx, u, consider, shotFree, v0, ex);
-  if (best.kind === 'act') best.path = Solver.pathOf(best.st);
-  best.shot = shot;
+  // look one reply ahead. The turn's shot fires first (aiTurn then thinks again, so the first look gets most of the budget),
+  // or after the move when it is the moved unit's.
+  const look = aiSearch(g, p, all, shots, t0 + AI_LOOK.ms * (shotFree ? 0.65 : 0.35));
+  if (look) { best = { ...look.a, shot: look.pre || null, after: look.pre ? null : look.after, look }; if (dbg) dbg.look = look; }
+  else best.shot = shot;
+  if (best.kind === 'act' && !best.path) best.path = Solver.pathOf(best.st);
   return best;
 }
 
@@ -2357,7 +2543,7 @@ window.__globus = {
   get G() { return G; }, get UI() { return UI; },
   setInstant(v) { INSTANT = !!v; },
   start(players, seed) { setup = { players, seed: seed || newSeed() }; startGame(); },
-  aiThink, aiContext, aiNextValue, aiCrushNext, aiBestShot, aiRisk, aiWorth, Solver, buildTargets, genMap, applyMove, arrival, pathVictims, moveEnd,
+  aiThink, aiContext, aiNextValue, aiCrushNext, aiBestShot, aiRisk, aiWorth, aiReply, aiPlay, AI_LOOK, Solver, buildTargets, genMap, applyMove, arrival, pathVictims, moveEnd,
   render: () => renderAll(), cells: c => ({ x: cx(c), y: cy(c) }),
   net: { get NET() { return NET; }, poll(ms) { NET_POLL = ms; }, hash: () => stateHash(G) },
   brain(p, b) { if (b) BRAINS[p] = b; else delete BRAINS[p]; },

@@ -1,8 +1,9 @@
 // Computer player statistics, seeded and reproducible.
-//   node ai-duel.js [games=6] [turnCap=300] [A=new] [B=new] [jobs=3]
+//   node ai-duel.js [games=6] [turnCap=300] [A=new] [B=new] [jobs=3] [ms=80]
 // A and B: new (the AI of ../index.html), rush / rush1 (the scripted raider of rusher.js, careful / reckless), enc (the
 // scripted tank siege of encircler.js) or the path of another version of the game, whose "Computer player" section is
-// compiled against this page's engine.
+// compiled against this page's engine. ms: the computer's thinking budget per turn (AI_LOOK.ms; the game's default is
+// larger), for every side whose AI has one; a game is reproducible as long as no turn runs into it.
 // When A and B differ, every seed is played twice, once from each seat. Per seat it reports the opening (turn of the
 // 5th field, first factory, yield >= 30, fields built beyond five, humans at turn 20), losses (units killed right
 // after they moved, mobile units killed standing, static units, factories and humans, own units lost in rams), naval play
@@ -11,7 +12,7 @@
 const fs = require('fs'), path = require('path');
 const { chromium } = require('playwright');
 const PAGE = 'file://' + path.resolve(__dirname, '..', 'index.html');
-const arg = process.argv.slice(2), games = Number(arg[0] || 6), cap = Number(arg[1] || 300), jobs = Number(arg[4] || 3);
+const arg = process.argv.slice(2), games = Number(arg[0] || 6), cap = Number(arg[1] || 300), jobs = Number(arg[4] || 3), ms = Number(arg[5] || 80);
 const specs = [arg[2] || 'new', arg[3] || 'new'];
 const label = s => /\.html$/.test(s) ? path.basename(s, '.html') : s;
 const section = f => { const s = fs.readFileSync(f, 'utf8'); return s.slice(s.indexOf('// ===================== Computer player'), s.indexOf('// ===================== Text')); };
@@ -26,7 +27,7 @@ async function play(browser, k, seats) {
   await page.addInitScript(k => { let a = 777 + k * 31; Math.random = () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }, k);
   await page.goto(PAGE);
   await page.addScriptTag({ content: rusher });
-  const r = await page.evaluate(async ([seats, srcs, seed, cap]) => {
+  const r = await page.evaluate(async ([seats, srcs, seed, cap, ms]) => {
     const g = window.__globus, L = g.lib, VAL = Object.fromEntries(L.TYPES.map(t => [t, L.U[t].val]));
     const lastAct = seats.map(() => null), seen = new WeakSet();
     const S = seats.map(() => ({ exposed: 0, times: [], late: [], t5: 0, tF: 0, t30: 0, extra: 0, humans20: 0, moved: 0, movedV: 0, standing: 0, stat: 0, lostF: 0, lostH: 0, rams: 0, lostV: 0, kills: 0, ships: 0, loadH: 0, landH: 0, loadA: 0, stuck: 0 }));
@@ -58,10 +59,11 @@ async function play(browser, k, seats) {
       if (log.length) last = log[log.length - 1];
     };
     seats.forEach((spec, p) => {
-      const B = spec === 'new' ? { aiThink: g.aiThink, aiBestShot: g.aiBestShot, aiContext: g.aiContext }
+      const B = spec === 'new' ? { aiThink: g.aiThink, aiBestShot: g.aiBestShot, aiContext: g.aiContext, look: g.AI_LOOK }
         : /^rush/.test(spec) ? window.__mkRusher(L, spec === 'rush1' ? 1 : 2)
         : spec === 'enc' ? window.__mkEncircler(L)
-        : new Function(...Object.keys(L), srcs[p] + '\nreturn { aiThink, aiBestShot, aiContext };')(...Object.values(L));
+        : new Function(...Object.keys(L), srcs[p] + '\nreturn { aiThink, aiBestShot, aiContext, look: typeof AI_LOOK === "undefined" ? null : AI_LOOK };')(...Object.values(L));
+      if (B.look && B.look.ms) B.look.ms = ms;
       g.brain(p, { ...B, aiThink(G, q, dbg, shotFree) {
         if (shotFree !== false) { // start of the turn
           eat();
@@ -86,7 +88,7 @@ async function play(browser, k, seats) {
     const G = g.G, st = a => { const s = a.slice().sort((x, y) => x - y); return [s.length ? s.reduce((x, y) => x + y, 0) / s.length : 0, s[Math.floor(s.length * 0.95)] || 0, s[s.length - 1] || 0]; };
     const fin = G.players.map((P, i) => { const u = Object.values(G.units).filter(x => x.owner === i); return `h${u.filter(x => x.type === 'human' || x.cargo === 'human').length} y${u.reduce((a, x) => a + (L.U[x.type].yield || 0), 0)} $${P.credits} m${u.filter(x => L.U[x.type].move).length}`; });
     return { turn: G.turn, winner: G.winner, draw: G.draw || '', fin, S: S.map(s => ({ ...s, times: st(s.times), late: st(s.late) })) };
-  }, [seats, seats.map(srcOf), 1000 + k * 97, cap]);
+  }, [seats, seats.map(srcOf), 1000 + k * 97, cap, ms]);
   r.errors = errors; r.k = k; r.seats = seats.map(label);
   await page.close();
   return r;
