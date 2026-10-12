@@ -987,6 +987,19 @@ const STR = {
     playersL: 'Игроки', addPlayer: 'Добавить игрока', remove: 'Убрать игрока', nameL: 'Имя игрока',
     mapN: n => `Карта № ${n}`, reroll: 'Другая карта', start: 'Начать игру', back: 'Вернуться к игре',
     cr: 'кр.', perHarvest: n => `+${n} за урожай`, humansN: n => `людей: ${n}`, outL: 'выбыли',
+    netOn: 'Играть по сети через Telegram-бота', netOnHint: 'Каждый играет со своего устройства, ходы идут через бота в вашей группе.',
+    netSteps: ['Создайте бота: напишите @BotFather команду /newbot и скопируйте токен.', 'Добавьте бота в группу и сделайте администратором с правом закреплять сообщения.', 'Напишите в группе /start и нажмите «Найти чат».', 'Отметьте, за кого играете вы, и начните партию — бот пришлёт в группу ссылку для остальных.'],
+    netToken: 'Токен бота от @BotFather', netChat: 'ID чата', netFind: 'Найти чат', netChatFound: n => `Чат найден: ${n}.`,
+    netNoChats: 'Бот пока не видел ни одной группы. Напишите в группе /start и нажмите ещё раз.',
+    netMe: 'Это я', netStart: 'Начать сетевую партию', netNeed: 'Укажите токен бота и чат.', netConnecting: 'Подключаемся к Telegram…',
+    netFail: m => `Не получилось: ${m}`, netNoConn: 'нет связи с Telegram', netNeedAdmin: 'сделайте бота администратором группы с правом закреплять сообщения',
+    netNoGame: 'в чате не закреплена эта партия', netPinnedNote: 'Служебное сообщение игры «Глобус». Не открепляйте, пока идёт партия.',
+    netInvite: (names, link) => `Новая партия «Глобус»: ${names}.\nОткройте ссылку, выберите себя и играйте: ${link}`,
+    netTurnMsg: (n, who, what, next) => `Ход ${n} · ${who}: ${what}. ${next}`, netNext: n => `Ходят: ${n}.`, netWin: n => `Победа: ${n}!`, netDraw: 'Ничья.',
+    netWaiting: n => `Сейчас ходят ${n}. Ждём их ход через Telegram…`, netReplaying: n => `Показываем ход: ${n}…`,
+    netLine: (g, me) => `Сеть: партия #${g}, вы — ${me}`, netErr: m => `ошибка связи (${m}), повторим`,
+    netSt_ok: 'на связи', netSt_waiting: 'ждём ход', netSt_sending: 'отправляем ход…', netSt_sent: 'ход отправлен', netSt_other: 'в чате закреплена другая партия',
+    joinTitle: 'Сетевая партия', joinLoading: 'Загружаем партию из Telegram…', joinPick: 'За кого вы играете?',
     thinking: 'Компьютер думает…',
     placeHint: 'Поставьте первого человека в любую клетку у края поля — они подсвечены.',
     harvestBtn: 'Собрать урожай', passBtn: 'Пропустить ход', noYield: 'урожая нет',
@@ -1041,6 +1054,19 @@ const STR = {
     playersL: 'Players', addPlayer: 'Add player', remove: 'Remove player', nameL: 'Player name',
     mapN: n => `Map No. ${n}`, reroll: 'Another map', start: 'Start game', back: 'Back to game',
     cr: 'cr', perHarvest: n => `+${n} per harvest`, humansN: n => `humans: ${n}`, outL: 'out',
+    netOn: 'Play online through a Telegram bot', netOnHint: 'Everyone plays on their own device; moves go through the bot in your group.',
+    netSteps: ['Create a bot: send /newbot to @BotFather and copy the token.', 'Add the bot to your group and make it an admin allowed to pin messages.', 'Send /start in the group and press “Find chat”.', 'Mark which player is you and start the game; the bot posts a link for the others in the group.'],
+    netToken: 'Bot token from @BotFather', netChat: 'Chat ID', netFind: 'Find chat', netChatFound: n => `Chat found: ${n}.`,
+    netNoChats: 'The bot has not seen any group yet. Send /start in the group and press again.',
+    netMe: 'This is me', netStart: 'Start online game', netNeed: 'Enter the bot token and the chat.', netConnecting: 'Connecting to Telegram…',
+    netFail: m => `That did not work: ${m}`, netNoConn: 'no connection to Telegram', netNeedAdmin: 'make the bot a group admin allowed to pin messages',
+    netNoGame: 'this game is not pinned in the chat', netPinnedNote: 'Globus game data. Keep it pinned while the game is on.',
+    netInvite: (names, link) => `New Globus game: ${names}.\nOpen the link, pick yourself and play: ${link}`,
+    netTurnMsg: (n, who, what, next) => `Turn ${n} · ${who}: ${what}. ${next}`, netNext: n => `${n} to move.`, netWin: n => `${n} wins!`, netDraw: 'Draw.',
+    netWaiting: n => `${n} to move. Waiting for their move through Telegram…`, netReplaying: n => `Showing ${n}'s move…`,
+    netLine: (g, me) => `Online: game #${g}, you are ${me}`, netErr: m => `connection error (${m}), retrying`,
+    netSt_ok: 'connected', netSt_waiting: 'waiting for a move', netSt_sending: 'sending your move…', netSt_sent: 'move sent', netSt_other: 'another game is pinned in the chat',
+    joinTitle: 'Online game', joinLoading: 'Loading the game from Telegram…', joinPick: 'Which player are you?',
     thinking: 'Computer is thinking…',
     placeHint: 'Place your first human on any cell along the edge of the field. Those cells are highlighted.',
     harvestBtn: 'Collect harvest', passBtn: 'Pass the turn', noYield: 'nothing to collect',
@@ -1255,7 +1281,7 @@ const pcolor = p => PCOLORS[G.players[p].color].ink;
 const pvar = p => `var(--p-${PCOLORS[G.players[p].color].id})`;
 const pname = p => G.players[p].name;
 const sleep = ms => new Promise(r => setTimeout(r, INSTANT ? 0 : ms / SPEED));
-const isHumanTurn = () => UI.mode === 'play' && UI.view === 'game' && !UI.busy && !G.players[G.cur].ai;
+const isHumanTurn = () => UI.mode === 'play' && UI.view === 'game' && !UI.busy && !G.players[G.cur].ai && (!NET || NET.seat === G.cur);
 
 const SAVE_KEY = 'globus.save.v1';
 // The game is stored only at turn boundaries, so a reload mid-turn rolls back to the start of that turn.
@@ -1325,11 +1351,13 @@ function animMove(u, path, crush) {
 }
 
 // ===================== Actions (shared by people and the computer) =====================
-function track(kind, v) { if (!G.now) G.now = { p: G.cur, trail: [], shots: [], marks: [] }; G.now[kind].push(v); }
-function addLog(e) { e.tn = G.turn; G.log.push(e); if (G.log.length > 400) G.log.shift(); }
+const newNow = () => ({ p: G.cur, trail: [], shots: [], marks: [], acts: [], lines: [] });
+function track(kind, v) { if (!G.now) G.now = newNow(); (G.now[kind] || (G.now[kind] = [])).push(v); }
+function addLog(e) { e.tn = G.turn; G.log.push(e); if (G.log.length > 400) G.log.shift(); if (G.now) track('lines', e); }
 async function doBuild(type, cell) {
   const p = G.cur, info = buildTargets(G, p, type).get(cell);
   if (!info) return false;
+  track('acts', ['b', type, cell]);
   applyBuild(G, p, type, cell, info);
   track('marks', cell);
   addLog({ k: info.mode, p, t: type, c: cell });
@@ -1339,6 +1367,7 @@ async function doBuild(type, cell) {
 }
 async function doHarvest() {
   const p = G.cur, n = yieldOf(G, p);
+  track('acts', ['h']);
   G.players[p].credits += n;
   addLog({ k: n ? 'harvest' : 'pass', p, n });
   renderAll();
@@ -1352,6 +1381,7 @@ async function doShot(id, gi, cell) {
   if (!u) return;
   const gun = gunsOf(u)[gi], victim = unitAt(G, cell), from = u.cell;
   if (!gun || !victim) return;
+  track('acts', ['s', id, gi, cell]);
   await animShot(from, cell, pcolor(u.owner));
   if (tok !== gameToken) return;
   killAt(G, cell);
@@ -1365,6 +1395,7 @@ async function doShot(id, gi, cell) {
 async function doMove(id, path, crush) {
   const tok = gameToken, u = G.units[id];
   if (!u || !path || !path.length) return;
+  track('acts', ['m', id, crush ? 1 : 0, ...path]);
   const from = u.cell;
   path = path.slice(0, moveEnd(G, u, path) + 1);
   await animMove(u, path, crush);
@@ -1386,7 +1417,8 @@ function postKill() {
   if (G.winner >= 0) {
     addLog({ k: 'win', p: G.winner });
     UI.mode = 'over'; UI.sel = null; UI.busy = false; UI.hidden = 0;
-    commit(); renderAll();
+    netMark(); commit(); renderAll();
+    netTurnDone(G.cur, G.now);
   } else if (r.out.length) renderAll();
 }
 
@@ -1401,21 +1433,26 @@ function beginTurn(resumed) {
     return;
   }
   const P = G.players[G.cur];
-  if (!G.now) G.now = { p: G.cur, trail: [], shots: [], marks: [] };
+  if (!G.now) G.now = newNow();
+  const remote = NET && NET.seat !== G.cur;
   UI.sel = null; UI.busy = false; UI.turn = { act: false, shot: false };
-  if (!P.ai && !P.placed) UI.sel = { kind: 'build', type: 'human', targets: buildTargets(G, G.cur, 'human') };
+  if (!P.ai && !P.placed && !remote) UI.sel = { kind: 'build', type: 'human', targets: buildTargets(G, G.cur, 'human') };
   renderAll();
   const people = G.players.filter(q => !q.ai && q.alive).length;
-  if (!resumed && !P.ai && people > 1) toast(t('toastTurn', P.name), pvar(G.cur));
+  if (!resumed && !P.ai && !remote && (people > 1 || NET)) toast(t('toastTurn', P.name), pvar(G.cur));
   if (P.ai) aiTurn();
+  else if (remote) netWait();
 }
 function finishTurn() {
   if (UI.mode !== 'play') return;
+  const p = G.cur, done = G.now;
   G.last = G.now; G.now = null;
   for (const u of unitList(G)) { delete u.fresh; delete u.aaFresh; }
-  if (checkDraw(G)) { addLog({ k: 'draw', p: G.cur }); UI.mode = 'over'; UI.sel = null; UI.busy = false; commit(); renderAll(); return; }
+  if (checkDraw(G)) { addLog({ k: 'draw', p: G.cur }); UI.mode = 'over'; UI.sel = null; UI.busy = false; netMark(); commit(); renderAll(); netTurnDone(p, done); return; }
   nextPlayer(G);
+  netMark();
   commit();
+  netTurnDone(p, done);
   beginTurn(false);
 }
 
@@ -1544,6 +1581,218 @@ function undoStep() { const s = UI.sel; if (!isHumanTurn() || !s || s.kind !== '
 function cancelSel() { if (!isHumanTurn() || !UI.sel || !G.players[G.cur].placed) return; UI.sel = null; renderAll(); }
 function endTurnNow() { if (isHumanTurn() && UI.turn.act) finishTurn(); }
 
+// ===================== Network game over a Telegram bot =====================
+// The bot's pinned message in the group is the game's mailbox: setup, the number of the last turn, the last few
+// turns and a compressed snapshot of the board. Each browser polls it, replays turns it hasn't seen (or loads the
+// snapshot if it missed too many) and posts its own turn by editing that message, plus a readable line in the chat.
+const NET_TAG = 'GLOBUS1:', NET_KEY = 'globus.net.v1';
+let NET = null, JOIN = null, NET_POLL = 4000;
+function saveNet() { try { if (NET) { const { polling, replaying, flushing, ...keep } = NET; localStorage.setItem(NET_KEY, JSON.stringify(keep)); } else localStorage.removeItem(NET_KEY); } catch (e) { /* storage unavailable */ } }
+function loadNet() { try { return JSON.parse(localStorage.getItem(NET_KEY) || 'null'); } catch (e) { return null; } }
+async function tg(token, method, params = {}) {
+  const body = new URLSearchParams();
+  for (const k in params) body.set(k, String(params[k]));
+  let r;
+  try { r = await fetch(`https://api.telegram.org/bot${token}/${method}`, { method: 'POST', body }); } catch (e) { throw new Error(t('netNoConn')); }
+  const j = await r.json().catch(() => ({ ok: false, description: 'HTTP ' + r.status }));
+  if (!j.ok) throw new Error(j.description || 'HTTP ' + r.status);
+  return j.result;
+}
+const b64 = u8 => { let s = ''; for (const x of u8) s += String.fromCharCode(x); return btoa(s); };
+const unb64 = s => Uint8Array.from(atob(s), ch => ch.charCodeAt(0));
+async function pack(o) {
+  const s = JSON.stringify(o);
+  try { return 'Z' + b64(new Uint8Array(await new Response(new Blob([s]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer())); }
+  catch (e) { return 'J' + b64(new TextEncoder().encode(s)); }
+}
+async function unpack(s) {
+  const bytes = unb64(s.slice(1));
+  if (s[0] === 'Z') return JSON.parse(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text());
+  return JSON.parse(new TextDecoder().decode(bytes));
+}
+function netSnap(g) {
+  let b = '';
+  for (let i = 0; i < N; i += 4) b += ((g.burnt[i] | g.burnt[i + 1] << 1 | g.burnt[i + 2] << 2 | g.burnt[i + 3] << 3) & 15).toString(16);
+  return { b, u: unitList(g).map(u => [u.id, TYPES.indexOf(u.type), u.owner, u.cell, u.cargo ? TYPES.indexOf(u.cargo) : -1]), i: g.nextId,
+    p: g.players.map(P => [P.credits, P.placed ? 1 : 0, P.alive ? 1 : 0]), c: g.cur, t: g.turn, k: g.lastKill, w: g.winner, d: g.draw || '' };
+}
+function netApplySnap(g, x) {
+  for (let i = 0; i < N; i++) g.burnt[i] = parseInt(x.b[i >> 2], 16) >> (i & 3) & 1;
+  g.grid = new Array(N).fill(0); g.units = {};
+  for (const [id, ti, o, c, ci] of x.u) { g.units[id] = { id, type: TYPES[ti], owner: o, cell: c, cargo: ci >= 0 ? TYPES[ci] : null }; g.grid[c] = id; }
+  g.nextId = x.i; x.p.forEach(([cr, pl, al], i) => { const P = g.players[i]; P.credits = cr; P.placed = !!pl; P.alive = !!al; });
+  g.cur = x.c; g.turn = x.t; g.lastKill = x.k; g.winner = x.w; g.draw = x.d;
+}
+function stateHash(g) { const s = JSON.stringify(netSnap(g)); let h = 2166136261; for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619); return (h >>> 0).toString(36); }
+// Called at the moment the sender builds its message, so the receiver can compare the very same state
+function netMark() { if (NET) { NET.lastHash = stateHash(G); NET.lastSnap = netSnap(G); } }
+async function netReadPinned(token, chat) {
+  const c = await tg(token, 'getChat', { chat_id: chat }), m = c.pinned_message, i = m && m.text ? m.text.indexOf(NET_TAG) : -1;
+  if (i < 0) return null;
+  const p = await unpack(m.text.slice(i + NET_TAG.length).trim());
+  p.msg = m.message_id;
+  return p;
+}
+const netLink = (token, chat, gid) => `${location.origin}${location.pathname}#tg=` + b64(new TextEncoder().encode(JSON.stringify([token, chat, gid]))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const plainLog = e => fmtLog(e).replace(/<[^>]+>/g, '');
+function netStatus(st, err) { if (!NET || (NET.status === st && NET.err === err)) return; NET.status = st; NET.err = err || ''; if (UI.view === 'game') renderPanel(); }
+// My turn is done: number it, keep the last few turns, attach a snapshot, then deliver (retrying until it works)
+async function netTurnDone(p, done) {
+  if (!NET || NET.replaying || p !== NET.seat) return;
+  const turn = { n: NET.n + 1, p, a: (done && done.acts) || [] };
+  NET.n = turn.n;
+  NET.turns = (NET.turns || []).concat([turn]).slice(-(G.players.length + 1));
+  const payload = { v: 1, g: NET.gid, s: G.seed, P: G.players.map(P => [P.name, P.color]), n: NET.n, T: NET.turns, X: NET.lastSnap, h: NET.lastHash };
+  const what = ((done && done.lines) || []).filter(e => e.p === p).map(plainLog).join('; ') || t('lPass');
+  const next = G.winner >= 0 ? t('netWin', pname(G.winner)) : G.draw ? t('netDraw') : t('netNext', pname(G.cur));
+  NET.outbox = { pinned: `${t('netPinnedNote')}\n${NET_TAG}${await pack(payload)}`, line: t('netTurnMsg', turn.n, pname(p), what, next) };
+  saveNet();
+  netFlush();
+}
+async function netFlush() {
+  const me = NET;
+  if (!me || !me.outbox || me.flushing) return;
+  me.flushing = true; netStatus('sending');
+  try {
+    if (!me.outbox.pinnedDone) {
+      try { await tg(me.token, 'editMessageText', { chat_id: me.chat, message_id: me.msg, text: me.outbox.pinned }); }
+      catch (e) { if (!/not modified/i.test(e.message)) throw e; }
+      me.outbox.pinnedDone = true; saveNet();
+    }
+    await tg(me.token, 'sendMessage', { chat_id: me.chat, text: me.outbox.line, disable_web_page_preview: true });
+    me.outbox = null; saveNet(); me.flushing = false; netStatus('sent');
+  } catch (e) {
+    me.flushing = false; netStatus('error', e.message);
+    setTimeout(() => { if (NET === me) netFlush(); }, NET_POLL * 1.5);
+  }
+}
+async function netPerform(a) {
+  if (a[0] === 'b') await doBuild(a[1], a[2]);
+  else if (a[0] === 'h') await doHarvest();
+  else if (a[0] === 's') await doShot(a[1], a[2], a[3]);
+  else if (a[0] === 'm') await doMove(a[1], a.slice(3), !!a[2]);
+}
+// Load the board straight from the snapshot (missed turns, a fresh join, or a mismatch after replaying)
+function netResync(p) {
+  netApplySnap(G, p.X);
+  G.last = null; G.now = null; UI.sel = null; UI.hidden = 0;
+  UI.mode = (G.winner >= 0 || G.draw) ? 'over' : 'play';
+  NET.n = p.n; NET.turns = p.T.slice(); saveNet(); commit(); renderAll();
+  if (UI.mode === 'play') beginTurn(true);
+}
+async function netCatchUp(p) {
+  const need = p.T.filter(x => x.n > NET.n);
+  let ok = need.length === p.n - NET.n && need.every((x, i) => x.n === NET.n + 1 + i);
+  for (const x of ok ? need : []) {
+    if (UI.mode !== 'play' || x.p !== G.cur) { ok = false; break; }
+    NET.replaying = true; UI.busy = true; renderPanel();
+    G.now = newNow();
+    for (const a of x.a) { await netPerform(a); if (UI.mode !== 'play') break; }
+    NET.n = x.n;
+    if (UI.mode === 'play') finishTurn();
+    NET.replaying = false;
+  }
+  NET.replaying = false;
+  if (!ok || NET.lastHash !== p.h) { netResync(p); return; }
+  NET.turns = p.T.slice(); saveNet(); renderAll();
+}
+async function netWait() {
+  const me = NET;
+  if (!me || me.polling) return;
+  me.polling = true;
+  while (NET === me && UI.mode === 'play' && G.cur !== me.seat) {
+    try {
+      const p = await netReadPinned(me.token, me.chat);
+      if (NET !== me) break;
+      if (!p || p.g !== me.gid) netStatus('other');
+      else if (p.n > me.n) { me.msg = p.msg; await netCatchUp(p); netStatus('ok'); }
+      else netStatus(me.outbox ? 'sending' : 'waiting');
+    } catch (e) { netStatus('error', e.message); }
+    if (NET !== me || UI.mode !== 'play' || G.cur === me.seat) break;
+    await new Promise(r => setTimeout(r, NET_POLL));
+  }
+  me.polling = false;
+}
+function netStop() { NET = null; JOIN = null; saveNet(); }
+function netNote(msg) { if (!setup.net) return; setup.net.note = msg; renderPanel(); }
+function netStartLocal(players, seed, gid) {
+  gameToken++; flushAnims(); releaseGate();
+  G = makeGame({ seed, players }); G.net = gid;
+  UI = { view: 'game', mode: 'play', sel: null, hover: -1, busy: false, hidden: 0, turn: { act: false, shot: false } };
+  buildTerrain(); commit();
+}
+async function startNetGame() {
+  const sn = setup.net, token = (sn.token || '').trim(), chat = (sn.chat || '').trim();
+  if (!token || !chat) { netNote(t('netNeed')); return; }
+  netNote(t('netConnecting'));
+  try {
+    await tg(token, 'getMe');
+    const players = setup.players.map(sp => ({ name: sp.name.trim() || STR[LANG].colors[PCOLORS[sp.color].id], color: sp.color, ai: false }));
+    const gid = String(newSeed()), g0 = makeGame({ seed: setup.seed, players });
+    const payload = { v: 1, g: gid, s: setup.seed, P: players.map(q => [q.name, q.color]), n: 0, T: [], X: netSnap(g0), h: stateHash(g0) };
+    const m = await tg(token, 'sendMessage', { chat_id: chat, text: `${t('netPinnedNote')}\n${NET_TAG}${await pack(payload)}`, disable_notification: true });
+    try { await tg(token, 'pinChatMessage', { chat_id: chat, message_id: m.message_id, disable_notification: true }); }
+    catch (e) { throw new Error(/right|admin|permission/i.test(e.message) ? t('netNeedAdmin') : e.message); }
+    await tg(token, 'sendMessage', { chat_id: chat, text: t('netInvite', players.map(q => q.name).join(', '), netLink(token, chat, gid)), disable_web_page_preview: true });
+    sn.note = '';
+    netStartLocal(players, setup.seed, gid);
+    NET = { token, chat, gid, seat: Math.min(sn.seat || 0, players.length - 1), msg: m.message_id, n: 0, turns: [], status: 'ok' };
+    saveNet();
+    beginTurn(false);
+  } catch (e) { netNote(t('netFail', e.message)); }
+}
+async function netFindChats() {
+  const sn = setup.net, token = (sn.token || '').trim();
+  if (!token) { netNote(t('netNeed')); return; }
+  netNote(t('netConnecting'));
+  try {
+    const ups = await tg(token, 'getUpdates', { allowed_updates: '["message","my_chat_member"]' }), seen = new Map();
+    for (const u of ups) { const c = (u.message || u.my_chat_member || u.channel_post || {}).chat; if (c && c.type !== 'private') seen.set(String(c.id), c.title || String(c.id)); }
+    sn.chats = [...seen].map(([id, title]) => ({ id, title }));
+    if (sn.chats.length === 1) sn.chat = sn.chats[0].id;
+    netNote(sn.chats.length ? '' : t('netNoChats'));
+  } catch (e) { netNote(t('netFail', e.message)); }
+}
+// Opening an invite link: #tg=<token, chat, game id>
+async function netJoinFromHash() {
+  if (!location.hash.startsWith('#tg=')) return false;
+  let token, chat, gid;
+  try { [token, chat, gid] = JSON.parse(new TextDecoder().decode(unb64(location.hash.slice(4).replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((location.hash.length - 4 + 3) % 4)))); } catch (e) { return false; }
+  history.replaceState(null, '', location.pathname + location.search);
+  const saved = loadNet();
+  if (saved && saved.gid === gid && G && G.net === gid) return false; // already in this game: just resume
+  JOIN = { token, chat, gid, status: 'loading' }; UI.view = 'join'; renderAll();
+  try {
+    const p = await netReadPinned(token, chat);
+    if (!p || p.g !== gid) throw new Error(t('netNoGame'));
+    JOIN.payload = p; JOIN.status = 'ready';
+  } catch (e) { JOIN.status = 'error'; JOIN.err = e.message; }
+  renderAll();
+  return true;
+}
+function netJoinAs(i) {
+  const j = JOIN, p = j && j.payload;
+  if (!p) return;
+  netStartLocal(p.P.map(([name, color]) => ({ name, color, ai: false })), p.s, j.gid);
+  NET = { token: j.token, chat: j.chat, gid: j.gid, seat: i, msg: p.msg, n: 0, turns: [], status: 'ok' };
+  JOIN = null;
+  if (p.n > 0) netResync(p); else { saveNet(); beginTurn(false); }
+}
+function renderJoin() {
+  const j = JOIN;
+  let h = `<section><h2 class="hand">${t('joinTitle')}</h2>`;
+  if (!j || j.status === 'loading') return h + `<p class="hint">${t('joinLoading')}</p></section>`;
+  if (j.status === 'error') return h + `<p class="lead">${esc(t('netFail', j.err))}</p><button type="button" class="btn" data-act="newgame">${t('newGame')}</button></section>`;
+  h += `<p class="lead">${t('joinPick')}</p><div class="row-btns">`;
+  j.payload.P.forEach(([name, color], i) => { h += `<button type="button" class="btn" data-act="net-join" data-i="${i}" style="--c:${PCOLORS[color].ink}"><span class="sw" style="--c:${PCOLORS[color].ink};display:inline-block;vertical-align:-3px;margin-right:6px"></span>${esc(name)}</button>`; });
+  return h + `</div></section>`;
+}
+function renderNetLine() {
+  if (!NET) return '';
+  const st = NET.status === 'error' ? t('netErr', NET.err) : t('netSt_' + (NET.status || 'ok'));
+  return `<p class="hint mono">${t('netLine', NET.gid, esc(pname(NET.seat)))} · ${esc(st)}</p>`;
+}
+
 // ===================== Setup =====================
 function openSetup() {
   if (UI.view === 'setup') return;
@@ -1554,6 +1803,8 @@ function openSetup() {
 }
 function backToGame() { if (UI.mode === 'none') return; UI.view = 'game'; renderAll(); releaseGate(); }
 function startGame() {
+  if (setup.net && setup.net.on) { startNetGame(); return; }
+  netStop();
   const players = setup.players.map(sp => ({ name: sp.name.trim() || STR[LANG].colors[PCOLORS[sp.color].id], color: sp.color, ai: sp.ai }));
   gameToken++; flushAnims(); releaseGate();
   G = makeGame({ seed: setup.seed, players });
@@ -1797,6 +2048,7 @@ function renderActions() {
   const p = G.cur, P = G.players[p];
   let h = `<div class="turn-head" style="--c:${pvar(p)}"><span class="sw" style="--c:${pcolor(p)}"></span><span class="hand">${esc(P.name)}</span>${P.ai ? `<span class="tag">${t('aiTag')}</span>` : ''}</div>`;
   if (P.ai) return h + `<p class="hint">${t('thinking')}</p>`;
+  if (NET && NET.seat !== p) return h + `<p class="hint">${t(NET.replaying ? 'netReplaying' : 'netWaiting', esc(P.name))}</p>`;
   if (!P.placed) return h + `<p class="hint">${t('placeHint')}</p>`;
   const s = UI.sel, dis = UI.busy ? 'disabled' : '';
   h += `<div class="chips"><span class="chip ${UI.turn.act ? 'done' : ''}">${t(UI.turn.act ? 'actDone' : 'actLeft')}</span><span class="chip ${UI.turn.shot ? 'done' : ''}">${t(UI.turn.shot ? 'shotDone' : 'shotLeft')}</span></div>`;
@@ -1859,18 +2111,29 @@ function renderLog() {
 }
 function renderSetup() {
   const used = new Set(setup.players.map(sp => sp.color));
+  const sn = setup.net || (setup.net = { on: false, token: '', chat: '', seat: 0, chats: [] });
   let h = `<section><h2 class="hand">${t('setupTitle')}</h2><p class="lead">${t('setupLead')}</p></section>`;
   h += `<section><p class="label">${t('playersL')}</p><ul class="setup-list">`;
   setup.players.forEach((sp, i) => {
     const id = PCOLORS[sp.color].id;
     h += `<li class="setup-row"><span class="sw" style="--c:${PCOLORS[sp.color].ink}"></span>
       <input class="name-in" id="pname-${id}" data-i="${i}" value="${esc(sp.name)}" placeholder="${esc(STR[LANG].colors[id])}" maxlength="18" aria-label="${t('nameL')}">
-      <div class="seg" role="group"><button type="button" data-act="ctl" data-i="${i}" data-v="0" aria-pressed="${!sp.ai}">${t('ctlHuman')}</button><button type="button" data-act="ctl" data-i="${i}" data-v="1" aria-pressed="${sp.ai}">${t('ctlAI')}</button></div>
+      ${sn.on ? `<div class="seg" role="group"><button type="button" data-act="net-seat" data-i="${i}" aria-pressed="${sn.seat === i}">${t('netMe')}</button></div>` : `<div class="seg" role="group"><button type="button" data-act="ctl" data-i="${i}" data-v="0" aria-pressed="${!sp.ai}">${t('ctlHuman')}</button><button type="button" data-act="ctl" data-i="${i}" data-v="1" aria-pressed="${sp.ai}">${t('ctlAI')}</button></div>`}
       ${setup.players.length > 2 ? `<button type="button" class="x" data-act="rm" data-i="${i}" aria-label="${t('remove')}" title="${t('remove')}">×</button>` : ''}</li>`;
   });
   h += `</ul>${used.size < PCOLORS.length ? `<button type="button" class="btn" data-act="add">+ ${t('addPlayer')}</button>` : ''}</section>`;
   h += `<section><div class="map-row"><span class="mono">${t('mapN', setup.seed)}</span><button type="button" class="btn" data-act="reroll">${t('reroll')}</button></div>${UI.mode !== 'none' ? '<canvas id="mini"></canvas>' : ''}</section>`;
-  h += `<section><button type="button" class="btn primary big" data-act="start">${t('start')}</button>${UI.mode !== 'none' ? `<button type="button" class="btn" data-act="back">${t('back')}</button>` : ''}</section>`;
+  h += `<section><label class="check" for="netOn"><input type="checkbox" id="netOn" ${sn.on ? 'checked' : ''}><span>${t('netOn')}<small>${t('netOnHint')}</small></span></label>`;
+  if (sn.on) {
+    h += `<ol class="hint" style="margin:0;padding-left:18px">${t('netSteps').map(x => `<li>${x}</li>`).join('')}</ol>`;
+    h += `<input class="name-in" style="flex:none" id="netToken" value="${esc(sn.token || '')}" placeholder="${t('netToken')}" aria-label="${t('netToken')}" autocomplete="off" spellcheck="false">`;
+    h += `<div class="map-row"><input class="name-in" id="netChat" value="${esc(sn.chat || '')}" placeholder="${t('netChat')}" aria-label="${t('netChat')}" spellcheck="false"><button type="button" class="btn" data-act="net-find">${t('netFind')}</button></div>`;
+    if (sn.chats && sn.chats.length > 1) h += `<div class="row-btns">${sn.chats.map(c => `<button type="button" class="btn" data-act="net-chat" data-v="${esc(c.id)}" aria-pressed="${c.id === sn.chat}">${esc(c.title)}</button>`).join('')}</div>`;
+    else if (sn.chats && sn.chats.length === 1) h += `<p class="hint">${t('netChatFound', esc(sn.chats[0].title))}</p>`;
+    if (sn.note) h += `<p class="hint">${esc(sn.note)}</p>`;
+  }
+  h += `</section>`;
+  h += `<section><button type="button" class="btn primary big" data-act="start">${t(sn.on ? 'netStart' : 'start')}</button>${UI.mode !== 'none' ? `<button type="button" class="btn" data-act="back">${t('back')}</button>` : ''}</section>`;
   return h;
 }
 function renderPanel() {
@@ -1880,7 +2143,8 @@ function renderPanel() {
     const mini = $('#mini'); if (mini) drawMini(mini, setup.seed);
     return;
   }
-  let h = `<section>${renderPlayers()}</section>`;
+  if (UI.view === 'join') { panel.innerHTML = renderJoin(); return; }
+  let h = `<section>${renderPlayers()}${renderNetLine()}</section>`;
   if (UI.mode === 'play') h += `<section>${renderActions()}</section>`;
   else if (UI.mode === 'over' && G.draw) h += `<section><div class="turn-head" style="--c:var(--ink)"><span class="hand">${t('drawTitle')}</span></div><p class="lead">${drawText()}</p><button type="button" class="btn primary big" data-act="newgame">${t('newGame')}</button></section>`;
   else if (UI.mode === 'over') h += `<section><div class="turn-head" style="--c:${pvar(G.winner)}"><span class="sw" style="--c:${pcolor(G.winner)}"></span><span class="hand">${t('winTitle')}</span></div><p class="lead">${esc(t('winText', pname(G.winner)))}</p><button type="button" class="btn primary big" data-act="newgame">${t('newGame')}</button></section>`;
@@ -1930,6 +2194,10 @@ document.addEventListener('click', e => {
     case 'close-rules': $('#rulesModal').hidden = true; break;
     case 'newgame': openSetup(); break;
     case 'ctl': setup.players[i].ai = b.dataset.v === '1'; renderPanel(); break;
+    case 'net-seat': setup.net.seat = i; renderPanel(); break;
+    case 'net-find': netFindChats(); break;
+    case 'net-chat': setup.net.chat = b.dataset.v; renderPanel(); break;
+    case 'net-join': netJoinAs(i); break;
     case 'add': { const used = new Set(setup.players.map(sp => sp.color)); const col = PCOLORS.findIndex((_, k) => !used.has(k)); if (col >= 0) setup.players.push({ color: col, name: '', ai: true }); renderPanel(); break; }
     case 'rm': if (setup.players.length > 2) setup.players.splice(i, 1); renderPanel(); break;
     case 'reroll': setup.seed = newSeed(); if (UI.mode === 'none') { G = makeGame({ seed: setup.seed, players: [] }); buildTerrain(); } renderPanel(); break;
@@ -1938,8 +2206,13 @@ document.addEventListener('click', e => {
   }
 });
 $('#rulesModal').addEventListener('click', e => { if (e.target.id === 'rulesModal') e.currentTarget.hidden = true; });
-document.addEventListener('input', e => { if (e.target.matches('.name-in')) setup.players[+e.target.dataset.i].name = e.target.value; });
-document.addEventListener('change', e => { if (e.target.id === 'crushBox' && UI.sel && UI.sel.kind === 'act') { UI.sel.crush = e.target.checked; recomputeAct(); requestDraw(); } });
+document.addEventListener('input', e => {
+  if (e.target.id === 'netToken') { setup.net.token = e.target.value.trim(); return; }
+  if (e.target.id === 'netChat') { setup.net.chat = e.target.value.trim(); return; }
+  if (e.target.matches('.name-in')) setup.players[+e.target.dataset.i].name = e.target.value; });
+document.addEventListener('change', e => {
+  if (e.target.id === 'netOn') { setup.net.on = e.target.checked; setup.net.note = ''; renderPanel(); return; }
+  if (e.target.id === 'crushBox' && UI.sel && UI.sel.kind === 'act') { UI.sel.crush = e.target.checked; recomputeAct(); requestDraw(); } });
 document.addEventListener('keydown', e => {
   if (e.target.matches('input, textarea, select')) return;
   if (e.key === 'Escape') {
@@ -1974,9 +2247,15 @@ function boot(data) {
   } else {
     G = makeGame({ seed: setup.seed, players: [] }); UI.mode = 'none'; UI.view = 'setup';
   }
+  const net = loadNet();
+  NET = net && G && G.net === net.gid ? net : null;
   layout(); renderAll();
   requestAnimationFrame(loop);
-  if (UI.mode === 'play') beginTurn(true);
+  netJoinFromHash().then(joining => {
+    if (joining) return;
+    if (UI.mode === 'play') beginTurn(true);
+    if (NET && NET.outbox) netFlush();
+  });
 }
 try { window.claude?.hot?.snapshot?.(() => ({ save: JSON.parse(savedString()) })); } catch (e) { /* no viewer hook */ }
 
@@ -1986,6 +2265,7 @@ window.__globus = {
   start(players, seed) { setup = { players, seed: seed || newSeed() }; startGame(); },
   aiThink, aiContext, aiNextValue, aiCrushNext, aiBestShot, aiRisk, aiWorth, Solver, buildTargets, genMap, applyMove, arrival, pathVictims, moveEnd,
   render: () => renderAll(), cells: c => ({ x: cx(c), y: cy(c) }),
+  net: { get NET() { return NET; }, poll(ms) { NET_POLL = ms; }, hash: () => stateHash(G) },
   brain(p, b) { if (b) BRAINS[p] = b; else delete BRAINS[p]; },
   // engine names the computer player uses, to compile another version's AI section against this engine
   lib: { W, H, N, NB, DX, DY, LAND, SEA, cx, cy, cheb, coord, clamp, forLanes, bfs, TYPES, BIT, ALL, U, AA_GUN, gunsOf, canAct, hasHuman, valueOf,
