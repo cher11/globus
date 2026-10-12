@@ -1,10 +1,13 @@
 // Computer player statistics, seeded and reproducible.
 //   node ai-duel.js [games=6] [turnCap=300] [A=new] [B=new] [jobs=3]
-// A and B: new (the AI of ../index.html), rush / rush1 (the scripted raider of rusher.js, careful / reckless) or the
-// path of another version of the game, whose "Computer player" section is compiled against this page's engine.
+// A and B: new (the AI of ../index.html), rush / rush1 (the scripted raider of rusher.js, careful / reckless), enc (the
+// scripted tank siege of encircler.js) or the path of another version of the game, whose "Computer player" section is
+// compiled against this page's engine.
 // When A and B differ, every seed is played twice, once from each seat. Per seat it reports the opening (turn of the
 // 5th field, first factory, yield >= 30, fields built beyond five, humans at turn 20), losses (units killed right
-// after they moved, mobile units killed standing, static units, factories and humans, own units lost in rams) and think time.
+// after they moved, mobile units killed standing, static units, factories and humans, own units lost in rams), naval play
+// (battleships built, humans loaded aboard and landed, AA guns loaded), how often it was out for having no options
+// (stuck) and think time.
 const fs = require('fs'), path = require('path');
 const { chromium } = require('playwright');
 const PAGE = 'file://' + path.resolve(__dirname, '..', 'index.html');
@@ -13,7 +16,7 @@ const specs = [arg[2] || 'new', arg[3] || 'new'];
 const label = s => /\.html$/.test(s) ? path.basename(s, '.html') : s;
 const section = f => { const s = fs.readFileSync(f, 'utf8'); return s.slice(s.indexOf('// ===================== Computer player'), s.indexOf('// ===================== Text')); };
 const srcOf = s => /\.html$/.test(s) ? section(path.resolve(s)) : null;
-const rusher = fs.readFileSync(path.join(__dirname, 'rusher.js'), 'utf8');
+const rusher = fs.readFileSync(path.join(__dirname, 'rusher.js'), 'utf8') + '\n' + fs.readFileSync(path.join(__dirname, 'encircler.js'), 'utf8');
 
 async function play(browser, k, seats) {
   const page = await browser.newPage({ viewport: { width: 1000, height: 700 } });
@@ -26,7 +29,7 @@ async function play(browser, k, seats) {
   const r = await page.evaluate(async ([seats, srcs, seed, cap]) => {
     const g = window.__globus, L = g.lib, VAL = Object.fromEntries(L.TYPES.map(t => [t, L.U[t].val]));
     const lastAct = seats.map(() => null), seen = new WeakSet();
-    const S = seats.map(() => ({ exposed: 0, times: [], late: [], t5: 0, tF: 0, t30: 0, extra: 0, humans20: 0, moved: 0, movedV: 0, standing: 0, stat: 0, lostF: 0, lostH: 0, rams: 0, lostV: 0, kills: 0 }));
+    const S = seats.map(() => ({ exposed: 0, times: [], late: [], t5: 0, tF: 0, t30: 0, extra: 0, humans20: 0, moved: 0, movedV: 0, standing: 0, stat: 0, lostF: 0, lostH: 0, rams: 0, lostV: 0, kills: 0, ships: 0, loadH: 0, landH: 0, loadA: 0, stuck: 0 }));
     // read the log as it grows (it keeps only the last 400 entries)
     let last = null;
     const fields = seats.map(() => 0);
@@ -38,6 +41,10 @@ async function play(browser, k, seats) {
         if (e.k === 'build' && e.t === 'field' && fields[e.p] >= 5) s.extra++;
         if (e.k === 'build' && e.t === 'field' && ++fields[e.p] === 5 && !s.t5) s.t5 = e.tn;
         if (e.k === 'build' && e.t === 'factory' && !s.tF) s.tF = e.tn;
+        if (e.k === 'build' && e.t === 'battleship') s.ships++;
+        if (e.k === 'load') s[e.t === 'aa' ? 'loadA' : 'loadH']++;
+        if (e.k === 'land') s.landH++;
+        if (e.k === 'stuck') s.stuck++;
         if (['kill', 'crush', 'ram', 'smash', 'bomb'].includes(e.k) && e.vp !== undefined && e.vp !== e.p) {
           const v = S[e.vp], la = lastAct[e.vp];
           s.kills++; v.lostV += VAL[e.v];
@@ -53,6 +60,7 @@ async function play(browser, k, seats) {
     seats.forEach((spec, p) => {
       const B = spec === 'new' ? { aiThink: g.aiThink, aiBestShot: g.aiBestShot, aiContext: g.aiContext }
         : /^rush/.test(spec) ? window.__mkRusher(L, spec === 'rush1' ? 1 : 2)
+        : spec === 'enc' ? window.__mkEncircler(L)
         : new Function(...Object.keys(L), srcs[p] + '\nreturn { aiThink, aiBestShot, aiContext };')(...Object.values(L));
       g.brain(p, { ...B, aiThink(G, q, dbg, shotFree) {
         if (shotFree !== false) { // start of the turn
@@ -90,19 +98,20 @@ async function play(browser, k, seats) {
   const out = []; let next = 0;
   await Promise.all(Array.from({ length: jobs }, async () => { while (next < tasks.length) { const [k, seats] = tasks[next++]; const r = await play(browser, k, seats); out.push(r);
     const res = r.winner >= 0 ? r.seats[r.winner] + ' wins' : (r.draw ? 'draw ' + r.draw : 'cap') + ' (' + r.fin.join(' : ') + ')';
-    console.log(`seed ${k} ${r.seats.join('-')}: ${res} at turn ${r.turn}; ` + r.S.map((s, i) => `[${r.seats[i]} 5f@${s.t5} F@${s.tF} y30@${s.t30 || '-'} +f${s.extra} h20=${s.humans20} into fire ${s.exposed} lost: moved ${s.moved} standing ${s.standing} static ${s.stat} (F${s.lostF} H${s.lostH}) rams ${s.rams} value ${s.lostV} kills ${s.kills}]`).join(' ') + (r.errors.length ? ' ERR ' + r.errors.slice(0, 2).join(' | ') : '')); } }));
+    console.log(`seed ${k} ${r.seats.join('-')}: ${res} at turn ${r.turn}; ` + r.S.map((s, i) => `[${r.seats[i]} 5f@${s.t5} F@${s.tF} y30@${s.t30 || '-'} +f${s.extra} h20=${s.humans20} into fire ${s.exposed} lost: moved ${s.moved} standing ${s.standing} static ${s.stat} (F${s.lostF} H${s.lostH}) rams ${s.rams} value ${s.lostV} kills ${s.kills} ships ${s.ships} load ${s.loadH}/${s.loadA} land ${s.landH}${s.stuck ? ' STUCK' : ''}]`).join(' ') + (r.errors.length ? ' ERR ' + r.errors.slice(0, 2).join(' | ') : '')); } }));
   await browser.close();
   const agg = {};
   for (const r of out) r.seats.forEach((b, i) => {
-    const a = agg[b] = agg[b] || { exposed: 0, n: 0, wins: 0, t5: [], tF: [], t30: [], no30: 0, extra: 0, h20: 0, moved: 0, movedV: 0, standing: 0, stat: 0, lostF: 0, lostH: 0, rams: 0, lostV: 0, kills: 0, avg: 0, p95: 0, max: 0, late: 0, lateP95: 0 }, s = r.S[i];
+    const a = agg[b] = agg[b] || { exposed: 0, n: 0, wins: 0, t5: [], tF: [], t30: [], no30: 0, extra: 0, h20: 0, moved: 0, movedV: 0, standing: 0, stat: 0, lostF: 0, lostH: 0, rams: 0, lostV: 0, kills: 0, ships: 0, loadH: 0, landH: 0, loadA: 0, stuck: 0, avg: 0, p95: 0, max: 0, late: 0, lateP95: 0 }, s = r.S[i];
     a.n++; if (r.winner === i) a.wins++;
     if (s.t5) a.t5.push(s.t5); if (s.tF) a.tF.push(s.tF); if (s.t30) a.t30.push(s.t30); else a.no30++;
-    for (const key of ['exposed', 'extra', 'moved', 'movedV', 'standing', 'stat', 'lostF', 'lostH', 'rams', 'lostV', 'kills']) a[key] += s[key];
+    for (const key of ['exposed', 'extra', 'moved', 'movedV', 'standing', 'stat', 'lostF', 'lostH', 'rams', 'lostV', 'kills', 'ships', 'loadH', 'landH', 'loadA', 'stuck']) a[key] += s[key];
     a.h20 += s.humans20; a.avg += s.times[0]; a.p95 = Math.max(a.p95, s.times[1]); a.max = Math.max(a.max, s.times[2]); a.late += s.late[0]; a.lateP95 = Math.max(a.lateP95, s.late[1]);
   });
   const med = a => { const s = a.slice().sort((x, y) => x - y); return s.length ? s[s.length >> 1] : '-'; }, f1 = x => Math.round(x * 10) / 10;
   for (const [b, a] of Object.entries(agg)) console.log(`${b}: wins ${a.wins}/${a.n}; median turn of 5 fields ${med(a.t5)}, first factory ${med(a.tF)}, yield 30 ${med(a.t30)} (never ${a.no30}); extra fields ${a.extra}; humans at turn 20 ${f1(a.h20 / a.n)}; ` +
     `per game: moves into aimed guns ${f1(a.exposed / a.n)}; lost: after moving ${f1(a.moved / a.n)} (value ${f1(a.movedV / a.n)}), mobile standing ${f1(a.standing / a.n)}, static ${f1(a.stat / a.n)} (factories ${f1(a.lostF / a.n)}, humans ${f1(a.lostH / a.n)}), rams ${f1(a.rams / a.n)}, value ${f1(a.lostV / a.n)}; kills ${f1(a.kills / a.n)}; ` +
+    `naval: battleships ${a.ships}, humans loaded ${a.loadH}, landed ${a.landH}, AA loaded ${a.loadA}; out stuck ${a.stuck}; ` +
     `think avg ${f1(a.avg / a.n)} ms, p95 ${f1(a.p95)}, max ${f1(a.max)}, after turn 100 avg ${f1(a.late / a.n)} p95 ${f1(a.lateP95)}`);
   const fin = out.filter(r => r.winner >= 0);
   console.log(`games ${out.length}, decided ${fin.length}, draws ${out.filter(r => r.draw).length}, at cap ${out.filter(r => r.winner < 0 && !r.draw).length}, avg length of decided ${Math.round(fin.reduce((a, r) => a + r.turn, 0) / Math.max(1, fin.length))}, errors ${out.reduce((a, r) => a + r.errors.length, 0)}`);

@@ -584,6 +584,8 @@ function aiWorth(hc, u) {
   const h = hc[u.owner], ut = U[u.type];
   return (ut.cost >= 20 ? Math.max(ut.val, ut.cost) * 1.25 : ut.val) + (u.cargo === 'human' ? U.human.val : u.cargo === 'aa' ? U.aa.val : 0) + (hasHuman(u) ? (h <= 1 ? 3000 : 90 / h) : 0) + (u.type === 'factory' ? 12 : 0);
 }
+// Does any of my humans stand by the sea, or do I have a battleship (a colony needs one)?
+const coastalAny = (g, mine) => mine.some(u => u.type === 'battleship' || (u.type === 'human' && [0, 1, 2, 3, 4, 5, 6, 7].some(d => { const n = NB[u.cell * 8 + d]; return n >= 0 && g.terrain[n] === SEA; })));
 function aiContext(g, p) {
   const all = unitList(g), mine = all.filter(u => u.owner === p), foes = all.filter(u => u.owner !== p);
   const humanCount = g.players.map((_, i) => humansOf(g, i));
@@ -644,16 +646,71 @@ function aiContext(g, p) {
   const freeLand = new Uint8Array(N), artCells = [];
   for (let c = 0; c < N; c++) freeLand[c] = isFree(g, c) && g.terrain[c] === LAND ? 1 : 0;
   for (const e of foes) if (hasHuman(e)) forLanes(e.cell, 5, c => { if (freeLand[c]) artCells.push(c); });
+  // Liberties, as in Go: free cells next to my humans (and free land next to my ships carrying one). A player with none,
+  // no move and no shot at the start of a turn is out. One enemy tank move burns a row of them (burnBy: most per tank);
+  // a mobile unit with a legal move keeps me in the game too.
+  const lib = new Uint8Array(N); let libN = 0, burnMax = 0, mobile = 0;
+  for (const u of mine) if (hasHuman(u)) for (let d = 0; d < 8; d++) { const n = NB[u.cell * 8 + d]; if (n >= 0 && !lib[n] && isFree(g, n) && (u.type === 'human' || g.terrain[n] === LAND)) { lib[n] = 1; libN++; } }
+  const burnBy = new Map();
+  for (const e of foes) if (e.type === 'tank') {
+    const sv = new Solver(g, e);
+    if (!sv.good(e.cell, -1, U.tank.move)) continue;
+    let b = 0; for (const [, pl] of sv.plan(e.cell, -1, U.tank.move, c => lib[c], c => lib[c])) b = Math.max(b, Math.round(pl.gain));
+    if (b) { burnBy.set(e.id, b); burnMax = Math.max(burnMax, b); }
+  }
+  for (const u of mine) if (U[u.type].move && new Solver(g, u).good(u.cell, -1, U[u.type].move)) mobile++;
+  // Room to grow: the free land a chain of new humans could still reach. A small pocket, or a tank burning my liberties,
+  // makes a colony by battleship worth it (later on, spare credits too): landing spots (colV) are free coastal land
+  // outside the pocket with room around, far from enemies, best where no enemy tank can drive (an island).
+  const libLand = [];
+  for (const u of mine) if (u.type === 'human') for (let d = 0; d < 8; d++) { const n = NB[u.cell * 8 + d]; if (n >= 0 && freeLand[n]) libLand.push(n); }
+  const reachD = bfs(libLand, freeLand), enemyCheb = bfs(foes.map(u => u.cell), null);
+  let region = 0; for (let c = 0; c < N; c++) if (reachD[c] < Infinity) region++;
+  const R = yieldOf(g, p), cramped = region < 40, sieged = burnMax > 0 && libN - burnMax < 4;
+  const want = cramped || sieged ? 30 : (R >= 30 && credits >= 60 && g.turn > 40) || mine.some(u => u.cargo === 'human') ? 6 : 0;
+  const colV = new Float32Array(N); let colBest = 0, shipGoal = null, pickup = null;
+  if (want && coastalAny(g, mine)) {
+    const tankLand = bfs(foes.filter(e => e.type === 'tank' || e.type === 'human').map(e => e.cell), st.pass.land);
+    for (let c = 0; c < N; c++) {
+      // not where enemy guns already aim
+      if (!freeLand[c] || (reachD[c] < Infinity && (cramped || reachD[c] < 4)) || Z.nf[c * 9]) continue;
+      let sea = false, r = 0;
+      for (let d = 0; d < 8; d++) { const n = NB[c * 8 + d]; if (n >= 0 && st.pass.sea[n]) sea = true; }
+      if (!sea) continue;
+      forLanes(c, 2, x => { r += freeLand[x]; });
+      if (r < 4) continue;
+      colV[c] = Math.min(r, 12) + Math.min(enemyCheb[c], 12) * 0.5 + (tankLand[c] === Infinity ? 6 : 0) + (reachD[c] === Infinity ? 4 : 0);
+      if (colV[c] > colBest) colBest = colV[c];
+    }
+    const to = [], from = [];
+    for (let c = 0; c < N; c++) if (colV[c] >= colBest * 0.8) for (let d = 0; d < 8; d++) { const n = NB[c * 8 + d]; if (n >= 0 && st.pass.sea[n]) to.push(n); }
+    for (const u of mine) if (u.type === 'human') for (let d = 0; d < 8; d++) { const n = NB[u.cell * 8 + d]; if (n >= 0 && st.pass.sea[n]) from.push(n); }
+    if (colBest) { shipGoal = bfs(to, st.pass.sea); pickup = bfs(from, st.pass.sea); }
+  }
+  // sea cells a ship could land a colony from (the best spot next to each)
+  const landNear = new Float32Array(N);
+  if (colBest) for (let c = 0; c < N; c++) if (colV[c]) for (let d = 0; d < 8; d++) { const n = NB[c * 8 + d]; if (n >= 0 && st.pass.sea[n] && !Z.nf[n * 9 + TI.battleship] && colV[c] > landNear[n]) landNear[n] = colV[c]; }
   const ctx = { p, mine, foes, humanCount, cnt, ecnt, Z, exp, covA, covG, airU, tankU, shipU, danger, threatBy, humansThreatened, near, dist, coastal, room, open, freeN, front,
-    seaDist: aiStatics(g).seaDist, enemyCheb: bfs(foes.map(u => u.cell), null),
+    lib, libN, burnMax, burnBy, mobile, libW: burnMax ? 1 : Math.max(0.25, tankU * 0.5), region, want: colBest ? want : 0, colV, colBest, shipGoal, pickup, landNear,
+    seaDist: aiStatics(g).seaDist, enemyCheb,
     aggr: 0.9 + 0.15 * Math.min(combat, 8) + Math.min(credits / 150, 1.5) + Math.min(g.turn / 120, 1),
-    R: yieldOf(g, p), credits, next: {},
+    R, credits, next: {},
     siegeDist: bfs(artCells, freeLand), siegeW: clamp((g.turn - 50) / 100, 0, 1) * 1.5 };
+  ctx.libStep = aiLibCost(ctx, -2) / 2; // my own tank burns my liberties too
   for (const ty of ['tank', 'aircraft', 'sub', 'battleship']) if (cnt[ty]) ctx.next[ty] = aiNextValue(g, ctx, ty, c => aiRisk(ctx, c, ty, U[ty].val) * U[ty].val);
   if (cnt.tank) { const cr = aiCrushNext(g, ctx), nv = ctx.next.tank; for (let c = 0; c < N; c++) if (cr[c] > nv[c]) nv[c] = cr[c]; }
   ctx.far = {}; for (const ty in ctx.next) ctx.far[ty] = aiFar(g, ctx, ty, ctx.next[ty]);
   return ctx;
 }
+// How close to being out for lack of options I would be with L liberties and mob mobile units, if the nearest enemy
+// tank burned all it can next turn (a mobile unit counts as two: one enemy turn rarely takes both it and the cells);
+// and to having nowhere left to build, which mobile units do not help (they only put the end off)
+function aiLibRisk(ctx, L, mob) {
+  const b = L - ctx.burnMax, m = b + 2 * Math.min(mob, 2);
+  return (m <= 0 ? 120 : m === 1 ? 30 : m === 2 ? 12 : m <= 4 ? 4 : m <= 6 ? 1 : 0) + (b <= 0 ? 30 : b === 1 ? 12 : b === 2 ? 5 : b <= 4 ? 2 : 0);
+}
+// What losing (or gaining, dl > 0) liberties costs, in score
+const aiLibCost = (ctx, dl, dm = 0) => (aiLibRisk(ctx, ctx.libN + dl, ctx.mobile + dm) - aiLibRisk(ctx, ctx.libN, ctx.mobile)) * ctx.libW;
 // For every cell: the best kill a unit of `type` could make next turn after one more move (less `pen(firing cell)`).
 // Searches backwards from every firing cell; a turn at cell p is only possible where p's next cell ahead is blocked.
 function aiNextValue(g, ctx, type, pen) {
@@ -800,6 +857,9 @@ function killValue(g, ctx, v) {
   if (!v) return 0;
   let s = valueOf(v) + (v.type === 'factory' ? 8 : 0);
   if (hasHuman(v)) { const h = ctx.humanCount[v.owner]; s += h <= 1 ? 3000 : 90 / h; }
+  // a tank that can burn my liberties: what that burning would cost me
+  const b = ctx.burnBy && ctx.burnBy.get(v.id);
+  if (b) s += b + aiLibCost(ctx, -b) * 0.8;
   return s + (ctx.threatBy.get(v.id) || 0) * 0.7;
 }
 function aiFresh(g, ctx, c) {
@@ -834,14 +894,24 @@ function aiScoreBuild(g, ctx, type, c, info) {
     if (ctx.freeN.get(k) === 1) shut++;
     if (type === 'human' && isFree(g, k) && g.terrain[k] === LAND) own++;
   }
-  const dOpen = (own ? 1 : 0) - shut, enclose = dOpen < 0 ? -dOpen * (ctx.open + dOpen < 2 ? 15 : 4) : 0;
+  const dOpen = (own ? 1 : 0) - shut;
+  let enclose = dOpen < 0 ? -dOpen * (ctx.open + dOpen < 2 ? 15 : 4) : 0;
+  // liberties: a build takes the cell it stands on, a new human brings its own free neighbours, a mobile unit keeps a move
+  if (info.mode === 'build' && ctx.lib[c]) {
+    let dl = -1;
+    if (type === 'human') for (let d = 0; d < 8; d++) { const k = NB[c * 8 + d]; if (k >= 0 && !ctx.lib[k] && isFree(g, k)) dl++; }
+    const dm = U[type].move ? 1 : 0;
+    if (ctx.libN + dl <= 0 && ctx.mobile + dm === 0) return -99;
+    enclose += aiLibCost(ctx, dl, dm);
+  }
   // until the harvest reaches 30, the economy comes first unless enemy units are already closing in
   const eco = R < 30 && ctx.danger < 60;
   let s;
   switch (type) {
     case 'human': {
-      if (info.mode === 'load') return -99;
-      if (info.mode === 'land') return 26 + far * 0.3;
+      // a colony: a human goes aboard a battleship next to it, and lands on a good spot elsewhere
+      if (info.mode === 'load') return ctx.want ? 14 + ctx.want * 0.6 : -99;
+      if (info.mode === 'land') return ctx.colV[c] ? 18 + ctx.colV[c] + ctx.want * 0.5 : ctx.want ? 2 + far * 0.1 : 26 + far * 0.3;
       // only as many humans as the buildings need room for, plus spares once the enemy can strike, so that losing a few is not fatal
       const need = Math.max((n.field < 5 ? 5 - n.field : 0) + (R < 30 ? 2 : 1), 3 + (cr >= 40 ? 2 : 0)), lack = need - ctx.room;
       const threat = Math.max(ctx.airU, ctx.tankU, ctx.shipU), want = R < 10 ? 2 : Math.min(12, 3 + Math.round(2 * threat) + (R >= 30 ? g.turn / 25 | 0 : 0));
@@ -873,7 +943,8 @@ function aiScoreBuild(g, ctx, type, c, info) {
       return s - lose - enclose;
     }
     case 'aa': {
-      if (info.mode === 'load') return ctx.ecnt.aircraft ? 9 - n.aa : -99;
+      // aboard a battleship (not one wanted for a colony) an AA gun goes where the raids are
+      if (info.mode === 'load') return ctx.ecnt.aircraft && !ctx.want ? 6 + 10 * ctx.airU - n.aa : -99;
       let shot = 0;
       forLanes(c, 5, x => { const v = unitAt(g, x); if (v && v.owner !== ctx.p && v.type === 'aircraft') shot = Math.max(shot, killValue(g, ctx, v)); });
       s = ctx.airU * aiGuard(g, ctx, c, ctx.covA) * 0.3 + shot * 0.5 - 2 - n.aa;
@@ -882,7 +953,12 @@ function aiScoreBuild(g, ctx, type, c, info) {
     case 'tank': s = 11 + Math.min(cr, 400) * 0.06 - 3 * n.tank - (eco ? 10 : 0); return s - lose - enclose - fr * (ctx.front < 5 ? 2 : 0.5);
     case 'aircraft': s = 13 + Math.min(cr, 400) * 0.06 - 3.5 * n.aircraft - (eco ? 10 : 0); return s - lose - enclose - fr * (ctx.front < 5 ? 2 : 0.5);
     case 'sub': { const es = ctx.ecnt.battleship + ctx.ecnt.sub; if (!es) return -99; s = 7 + 4 * es - 3 * n.sub + Math.min(cr, 400) * 0.03; return s - lose - enclose; }
-    case 'battleship': s = 12 + Math.min(cr, 400) * 0.06 - 4 * n.battleship - (eco ? 10 : 0); return s - lose - enclose;
+    case 'battleship': {
+      // one ship to carry a colony
+      const ferry = ctx.want && !ctx.mine.some(u => u.type === 'battleship' && u.cargo !== 'aa') ? ctx.want : 0;
+      s = 12 + Math.min(cr, 400) * 0.06 - 4 * n.battleship - (eco && !ferry ? 10 : 0) + ferry;
+      return s - lose - enclose;
+    }
   }
   return -99;
 }
@@ -890,7 +966,7 @@ function aiCrushGain(g, ctx, c) {
   if (g.burnt[c]) return 0;
   const v = unitAt(g, c);
   if (v) return v.owner === ctx.p || v.type === 'aircraft' ? 0 : killValue(g, ctx, v);
-  let s = -0.05;
+  let s = ctx.lib[c] ? -0.05 - ctx.libStep : -0.05;
   for (let d = 0; d < 8; d++) { const w = unitAt(g, NB[c * 8 + d]); if (w && w.type === 'human') s += w.owner === ctx.p ? -1.5 : 1.2; }
   return s;
 }
@@ -918,7 +994,9 @@ function aiEvalUnit(g, ctx, u, consider, shotFree, v0, ex) {
   let gainFn = () => 0;
   if (u.type === 'tank') gainFn = c => aiCrushGain(g, ctx, c);
   const finalFn = c => { const v = unitAt(g, c); if (!v || v.owner === p) return 0; return killValue(g, ctx, v) - (arrival(u.type, v) === 'ram' ? me * 1.1 : 0); };
-  const plans = sv.plan(u.cell, -1, ut.move, gainFn, finalFn), dm = ctx.dist[u.type], d0 = dm[u.cell];
+  // a battleship wanted for a colony heads for a landing spot with a human aboard, for my coast without one
+  const ferry = u.type === 'battleship' && u.cargo !== 'aa' && ctx.want ? (u.cargo ? ctx.shipGoal : ctx.pickup) : null;
+  const plans = sv.plan(u.cell, -1, ut.move, gainFn, finalFn), dm = ferry || ctx.dist[u.type], d0 = dm[u.cell], pw = ferry ? 2 + ctx.want * 0.05 : ctx.aggr * 0.25;
   for (const [c, pl] of plans) {
     const crush = u.type === 'tank', gain = u.type === 'tank' ? pl.gain : Math.max(0, pl.gain);
     const v = unitAt(g, c);
@@ -928,7 +1006,8 @@ function aiEvalUnit(g, ctx, u, consider, shotFree, v0, ex) {
     const after = shotFree ? shotFrom(c) : null, first = after && after.v > v0;
     const r = aiRisk(ctx, c, u.type, me, first ? g.grid[after.c] : ex, u.id);
     // a trade must be clearly worth it: the unit's own loss weighs a third more than what it gains
-    const base = gain + (prog * ctx.aggr * 0.25 + 0.45 * ctx.far[u.type][c]) * (1 - r) - r * me * (r > 0.9 ? 1.7 : 1.3) + riskNow - 0.4;
+    const land = ferry && u.cargo && ctx.landNear[c] ? 6 + ctx.landNear[c] * 0.5 : 0;
+    const base = gain + (prog * pw + land + 0.45 * ctx.far[u.type][c]) * (1 - r) - r * me * (r > 0.9 ? 1.7 : 1.3) + riskNow - 0.4;
     consider({ kind: 'act', id: u.id, st: pl.state, crush, after, risk: r, score: base + (first ? after.v - v0 : 0) });
   }
 }
