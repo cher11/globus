@@ -1748,7 +1748,13 @@ async function netFindChats() {
   netNote(t('netConnecting'));
   try {
     const ups = await tg(token, 'getUpdates', { allowed_updates: '["message","my_chat_member"]' }), seen = new Map();
-    for (const u of ups) { const c = (u.message || u.my_chat_member || {}).chat; if (c) seen.set(String(c.id), c.type === 'private' ? t('netPrivate', c.first_name || c.username || c.id) : c.title || String(c.id)); }
+    for (const u of ups) {
+      const m = u.message, cm = u.my_chat_member, c = (m || cm || {}).chat;
+      if (!c) continue;
+      // a group upgraded to a supergroup gets a new id; a chat the bot left or was blocked in is gone
+      if ((m && m.migrate_to_chat_id) || (cm && /left|kicked/.test((cm.new_chat_member || {}).status))) { seen.delete(String(c.id)); continue; }
+      seen.set(String(c.id), c.type === 'private' ? t('netPrivate', c.first_name || c.username || c.id) : c.title || String(c.id));
+    }
     sn.chats = [...seen].map(([id, title]) => ({ id, title }));
     if (sn.chats.length === 1) sn.chat = sn.chats[0].id;
     netNote(sn.chats.length ? '' : t('netNoChats'));

@@ -5,12 +5,12 @@ const { chromium } = require('playwright');
 const { clickCell, check, failures, W } = require('./helpers');
 const PAGE = 'file://' + path.resolve(__dirname, '..', 'index.html');
 
-function fakeTelegram(chat = { id: -1001234, type: 'supergroup', title: 'Друзья' }) {
+function fakeTelegram(chat = { id: -1001234, type: 'supergroup', title: 'Друзья' }, more = []) {
   const msgs = new Map();
   let nextId = 100, pinned = null;
   const api = {
     getMe: () => ({ id: 1, is_bot: true, username: 'globus_test_bot' }),
-    getUpdates: () => [chat.type === 'private' ? { update_id: 1, message: { chat, text: '/start' } } : { update_id: 1, my_chat_member: { chat } }],
+    getUpdates: () => [chat.type === 'private' ? { update_id: 1, message: { chat, text: '/start' } } : { update_id: 1, my_chat_member: { chat } }, ...more],
     sendMessage: q => { const m = { message_id: ++nextId, chat, text: q.get('text'), quiet: q.get('disable_notification') === 'true' }; msgs.set(m.message_id, m); return m; },
     pinChatMessage: q => { pinned = +q.get('message_id'); return true; },
     editMessageText: q => {
@@ -108,13 +108,23 @@ function fakeTelegram(chat = { id: -1001234, type: 'supergroup', title: 'Дру�
   check('a readable line per turn is posted', lines.length === 5, lines);
 
   // ---------- one on one without a group: the host's private chat with the bot
-  const pm = fakeTelegram({ id: 555, type: 'private', first_name: 'Илья' });
+  const old = { id: -77, type: 'group', title: 'Глобус 2' }, gone = { id: -88, type: 'group', title: 'Старая' };
+  const pm = fakeTelegram({ id: 555, type: 'private', first_name: 'Илья' }, [
+    { update_id: 2, my_chat_member: { chat: old, new_chat_member: { status: 'member' } } },
+    { update_id: 3, message: { chat: old, migrate_to_chat_id: -100777 } },
+    { update_id: 4, my_chat_member: { chat: { id: -100777, type: 'supergroup', title: 'Глобус 2' }, new_chat_member: { status: 'administrator' } } },
+    { update_id: 5, my_chat_member: { chat: gone, new_chat_member: { status: 'member' } } },
+    { update_id: 6, my_chat_member: { chat: gone, new_chat_member: { status: 'left' } } },
+  ]);
   const A2 = await device(pm);
   await A2.goto(PAGE); await A2.waitForTimeout(300); await fast(A2);
   await A2.check('#netOn');
   await A2.fill('#netToken', 'TEST-TOKEN');
   await A2.click('[data-act="net-find"]'); await A2.waitForTimeout(300);
-  check('a private chat with the bot is found', await A2.inputValue('#netChat') === '555');
+  const found = await A2.$$eval('[data-act="net-chat"]', bs => bs.map(b => b.dataset.v));
+  check('chats found: private and the upgraded group, not the old id or a chat the bot left', found.join() === '555,-100777', found);
+  await A2.click('[data-act="net-chat"][data-v="555"]');
+  check('a private chat with the bot is picked', await A2.inputValue('#netChat') === '555');
   await A2.click('[data-act="start"]');
   await A2.waitForFunction(() => __globus.UI.mode === 'play', null, { timeout: 10000 });
   const invite2 = pm.lines().find(x => x.includes('#tg='));
