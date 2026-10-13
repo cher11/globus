@@ -585,12 +585,27 @@ function aiThreats(g, foes) {
 // What losing unit u would cost p: the last humans are everything, a factory is the economy, a machine its price and a turn
 function aiWorth(hc, u) {
   const h = hc[u.owner], ut = U[u.type];
-  return (ut.cost >= 20 ? Math.max(ut.val, ut.cost) * 1.25 : ut.val) + (u.cargo === 'human' ? U.human.val : u.cargo === 'aa' ? U.aa.val : 0) + (hasHuman(u) ? (h <= 1 ? 3000 : 90 / h) : 0) + (u.type === 'factory' ? 12 : 0);
+  return (ut.cost >= 20 ? Math.max(ut.val, ut.cost) * 1.25 : ut.val) + (u.cargo === 'human' ? U.human.val : u.cargo === 'aa' ? U.aa.val : 0) + (hasHuman(u) ? (h <= 1 ? 3000 : 90 / h) + (AI_COL.get(u.id) || 0) : 0) + (u.type === 'factory' ? 12 : 0);
+}
+// Colonies: humans of one player within 2 cells of each other (and a human aboard a ship, alone). Killing the only builders
+// of a small colony ends it; one human less in a big colony changes little. id -> bonus, set at the start of each think.
+let AI_COL = new Map();
+function aiColonies(all) {
+  const col = new Map(), hs = all.filter(hasHuman), seen = new Set();
+  for (const h of hs) {
+    if (seen.has(h.id)) continue;
+    const grp = [h]; seen.add(h.id);
+    for (let i = 0; i < grp.length; i++) for (const o of hs) if (!seen.has(o.id) && o.owner === h.owner && o.type === 'human' && grp[i].type === 'human' && cheb(o.cell, grp[i].cell) <= 2) { seen.add(o.id); grp.push(o); }
+    const k = grp.length, b = k <= 1 ? 30 : k === 2 ? 20 : k <= 4 ? 8 : k >= 7 ? -15 : 0;
+    for (const o of grp) col.set(o.id, b);
+  }
+  return col;
 }
 // Does any of my humans stand by the sea, or do I have a battleship (a colony needs one)?
 const coastalAny = (g, mine) => mine.some(u => u.type === 'battleship' || (u.type === 'human' && [0, 1, 2, 3, 4, 5, 6, 7].some(d => { const n = NB[u.cell * 8 + d]; return n >= 0 && g.terrain[n] === SEA; })));
 function aiContext(g, p) {
   const all = unitList(g), mine = all.filter(u => u.owner === p), foes = all.filter(u => u.owner !== p);
+  AI_COL = aiColonies(all);
   const humanCount = g.players.map((_, i) => humansOf(g, i));
   const cnt = {}, ecnt = {};
   TYPES.forEach(t => { cnt[t] = 0; ecnt[t] = 0; });
@@ -890,7 +905,7 @@ function aiRisk(ctx, c, type, val, ex, self) {
 function killValue(g, ctx, v) {
   if (!v) return 0;
   let s = valueOf(v) + (v.type === 'factory' ? 8 : 0);
-  if (hasHuman(v)) { const h = ctx.humanCount[v.owner]; s += (h <= 1 ? 3000 : 90 / h) + (ctx.invH && ctx.invH.get(v.id) || 0); }
+  if (hasHuman(v)) { const h = ctx.humanCount[v.owner]; s += (h <= 1 ? 3000 : 90 / h) + (AI_COL.get(v.id) || 0) + (ctx.invH && ctx.invH.get(v.id) || 0); }
   // a tank that can burn my liberties: what that burning would cost me
   const b = ctx.burnBy && ctx.burnBy.get(v.id);
   if (b) s += b + aiLibCost(ctx, -b) * 0.8;
@@ -980,18 +995,21 @@ function aiScoreBuild(g, ctx, type, c, info) {
       s = (R < 30 ? 28 : 15 - 1.5 * Math.max(0, n.factory - 5)) - fr * 0.5 + far * 0.15 + sea * 0.4 - coast * 1.5 + (ctx.covA[c] ? 2 * ctx.airU : 0) + (ctx.covG[c] ? 1.5 * ctx.tankU : 0);
       return s - lose * 1.2 - enclose;
     case 'artillery': {
+      // a new gun fires from next turn: a target that can hit this cell fires first (or leaves), so it is no prospect;
+      // and what the gun could do counts only as far as it is likely to survive the enemy's turn
       let pot = 0;
-      forLanes(c, 5, x => { const v = unitAt(g, x); if (v && v.owner !== ctx.p && v.type !== 'aircraft') pot = Math.max(pot, killValue(g, ctx, v)); });
+      const live = val ? 1 - lose / val : 1;
+      forLanes(c, 5, x => { const v = unitAt(g, x); if (v && v.owner !== ctx.p && v.type !== 'aircraft' && !gunsOf(v).some(gun => (gun.mask & BIT.artillery) && cheb(x, c) <= gun.range)) pot = Math.max(pot, killValue(g, ctx, v)); });
       const close = ctx.foes.filter(e => canAct(e) && cheb(e.cell, c) <= 8).length;
-      s = 2 + pot * 0.45 + Math.min(close, 4) * 2.5 - n.artillery * 2 + Math.min(cr, 300) * 0.02 + Math.max(ctx.tankU, ctx.shipU) * aiGuard(g, ctx, c, ctx.covG) * 0.12 + 0.4 * aiHunt(g, ctx, type, c);
+      s = 2 + pot * 0.45 * live + Math.min(close, 4) * 2.5 - n.artillery * 2 + Math.min(cr, 300) * 0.02 + Math.max(ctx.tankU, ctx.shipU) * aiGuard(g, ctx, c, ctx.covG) * 0.12 + 0.4 * aiHunt(g, ctx, type, c);
       return s - lose - enclose;
     }
     case 'aa': {
       // aboard a battleship (not one wanted for a colony) an AA gun goes where the raids are
       if (info.mode === 'load') return ctx.ecnt.aircraft && (!ctx.want || ctx.want < 30 && n.battleship > 1) ? 6 + 10 * ctx.airU - n.aa : -99;
       let shot = 0;
-      forLanes(c, 5, x => { const v = unitAt(g, x); if (v && v.owner !== ctx.p && v.type === 'aircraft') shot = Math.max(shot, killValue(g, ctx, v)); });
-      s = ctx.airU * aiGuard(g, ctx, c, ctx.covA) * 0.3 + shot * 0.5 - 2 - n.aa;
+      forLanes(c, 5, x => { const v = unitAt(g, x); if (v && v.owner !== ctx.p && v.type === 'aircraft' && !(cheb(x, c) <= 1 && gunsOf(v).length)) shot = Math.max(shot, killValue(g, ctx, v)); });
+      s = ctx.airU * aiGuard(g, ctx, c, ctx.covA) * 0.3 + shot * 0.5 * (val ? 1 - lose / val : 1) - 2 - n.aa;
       return s - lose - enclose;
     }
     // a new tank or aircraft strikes from the next turn on: what it could kill then (an invader by my base, a target by a colony)
@@ -1013,6 +1031,7 @@ function aiCrushGain(g, ctx, c) {
   const v = unitAt(g, c);
   if (v) return v.owner === ctx.p || v.type === 'aircraft' ? 0 : killValue(g, ctx, v);
   let s = ctx.lib[c] ? -0.05 - ctx.libStep : -0.05;
+  if (ctx.baseD && ctx.baseD[c] <= 3) s -= 0.4;
   for (let d = 0; d < 8; d++) { const w = unitAt(g, NB[c * 8 + d]); if (w && w.type === 'human') s += w.owner === ctx.p ? -1.5 : 1.2; }
   return s;
 }
@@ -1046,9 +1065,14 @@ function aiEvalUnit(g, ctx, u, consider, shotFree, v0, ex) {
   const ferry = u.type === 'battleship' && u.cargo !== 'aa' && ctx.want ? (u.cargo ? ctx.shipGoal : ctx.pickup) : null;
   const plans = sv.plan(u.cell, -1, ut.move, gainFn, finalFn), dm = ferry || ctx.dist[u.type], d0 = dm[u.cell], pw = ferry ? 2 + ctx.want * 0.05 : ctx.aggr * 0.25;
   for (const [c, pl] of plans) {
-    const crush = u.type === 'tank', gain = u.type === 'tank' ? pl.gain : Math.max(0, pl.gain);
+    let crush = false, gain = Math.max(0, pl.gain);
+    if (u.type === 'tank') {
+      const path = Solver.pathOf(pl.state);
+      let cg = 0; for (const x of pathVictims(g, u, path, true)) cg += aiCrushGain(g, ctx, x);
+      crush = cg > 0.1; gain = crush ? pl.gain : pl.gain - cg;
+    }
     const v = unitAt(g, c);
-    if (v && arrival(u.type, v) === 'ram') { consider({ kind: 'act', id: u.id, st: pl.state, crush, after: null, score: pl.gain - 0.4 + riskNow }); continue; }
+    if (v && arrival(u.type, v) === 'ram') { consider({ kind: 'act', id: u.id, st: pl.state, crush, after: null, score: (u.type === 'tank' ? gain : pl.gain) - 0.4 + riskNow }); continue; }
     const d1 = dm[c];
     const prog = (isFinite(d0) && isFinite(d1)) ? clamp(d0 - d1, -4, 8) : (isFinite(d1) ? 3 : 0);
     const after = shotFree ? shotFrom(c) : null, first = after && after.v > v0;
@@ -1075,17 +1099,27 @@ function aiReply(g, q, p, hc, keep, lib, cov) {
   const tg = [];
   // what p takes back next turn (cov): a unit of q that ends (or stays) where p's guns or a move of p's can kill it. p
   // kills one a turn: the best one of those left standing counts, at cov.w of its worth (and of what it threatens)
-  const retAt = (m, c) => { const b = BIT[m.type], x = aiWorth(hc, m) + (cov.extra.get(m.id) || 0); return cov.shot[c] & b ? x * cov.w : cov.ram[c] & b ? Math.max(0, x - 27.5) * cov.w : 0; };
+  // A line that kills one of my guns (dead: cells hit) also takes away the cover that gun gave.
+  const lost = dead => cov && cov.by && dead.some(c => cov.by.has(c));
+  const covAt = (c, dead) => { let sh = 0, rm = 0; for (const [cell, cv] of cov.by) if (!dead.includes(cell)) { sh |= cv.shot.get(c) || 0; rm |= cv.ram.get(c) || 0; } return [sh, rm]; };
+  const retAt = (m, c, dead) => {
+    const b = BIT[m.type], x = aiWorth(hc, m) + (cov.extra.get(m.id) || 0), [sh, rm] = dead && lost(dead) ? covAt(c, dead) : [cov.shot[c], cov.ram[c]];
+    return sh & b ? x * cov.w : rm & b ? Math.max(0, x - 27.5) * cov.w : 0;
+  };
   let st1 = 0, st1id = 0, st2 = 0, sg1 = 0, sg1id = 0, sg2 = 0;
   // and what a tank of q could crush the turn after from where it stands (cov.next), unless p can kill it there first:
   // a person moves a tank to where it strikes next turn. One tank strikes a turn: the best one counts, at cov.w2
-  const nx = cov && cov.next && cov.next.get(q), stageAt = (m, c) => nx && m.type === 'tank' && !(cov.shot[c] & BIT.tank) ? nx[c] * cov.w2 : 0;
-  if (cov) for (const e of unitList(g)) if (e.owner === q && U[e.type].move) {
+  const nx = cov && cov.next && cov.next.get(q), stageAt = (m, c, dead) => nx && m.type === 'tank' && !((dead && lost(dead) ? covAt(c, dead)[0] : cov.shot[c]) & BIT.tank) ? nx[c] * cov.w2 : 0;
+  const qMob = cov ? unitList(g).filter(e => e.owner === q && U[e.type].move) : [];
+  for (const e of qMob) {
     const r = retAt(e, e.cell), t = stageAt(e, e.cell);
     if (r > st1) { st2 = st1; st1 = r; st1id = e.id; } else if (r > st2) st2 = r;
     if (t > sg1) { sg2 = sg1; sg1 = t; sg1id = e.id; } else if (t > sg2) sg2 = t;
   }
-  const back = (m, to) => !cov ? 0 : Math.max(m.id === st1id ? st2 : st1, to >= 0 ? retAt(m, to) : 0) - Math.max(m.id === sg1id ? sg2 : sg1, to >= 0 ? stageAt(m, to) : 0);
+  // the best of q's units that stay where I can kill them (all but `skip`), and the best that stage a strike
+  const stay = (skip, dead) => { if (!lost(dead)) return skip === st1id ? st2 : st1; let b = 0; for (const e of qMob) if (e.id !== skip) b = Math.max(b, retAt(e, e.cell, dead)); return b; };
+  const staged = (skip, dead) => { if (!lost(dead)) return skip === sg1id ? sg2 : sg1; let b = 0; for (const e of qMob) if (e.id !== skip) b = Math.max(b, stageAt(e, e.cell, dead)); return b; };
+  const back = (m, to, dead) => !cov ? 0 : Math.max(stay(m.id, dead), to >= 0 ? retAt(m, to, dead) : 0) - Math.max(staged(m.id, dead), to >= 0 ? stageAt(m, to, dead) : 0);
   for (const e of unitList(g)) if (e.owner === q) for (const gun of gunsOf(e)) for (const c of targetsFrom(g, q, e.cell, gun)) if (g.units[g.grid[c]].owner === p && !tg.includes(c)) tg.push(c);
   // the best shot at what is left: from the guns as they stand, or from unit m once on cell `from`
   const shoot = (h, dead, m, from) => {
@@ -1104,7 +1138,8 @@ function aiReply(g, q, p, hc, keep, lib, cov) {
   };
   const s0 = shoot(hc, [], null), lines = [];
   s0.w += out([], s0.c, 0);
-  let best = { net: Math.max(0, s0.w - st1 + sg1), loss: s0.w, line: s0.w ? { shot: s0.c, dead: [] } : null };
+  const d0 = s0.c >= 0 ? [s0.c] : [];
+  let best = { net: Math.max(0, s0.w - (cov ? stay(-1, d0) - staged(-1, d0) : 0)), loss: s0.w, line: s0.w ? { shot: s0.c, dead: [] } : null };
   for (const m of unitList(g)) {
     if (m.owner !== q || !U[m.type].move) continue;
     for (const ln of aiLines(g, m, p, hc, keep, lib)) {
@@ -1116,7 +1151,7 @@ function aiReply(g, q, p, hc, keep, lib, cov) {
       let b = 0;
       if (lib && ln.path) for (const c of new Set(ln.path)) b += lib.mark[c];
       loss += out(dead, s.c, b);
-      const net = loss + s.w - (ln.ram ? aiWorth(hc, m) : 0) - back(m, ln.ram ? -1 : ln.to);
+      const net = loss + s.w - (ln.ram ? aiWorth(hc, m) : 0) - back(m, ln.ram ? -1 : ln.to, s.c >= 0 ? [...dead, s.c] : dead);
       if (net <= 0) continue;
       const line = { id: m.id, to: ln.to, dead, ram: ln.ram, shot: s.c, net };
       lines.push(line);
@@ -1180,15 +1215,16 @@ function aiCoverBase(g, p) {
   const of = new Map(), cache = new Map();
   for (const id in g.units) { const u = g.units[id]; if (u.owner === p && U[u.type].guns.length) of.set(u.id, aiCoverOf(g, u)); }
   const merge = skip => { const shot = new Uint16Array(N), ram = new Uint16Array(N); for (const [id, cv] of of) if (id !== skip) { for (const [c, m] of cv.shot) shot[c] |= m; for (const [c, m] of cv.ram) ram[c] |= m; } return { shot, ram }; };
-  return { all: merge(-1), without: id => { if (!cache.has(id)) cache.set(id, merge(id)); return cache.get(id); } };
+  return { of, all: merge(-1), without: id => { if (!cache.has(id)) cache.set(id, merge(id)); return cache.get(id); } };
 }
 function aiCoverFor(cb, g2, a) {
   const id = a.kind === 'act' ? a.id : a.kind === 'build' && a.info.mode === 'load' ? a.info.ship : -1;
-  const b = id >= 0 ? cb.without(id) : cb.all, shot = b.shot.slice(), ram = b.ram.slice();
-  const add = u => { if (!u || !U[u.type].guns.length) return; const cv = aiCoverOf(g2, u); for (const [c, m] of cv.shot) shot[c] |= m; for (const [c, m] of cv.ram) ram[c] |= m; };
+  const b = id >= 0 ? cb.without(id) : cb.all, shot = b.shot.slice(), ram = b.ram.slice(), by = new Map();
+  for (const [uid, cv] of cb.of) if (uid !== id && g2.units[uid]) by.set(g2.units[uid].cell, cv);
+  const add = u => { if (!u || !U[u.type].guns.length) return; const cv = aiCoverOf(g2, u); by.set(u.cell, cv); for (const [c, m] of cv.shot) shot[c] |= m; for (const [c, m] of cv.ram) ram[c] |= m; };
   if (id >= 0) add(g2.units[id]);
   if (a.kind === 'build' && a.info.mode !== 'load') add(unitAt(g2, a.cell));
-  return { shot, ram };
+  return { shot, ram, by };
 }
 // My liberties on g (free cells next to my humans, free land next to my ships with a human aboard), how many mobile units
 // I have, and whether I have a shot (moves and shots keep me in the game without liberties)
