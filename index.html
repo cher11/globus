@@ -1381,7 +1381,14 @@ const STR = {
     playersL: 'Игроки', addPlayer: 'Добавить игрока', remove: 'Убрать игрока', nameL: 'Имя игрока',
     mapN: n => `Карта № ${n}`, reroll: 'Другая карта', start: 'Начать игру', back: 'Вернуться к игре',
     cr: 'кр.', perHarvest: n => `+${n} за урожай`, humansN: n => `людей: ${n}`, outL: 'выбыли',
-    netOn: 'Играть по сети через Telegram-бота', netOnHint: 'Каждый играет со своего устройства, ходы передаёт ваш бот — через личный чат с ним или через группу.',
+    netOn: 'Играть по сети', netOnHint: 'Каждый играет со своего устройства. Ходы передаются через вашего Telegram-бота или через Issues вашего репозитория на GitHub (работает и там, где Telegram заблокирован).',
+    netVia: 'Через что передавать ходы', netViaTg: 'Telegram-бот', netViaGh: 'GitHub',
+    ghSteps: r => [`На github.com: Settings → Developer settings → Personal access tokens → Fine-grained tokens → Generate new token.`, `Repository access: Only select repositories → ${r}. Permissions → Issues: Read and write. Больше ничего не включайте. Срок — до года.`, 'Вставьте токен ниже, отметьте, за кого играете вы, и начните партию.', 'Под списком игроков появится кнопка «Скопировать ссылку для соперников» — перешлите ссылку любым мессенджером.'],
+    ghToken: 'Токен GitHub (github_pat_…)', ghRepo: 'Репозиторий: владелец/имя', ghNeed: 'Укажите токен GitHub и репозиторий (владелец/имя).',
+    ghTitle: (g, names) => `Глобус: партия #${g} (${names})`, ghNote: 'Служебная запись игры «Глобус»: партия по сети. Не редактируйте и не закрывайте, пока идёт игра.',
+    ghBadToken: 'GitHub не принял токен', ghNoRight: 'у токена нет права Issues: Read and write на этот репозиторий', ghNoIssues: 'в репозитории выключены Issues',
+    ghInvite: names => `Партия «Глобус»: ${names}. Откройте ссылку, выберите себя и играйте:`, ghShareTitle: 'Глобус', netCopyLink: 'Скопировать ссылку для соперников', netShare: 'Поделиться',
+    netCopied: 'Ссылка скопирована', netInviteL: 'Ссылка для соперников', netConnectingGh: 'Подключаемся к GitHub…', netNoConnGh: 'нет связи с GitHub', netLineGh: (g, me) => `GitHub: партия #${g}, вы — ${me}`,
     netSteps: ['Создайте бота: напишите @BotFather команду /newbot и скопируйте токен.', 'Откройте своего бота (ссылка t.me/… есть в ответе @BotFather) и нажмите «Старт». Бот ничего не ответит, так и задумано. Или добавьте его в группу администратором с правом закреплять сообщения и напишите /start в группе.', 'Вставьте токен и нажмите «Найти чат».', 'Отметьте, за кого играете вы, и начните партию. Бот пришлёт ссылку: из личного чата перешлите её соперникам, в группе её увидят все.'],
     netToken: 'Токен бота от @BotFather', netChat: 'ID чата', netFind: 'Найти чат', netChatFound: n => `Чат найден: ${n}.`,
     netNoChats: 'Бот пока не видел ни одного чата. Откройте своего бота (не @BotFather), нажмите «Старт» и нажмите «Найти чат» ещё раз.', netPrivate: n => `личные сообщения (${n})`, titleTurn: 'Ваш ход',
@@ -1450,7 +1457,14 @@ const STR = {
     playersL: 'Players', addPlayer: 'Add player', remove: 'Remove player', nameL: 'Player name',
     mapN: n => `Map No. ${n}`, reroll: 'Another map', start: 'Start game', back: 'Back to game',
     cr: 'cr', perHarvest: n => `+${n} per harvest`, humansN: n => `humans: ${n}`, outL: 'out',
-    netOn: 'Play online through a Telegram bot', netOnHint: 'Everyone plays on their own device; your bot passes the moves through a private chat with it or through a group.',
+    netOn: 'Play online', netOnHint: 'Everyone plays on their own device. Moves go through your Telegram bot or through the Issues of your GitHub repository (this works where Telegram is blocked).',
+    netVia: 'How moves travel', netViaTg: 'Telegram bot', netViaGh: 'GitHub',
+    ghSteps: r => [`On github.com: Settings → Developer settings → Personal access tokens → Fine-grained tokens → Generate new token.`, `Repository access: Only select repositories → ${r}. Permissions → Issues: Read and write. Nothing else. Expiration: up to a year.`, 'Paste the token below, mark which player is you and start the game.', 'A “Copy link for opponents” button appears under the players: send the link through any messenger.'],
+    ghToken: 'GitHub token (github_pat_…)', ghRepo: 'Repository: owner/name', ghNeed: 'Enter the GitHub token and the repository (owner/name).',
+    ghTitle: (g, names) => `Globus: game #${g} (${names})`, ghNote: 'Globus game data: an online game. Do not edit or close it while the game is on.',
+    ghBadToken: 'GitHub did not accept the token', ghNoRight: 'the token has no Issues: Read and write on this repository', ghNoIssues: 'Issues are turned off in the repository',
+    ghInvite: names => `A Globus game: ${names}. Open the link, pick yourself and play:`, ghShareTitle: 'Globus', netCopyLink: 'Copy link for opponents', netShare: 'Share',
+    netCopied: 'Link copied', netInviteL: 'Link for opponents', netConnectingGh: 'Connecting to GitHub…', netNoConnGh: 'no connection to GitHub', netLineGh: (g, me) => `GitHub: game #${g}, you are ${me}`,
     netSteps: ['Create a bot: send /newbot to @BotFather and copy the token.', 'Open your bot (the t.me/… link is in @BotFather’s reply) and press Start. The bot will not answer; that is expected. Or add it to a group as an admin allowed to pin messages and send /start in the group.', 'Paste the token and press “Find chat”.', 'Mark which player is you and start the game. The bot sends a link: from a private chat, forward it to your opponents; in a group, everyone sees it.'],
     netToken: 'Bot token from @BotFather', netChat: 'Chat ID', netFind: 'Find chat', netChatFound: n => `Chat found: ${n}.`,
     netNoChats: 'The bot has not seen any chat yet. Open your bot (not @BotFather), press Start, then press “Find chat” again.', netPrivate: n => `private chat (${n})`, titleTurn: 'Your turn',
@@ -1997,6 +2011,23 @@ async function tg(token, method, params = {}) {
   if (!j.ok) throw new Error(j.description || 'HTTP ' + r.status);
   return j.result;
 }
+// GitHub: a game is an issue of a repository; its body holds the game data, its comments the readable turns. A token
+// with only "Issues: read and write" on that one repository cannot change any file of it.
+async function gh(token, method, path, body) {
+  let r;
+  try {
+    r = await fetch('https://api.github.com' + path, { method, cache: 'no-store', body: body ? JSON.stringify(body) : undefined,
+      headers: { Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json', ...(body ? { 'Content-Type': 'application/json' } : {}) } });
+  } catch (e) { throw new Error(t('netNoConnGh')); }
+  const j = await r.json().catch(() => ({}));
+  if (r.status === 401) throw new Error(t('ghBadToken'));
+  if (r.status === 403 || r.status === 404) throw new Error(t('ghNoRight') + (j.message ? ` (${j.message})` : ''));
+  if (r.status === 410) throw new Error(t('ghNoIssues'));
+  if (!r.ok) throw new Error(j.message ? `${j.message} (${r.status})` : 'HTTP ' + r.status);
+  return j;
+}
+// The repository this page is published from (owner.github.io/repo), to suggest
+function ghHome() { const m = /^([\w-]+)\.github\.io$/.exec(location.hostname), r = location.pathname.split('/')[1]; return m && r ? `${m[1]}/${r}` : 'cher11/globus'; }
 const b64 = u8 => { let s = ''; for (const x of u8) s += String.fromCharCode(x); return btoa(s); };
 const unb64 = s => Uint8Array.from(atob(s), ch => ch.charCodeAt(0));
 async function pack(o) {
@@ -2025,14 +2056,19 @@ function netApplySnap(g, x) {
 function stateHash(g) { const s = JSON.stringify(netSnap(g)); let h = 2166136261; for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619); return (h >>> 0).toString(36); }
 // Called at the moment the sender builds its message, so the receiver can compare the very same state
 function netMark() { if (NET) { NET.lastHash = stateHash(G); NET.lastSnap = netSnap(G); } }
-async function netReadPinned(token, chat) {
-  const c = await tg(token, 'getChat', { chat_id: chat }), m = c.pinned_message, i = m && m.text ? m.text.indexOf(NET_TAG) : -1;
+// The game's mailbox: the pinned message of a Telegram chat, or the body of a GitHub issue (net.chat: owner/repo, net.msg: number)
+async function netRead(net) {
+  let text, msg;
+  if (net.kind === 'gh') { const is = await gh(net.token, 'GET', `/repos/${net.chat}/issues/${net.msg}`); text = is.body; msg = is.number; }
+  else { const m = (await tg(net.token, 'getChat', { chat_id: net.chat })).pinned_message; text = m && m.text; msg = m && m.message_id; }
+  const i = text ? text.indexOf(NET_TAG) : -1;
   if (i < 0) return null;
-  const p = await unpack(m.text.slice(i + NET_TAG.length).trim());
-  p.msg = m.message_id;
+  const p = await unpack(text.slice(i + NET_TAG.length).trim().split(/\s/)[0]);
+  p.msg = msg;
   return p;
 }
-const netLink = (token, chat, gid) => `${location.origin}${location.pathname}#tg=` + b64(new TextEncoder().encode(JSON.stringify([token, chat, gid]))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const b64url = o => b64(new TextEncoder().encode(JSON.stringify(o))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const netLink = net => `${location.origin}${location.pathname}` + (net.kind === 'gh' ? '#gh=' + b64url([net.token, net.chat, net.msg, net.gid]) : '#tg=' + b64url([net.token, net.chat, net.gid]));
 const plainLog = e => fmtLog(e).replace(/<[^>]+>/g, '');
 function netStatus(st, err) { if (!NET || (NET.status === st && NET.err === err)) return; NET.status = st; NET.err = err || ''; if (UI.view === 'game') renderPanel(); }
 // My turn is done: number it, keep the last few turns, attach a snapshot, then deliver (retrying until it works)
@@ -2044,7 +2080,7 @@ async function netTurnDone(p, done) {
   const payload = { v: 1, g: NET.gid, s: G.seed, P: G.players.map(P => [P.name, P.color]), n: NET.n, T: NET.turns, X: NET.lastSnap, h: NET.lastHash };
   const what = ((done && done.lines) || []).filter(e => e.p === p).map(plainLog).join('; ') || t('lPass');
   const next = G.winner >= 0 ? t('netWin', pname(G.winner)) : G.draw ? t('netDraw') : t('netNext', pname(G.cur));
-  NET.outbox = { pinned: `${t('netPinnedNote')}\n${NET_TAG}${await pack(payload)}`, line: t('netTurnMsg', turn.n, pname(p), what, next) };
+  NET.outbox = { pinned: `${t(NET.kind === 'gh' ? 'ghNote' : 'netPinnedNote')}\n${NET_TAG}${await pack(payload)}`, line: t('netTurnMsg', turn.n, pname(p), what, next), over: G.winner >= 0 || !!G.draw };
   saveNet();
   netFlush();
 }
@@ -2054,11 +2090,14 @@ async function netFlush() {
   me.flushing = true; netStatus('sending');
   try {
     if (!me.outbox.pinnedDone) {
-      try { await tg(me.token, 'editMessageText', { chat_id: me.chat, message_id: me.msg, text: me.outbox.pinned }); }
+      if (me.kind === 'gh') await gh(me.token, 'PATCH', `/repos/${me.chat}/issues/${me.msg}`, me.outbox.over ? { body: me.outbox.pinned, state: 'closed' } : { body: me.outbox.pinned });
+      else try { await tg(me.token, 'editMessageText', { chat_id: me.chat, message_id: me.msg, text: me.outbox.pinned }); }
       catch (e) { if (!/not modified/i.test(e.message)) throw e; }
       me.outbox.pinnedDone = true; saveNet();
     }
-    await tg(me.token, 'sendMessage', { chat_id: me.chat, text: me.outbox.line, disable_web_page_preview: true, disable_notification: !!me.quiet });
+    // the readable line: on GitHub a comment (it may hit GitHub's limit on new comments; the game does not wait for it)
+    if (me.kind === 'gh') await gh(me.token, 'POST', `/repos/${me.chat}/issues/${me.msg}/comments`, { body: me.outbox.line }).catch(() => {});
+    else await tg(me.token, 'sendMessage', { chat_id: me.chat, text: me.outbox.line, disable_web_page_preview: true, disable_notification: !!me.quiet });
     me.outbox = null; saveNet(); me.flushing = false; netStatus('sent');
   } catch (e) {
     me.flushing = false; netStatus('error', e.message);
@@ -2102,7 +2141,7 @@ async function netWait() {
   me.polling = true;
   while (NET === me && UI.mode === 'play' && G.cur !== me.seat) {
     try {
-      const p = await netReadPinned(me.token, me.chat);
+      const p = await netRead(me);
       if (NET !== me) break;
       if (!p || p.g !== me.gid) netStatus('other');
       else if (p.n > me.n) { me.msg = p.msg; await netCatchUp(p); netStatus('ok'); }
@@ -2122,25 +2161,51 @@ function netStartLocal(players, seed, gid) {
   buildTerrain(); commit();
 }
 async function startNetGame() {
+  if (setup.net.via === 'gh') return startGhGame();
   const sn = setup.net, token = (sn.token || '').trim(), chat = (sn.chat || '').trim();
   if (!token || !chat) { netNote(t('netNeed')); return; }
   netNote(t('netConnecting'));
   try {
     await tg(token, 'getMe');
-    const players = setup.players.map(sp => ({ name: sp.name.trim() || STR[LANG].colors[PCOLORS[sp.color].id], color: sp.color, ai: false }));
-    const gid = String(newSeed()), g0 = makeGame({ seed: setup.seed, players });
-    const payload = { v: 1, g: gid, s: setup.seed, P: players.map(q => [q.name, q.color]), n: 0, T: [], X: netSnap(g0), h: stateHash(g0) };
+    const { players, gid, payload } = netNewGame();
     const m = await tg(token, 'sendMessage', { chat_id: chat, text: `${t('netPinnedNote')}\n${NET_TAG}${await pack(payload)}`, disable_notification: true });
     try { await tg(token, 'pinChatMessage', { chat_id: chat, message_id: m.message_id, disable_notification: true }); }
     catch (e) { throw new Error(/right|admin|permission/i.test(e.message) ? t('netNeedAdmin') : e.message); }
     const priv = /^\d+$/.test(chat);  // a private chat's id is the user's id (positive); groups are negative
-    await tg(token, 'sendMessage', { chat_id: chat, text: t('netInvite', players.map(q => q.name).join(', '), netLink(token, chat, gid), priv), disable_web_page_preview: true });
+    await tg(token, 'sendMessage', { chat_id: chat, text: t('netInvite', players.map(q => q.name).join(', '), netLink({ token, chat, gid }), priv), disable_web_page_preview: true });
     sn.note = '';
     netStartLocal(players, setup.seed, gid);
     NET = { token, chat, gid, seat: Math.min(sn.seat || 0, players.length - 1), msg: m.message_id, n: 0, turns: [], status: 'ok', quiet: priv };  // my own moves need no ping in my own chat
     saveNet();
     beginTurn(false);
   } catch (e) { netNote(t('netFail', e.message)); }
+}
+function netNewGame() {
+  const players = setup.players.map(sp => ({ name: sp.name.trim() || STR[LANG].colors[PCOLORS[sp.color].id], color: sp.color, ai: false }));
+  const gid = String(newSeed()), g0 = makeGame({ seed: setup.seed, players });
+  return { players, gid, payload: { v: 1, g: gid, s: setup.seed, P: players.map(q => [q.name, q.color]), n: 0, T: [], X: netSnap(g0), h: stateHash(g0) } };
+}
+// GitHub: open an issue for the game; the invite link (with the token) is shown in the game, never posted on GitHub
+async function startGhGame() {
+  const sn = setup.net, token = (sn.ghToken || '').trim(), repo = (sn.repo || ghHome()).trim().replace(/^https?:\/\/github\.com\//, '').replace(/\/+$/, '');
+  if (!token || !/^[\w.-]+\/[\w.-]+$/.test(repo)) { netNote(t('ghNeed')); return; }
+  netNote(t('netConnectingGh'));
+  try {
+    const { players, gid, payload } = netNewGame();
+    const is = await gh(token, 'POST', `/repos/${repo}/issues`, { title: t('ghTitle', gid, players.map(q => q.name).join(', ')), body: `${t('ghNote')}\n${NET_TAG}${await pack(payload)}` });
+    sn.note = '';
+    netStartLocal(players, setup.seed, gid);
+    NET = { kind: 'gh', token, chat: repo, gid, seat: Math.min(sn.seat || 0, players.length - 1), msg: is.number, n: 0, turns: [], status: 'ok', host: true };
+    saveNet();
+    beginTurn(false);
+  } catch (e) { netNote(t('netFail', e.message)); }
+}
+async function netShareLink(how) {
+  if (!NET) return;
+  const link = netLink(NET), text = t('ghInvite', G.players.map(P => P.name).join(', '));
+  if (how === 'share' && navigator.share) { try { await navigator.share({ title: t('ghShareTitle'), text, url: link }); return; } catch (e) { if (e.name === 'AbortError') return; } }
+  try { await navigator.clipboard.writeText(`${text} ${link}`); toast(t('netCopied'), 'var(--ink)', 2200); }
+  catch (e) { window.prompt(t('netInviteL'), link); }
 }
 async function netFindChats() {
   const sn = setup.net, token = (sn.token || '').trim();
@@ -2160,17 +2225,21 @@ async function netFindChats() {
     netNote(sn.chats.length ? '' : t('netNoChats'));
   } catch (e) { netNote(t('netFail', e.message)); }
 }
-// Opening an invite link: #tg=<token, chat, game id>
+// Opening an invite link: #tg=<token, chat, game id> or #gh=<token, owner/repo, issue, game id>
 async function netJoinFromHash() {
-  if (!location.hash.startsWith('#tg=')) return false;
-  let token, chat, gid;
-  try { [token, chat, gid] = JSON.parse(new TextDecoder().decode(unb64(location.hash.slice(4).replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((location.hash.length - 4 + 3) % 4)))); } catch (e) { return false; }
+  const m = /^#(tg|gh)=(.+)$/.exec(location.hash);
+  if (!m) return false;
+  let token, chat, gid, msg;
+  try {
+    const a = JSON.parse(new TextDecoder().decode(unb64(m[2].replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((m[2].length + 3) % 4))));
+    if (m[1] === 'gh') [token, chat, msg, gid] = a; else [token, chat, gid] = a;
+  } catch (e) { return false; }
   history.replaceState(null, '', location.pathname + location.search);
   const saved = loadNet();
   if (saved && saved.gid === gid && G && G.net === gid) return false; // already in this game: just resume
-  JOIN = { token, chat, gid, status: 'loading' }; UI.view = 'join'; renderAll();
+  JOIN = { kind: m[1] === 'gh' ? 'gh' : undefined, token, chat, msg, gid, status: 'loading' }; UI.view = 'join'; renderAll();
   try {
-    const p = await netReadPinned(token, chat);
+    const p = await netRead(JOIN);
     if (!p || p.g !== gid) throw new Error(t('netNoGame'));
     JOIN.payload = p; JOIN.status = 'ready';
   } catch (e) { JOIN.status = 'error'; JOIN.err = e.message; }
@@ -2181,7 +2250,7 @@ function netJoinAs(i) {
   const j = JOIN, p = j && j.payload;
   if (!p) return;
   netStartLocal(p.P.map(([name, color]) => ({ name, color, ai: false })), p.s, j.gid);
-  NET = { token: j.token, chat: j.chat, gid: j.gid, seat: i, msg: p.msg, n: 0, turns: [], status: 'ok' };
+  NET = { kind: j.kind, token: j.token, chat: j.chat, gid: j.gid, seat: i, msg: p.msg, n: 0, turns: [], status: 'ok' };
   JOIN = null;
   if (p.n > 0) netResync(p); else { saveNet(); beginTurn(false); }
 }
@@ -2197,7 +2266,9 @@ function renderJoin() {
 function renderNetLine() {
   if (!NET) return '';
   const st = NET.status === 'error' ? t('netErr', NET.err) : t('netSt_' + (NET.status || 'ok'));
-  return `<p class="hint mono">${t('netLine', NET.gid, esc(pname(NET.seat)))} · ${esc(st)}</p>`;
+  let h = `<p class="hint mono">${t(NET.kind === 'gh' ? 'netLineGh' : 'netLine', NET.gid, esc(pname(NET.seat)))} · ${esc(st)}</p>`;
+  if (NET.kind === 'gh' && UI.mode === 'play') h += `<div class="row-btns"><button type="button" class="btn" data-act="net-copy">${t('netCopyLink')}</button>${navigator.share ? `<button type="button" class="btn" data-act="net-share">${t('netShare')}</button>` : ''}</div>`;
+  return h;
 }
 
 // ===================== Game record =====================
@@ -2568,7 +2639,13 @@ function renderSetup() {
   h += `</ul>${used.size < PCOLORS.length ? `<button type="button" class="btn" data-act="add">+ ${t('addPlayer')}</button>` : ''}</section>`;
   h += `<section><div class="map-row"><span class="mono">${t('mapN', setup.seed)}</span><button type="button" class="btn" data-act="reroll">${t('reroll')}</button></div>${UI.mode !== 'none' ? '<canvas id="mini"></canvas>' : ''}</section>`;
   h += `<section><label class="check" for="netOn"><input type="checkbox" id="netOn" ${sn.on ? 'checked' : ''}><span>${t('netOn')}<small>${t('netOnHint')}</small></span></label>`;
-  if (sn.on) {
+  if (sn.on) h += `<div class="seg" role="group" aria-label="${t('netVia')}"><button type="button" data-act="net-via" data-v="tg" aria-pressed="${sn.via !== 'gh'}">${t('netViaTg')}</button><button type="button" data-act="net-via" data-v="gh" aria-pressed="${sn.via === 'gh'}">${t('netViaGh')}</button></div>`;
+  if (sn.on && sn.via === 'gh') {
+    h += `<ol class="hint" style="margin:0;padding-left:18px">${t('ghSteps', esc(sn.repo || ghHome())).map(x => `<li>${x}</li>`).join('')}</ol>`;
+    h += `<input class="name-in" style="flex:none" id="ghToken" value="${esc(sn.ghToken || '')}" placeholder="${t('ghToken')}" aria-label="${t('ghToken')}" autocomplete="off" spellcheck="false">`;
+    h += `<input class="name-in" style="flex:none" id="ghRepo" value="${esc(sn.repo || ghHome())}" placeholder="${t('ghRepo')}" aria-label="${t('ghRepo')}" autocomplete="off" spellcheck="false">`;
+    if (sn.note) h += `<p class="hint">${esc(sn.note)}</p>`;
+  } else if (sn.on) {
     h += `<ol class="hint" style="margin:0;padding-left:18px">${t('netSteps').map(x => `<li>${x}</li>`).join('')}</ol>`;
     h += `<input class="name-in" style="flex:none" id="netToken" value="${esc(sn.token || '')}" placeholder="${t('netToken')}" aria-label="${t('netToken')}" autocomplete="off" spellcheck="false">`;
     h += `<div class="map-row"><input class="name-in" id="netChat" value="${esc(sn.chat || '')}" placeholder="${t('netChat')}" aria-label="${t('netChat')}" spellcheck="false"><button type="button" class="btn" data-act="net-find">${t('netFind')}</button></div>`;
@@ -2647,6 +2724,9 @@ document.addEventListener('click', e => {
     case 'ctl': setup.players[i].ai = b.dataset.v === '1'; renderPanel(); break;
     case 'net-seat': setup.net.seat = i; renderPanel(); break;
     case 'net-find': netFindChats(); break;
+    case 'net-via': setup.net.via = b.dataset.v; setup.net.note = ''; renderPanel(); break;
+    case 'net-copy': netShareLink('copy'); break;
+    case 'net-share': netShareLink('share'); break;
     case 'net-chat': setup.net.chat = b.dataset.v; renderPanel(); break;
     case 'net-join': netJoinAs(i); break;
     case 'add': { const used = new Set(setup.players.map(sp => sp.color)); const col = PCOLORS.findIndex((_, k) => !used.has(k)); if (col >= 0) setup.players.push({ color: col, name: '', ai: true }); renderPanel(); break; }
@@ -2659,6 +2739,8 @@ document.addEventListener('click', e => {
 $('#rulesModal').addEventListener('click', e => { if (e.target.id === 'rulesModal') e.currentTarget.hidden = true; });
 document.addEventListener('input', e => {
   if (e.target.id === 'netToken') { setup.net.token = e.target.value.trim(); return; }
+  if (e.target.id === 'ghToken') { setup.net.ghToken = e.target.value.trim(); return; }
+  if (e.target.id === 'ghRepo') { setup.net.repo = e.target.value.trim(); return; }
   if (e.target.id === 'netChat') { setup.net.chat = e.target.value.trim(); return; }
   if (e.target.matches('.name-in')) setup.players[+e.target.dataset.i].name = e.target.value; });
 document.addEventListener('change', e => {

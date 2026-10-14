@@ -32,14 +32,38 @@ function fakeTelegram(chat = { id: -1001234, type: 'supergroup', title: 'Дру�
   };
 }
 
+// A fake of the few GitHub REST calls the game makes: create, read and update an issue, comment on it
+function fakeGitHub(token, repo) {
+  const issues = new Map(), comments = [];
+  let next = 1;
+  return {
+    issues, comments,
+    async route(route) {
+      const req = route.request(), url = new URL(req.url()), m = /^\/repos\/([^/]+\/[^/]+)\/issues(?:\/(\d+))?(\/comments)?$/.exec(url.pathname);
+      const send = (status, body) => route.fulfill({ status, contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'Authorization, Content-Type, Accept', 'Access-Control-Allow-Methods': 'GET, POST, PATCH' }, body: JSON.stringify(body) });
+      if (req.method() === 'OPTIONS') return send(204, {});
+      if (req.headers().authorization !== 'Bearer ' + token) return send(401, { message: 'Bad credentials' });
+      if (!m || m[1] !== repo) return send(404, { message: 'Not Found' });
+      const body = req.postData() ? JSON.parse(req.postData()) : {};
+      if (!m[2] && req.method() === 'POST') { const is = { number: next++, title: body.title, body: body.body, state: 'open' }; issues.set(is.number, is); return send(201, is); }
+      const is = issues.get(+m[2]);
+      if (!is) return send(404, { message: 'Not Found' });
+      if (m[3] && req.method() === 'POST') { comments.push({ issue: is.number, body: body.body }); return send(201, { id: comments.length }); }
+      if (req.method() === 'PATCH') Object.assign(is, body);
+      return send(200, is);
+    },
+  };
+}
+
 (async () => {
   const browser = await chromium.launch(), tg = fakeTelegram(), errors = [];
-  const device = async (fake = tg) => {
+  const device = async (fake = tg, ghFake = null) => {
     const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
     await ctx.route('https://api.telegram.org/**', r => fake.route(r));
+    if (ghFake) { await ctx.grantPermissions(['clipboard-read', 'clipboard-write']); await ctx.route('https://api.github.com/**', r => ghFake.route(r)); }
     const page = await ctx.newPage();
     page.on('pageerror', e => errors.push(e.message));
-    page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
+    page.on('console', m => { if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) errors.push(m.text()); });   // a wrong token's 401 is expected
     return page;
   };
   const fast = page => page.evaluate(() => __globus.net.poll(150));
@@ -142,6 +166,40 @@ function fakeTelegram(chat = { id: -1001234, type: 'supergroup', title: 'Дру�
   check('boards match in a private-chat game', await hash(A2) === await hash(B2));
   const turns = [...pm.msgs.values()].filter(m => /^Ход \d+ · /.test(m.text));
   check('the host is not pinged for their own move, but is for the opponent\'s', turns.length === 2 && turns[0].quiet && !turns[1].quiet, turns);
+  // ---------- through GitHub: the game is an issue of the repository; the invite link is copied from the game
+  const ghf = fakeGitHub('github_pat_TEST', 'cher11/globus');
+  const A3 = await device(tg, ghf);
+  await A3.goto(PAGE); await A3.waitForTimeout(300); await fast(A3);
+  await A3.check('#netOn');
+  await A3.click('[data-act="net-via"][data-v="gh"]');
+  await A3.fill('#ghToken', 'github_pat_WRONG');
+  await A3.fill('#ghRepo', 'cher11/globus');
+  await A3.click('[data-act="start"]'); await A3.waitForTimeout(400);
+  check('a wrong GitHub token is reported', /токен/.test(await A3.evaluate(() => document.querySelector('#panel').textContent)), await A3.evaluate(() => __globus.UI.mode));
+  await A3.fill('#ghToken', 'github_pat_TEST');
+  await A3.click('[data-act="start"]');
+  await A3.waitForFunction(() => __globus.UI.mode === 'play', null, { timeout: 10000 });
+  const issue = ghf.issues.get(1);
+  check('the game opens an issue with the game data and no token in it', !!issue && issue.body.includes('GLOBUS1:') && !issue.body.includes('github_pat') && /партия/.test(issue.title), issue && issue.title);
+  await A3.click('[data-act="net-copy"]'); await A3.waitForTimeout(200);
+  const copied = await A3.evaluate(() => navigator.clipboard.readText());
+  check('the invite link is copied from the game', copied.includes('#gh='), copied.slice(0, 80));
+  const B3 = await device(tg, ghf);
+  await B3.goto(PAGE + copied.slice(copied.indexOf('#gh='))); await fast(B3);
+  await B3.waitForSelector('[data-act="net-join"]', { timeout: 10000 });
+  await B3.click('[data-act="net-join"][data-i="1"]');
+  await B3.waitForFunction(() => __globus.UI.mode === 'play', null, { timeout: 10000 });
+  await clickCell(A3, 0);
+  await waitTurn(B3, 1);
+  await clickCell(B3, 40);
+  await waitTurn(A3, 0);
+  check('boards match in a GitHub game', await hash(A3) === await hash(B3));
+  check('a readable comment per turn', ghf.comments.length === 2 && /^Ход 2 · /.test(ghf.comments[1].body), ghf.comments);
+  await B3.reload(); await B3.waitForTimeout(500); await fast(B3);
+  await A3.click('[data-act="harvest"]');
+  await waitTurn(B3, 1);
+  check('after a reload B keeps playing the GitHub game', await hash(A3) === await hash(B3) && await B3.evaluate(() => __globus.net.NET.kind === 'gh'));
+
   check('no page errors', errors.length === 0, errors.slice(0, 3));
   console.log(failures() ? `${failures()} FAILED` : 'ALL PASSED');
   await browser.close();
