@@ -222,6 +222,23 @@ function fakeGitHub(token, repo) {
   await waitTurn(B3, 1);
   check('once A has answered, B has no take-back', !(await B3.$('[data-act="net-undo"]')) && await hash(A3) === await hash(B3));
 
+  // ---------- two moves back: B moves, A answers; A takes its answer back, then B takes back its own move
+  const before2 = await hash(B3);
+  await B3.click('[data-act="build"][data-type="field"]'); await clickCell(B3, 39, 600);
+  if (await B3.$('[data-act="end"]')) await B3.click('[data-act="end"]');
+  await waitTurn(A3, 0);
+  await A3.click('[data-act="build"][data-type="field"]'); await clickCell(A3, 1, 600);
+  if (await A3.$('[data-act="end"]')) await A3.click('[data-act="end"]');
+  await waitTurn(B3, 1);
+  await A3.waitForSelector('[data-act="net-undo"]', { timeout: 5000 });
+  await A3.click('[data-act="net-undo"]');
+  await B3.waitForFunction(() => __globus.G.cur === 0, null, { timeout: 10000 });
+  check('B follows A\'s take-back and keeps its record', await hash(A3) === await hash(B3) && await B3.evaluate(() => __globus.G.hist.length > 0 && __globus.G.hist[__globus.G.hist.length - 1][0] === 1));
+  await B3.waitForSelector('[data-act="net-undo"]', { timeout: 5000 });
+  await B3.click('[data-act="net-undo"]');
+  await A3.waitForFunction(() => __globus.G.cur === 1, null, { timeout: 10000 });
+  check('then B takes back its own move: both boards as before both moves', await hash(B3) === before2 && await hash(A3) === before2);
+
   check('no page errors', errors.length === 0, errors.slice(0, 3));
   console.log(failures() ? `${failures()} FAILED` : 'ALL PASSED');
   await browser.close();

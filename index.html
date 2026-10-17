@@ -2151,6 +2151,26 @@ function netResync(p) {
   NET.n = p.n; NET.turns = p.T.slice(); NET.rev = p.r || 0; saveNet(); commit(); renderAll();
   if (UI.mode === 'play') beginTurn(true);
 }
+// Someone took turns back (the mailbox is k turns behind me): drop those turns from my record and rebuild the board, so I
+// keep the record and can take back my own turn next; if that does not give the sender's board, load the snapshot
+function netRewind(p) {
+  const k = NET.n - p.n;
+  if (k > 0 && G.hist && G.hist.length >= k) {
+    const hist = G.hist.slice(0, -k), g = rebuildFrom(G.seed, G.players.map(P => ({ name: P.name, color: P.color, ai: false })), G.hist0 || null, hist);
+    if (stateHash(g) === p.h) {
+      gameToken++; flushAnims(); releaseGate();
+      netApplySnap(G, netSnap(g));
+      G.hist = hist; G.last = null; G.now = null; UI.sel = null; UI.hidden = 0; UI.busy = false;
+      UI.mode = (G.winner >= 0 || G.draw) ? 'over' : 'play';
+      NET.n = p.n; NET.turns = p.T.slice(); NET.rev = p.r || 0;
+      addLog({ k: 'undo', p: G.cur });
+      netMark(); saveNet(); commit(); renderAll();
+      if (UI.mode === 'play') beginTurn(true);
+      return;
+    }
+  }
+  NET.rev = p.r || 0; netResync(p);
+}
 // While it is my turn, watch for the previous player taking theirs back
 async function netWatch() {
   const me = NET;
@@ -2161,7 +2181,7 @@ async function netWatch() {
     if (NET !== me || UI.mode !== 'play' || G.cur !== me.seat || me.outbox) continue;
     try {
       const p = await netRead(me);
-      if (NET === me && UI.mode === 'play' && G.cur === me.seat && p && p.g === me.gid && p.n <= me.n && (p.r || 0) !== (me.rev || 0)) { me.rev = p.r || 0; toast(t('undoTheirs'), 'var(--ink)', 2600); netResync(p); }
+      if (NET === me && UI.mode === 'play' && G.cur === me.seat && p && p.g === me.gid && p.n <= me.n && (p.r || 0) !== (me.rev || 0)) { toast(t('undoTheirs'), 'var(--ink)', 2600); netRewind(p); }
     } catch (e) { /* try again later */ }
   }
   me.watching = false;
@@ -2217,7 +2237,7 @@ async function netWait() {
       if (NET !== me) break;
       if (!p || p.g !== me.gid) netStatus('other');
       else if (p.n > me.n) { me.msg = p.msg; me.rev = p.r || 0; await netCatchUp(p); netStatus('ok'); }
-      else if ((p.r || 0) !== (me.rev || 0)) { me.rev = p.r || 0; netResync(p); netStatus('ok'); }
+      else if ((p.r || 0) !== (me.rev || 0)) { netRewind(p); netStatus('ok'); }
       else netStatus(me.outbox ? 'sending' : 'waiting');
     } catch (e) { netStatus('error', e.message); }
     if (NET !== me || UI.mode !== 'play' || G.cur === me.seat) break;
