@@ -200,6 +200,28 @@ function fakeGitHub(token, repo) {
   await waitTurn(B3, 1);
   check('after a reload B keeps playing the GitHub game', await hash(A3) === await hash(B3) && await B3.evaluate(() => __globus.net.NET.kind === 'gh'));
 
+  // ---------- taking a move back: B builds a field, takes it back before A answers; later, once A has answered, it cannot
+  for (const pg of [A3, B3]) pg.on('dialog', d => d.accept());
+  const before = await hash(B3);
+  await B3.click('[data-act="build"][data-type="field"]'); await clickCell(B3, 39, 600);
+  if (await B3.$('[data-act="end"]')) await B3.click('[data-act="end"]');
+  await waitTurn(A3, 0);
+  check('A sees B\'s field', await A3.evaluate(() => { const u = __globus.G.units[__globus.G.grid[39]]; return !!u && u.type === 'field'; }));
+  await B3.waitForSelector('[data-act="net-undo"]', { timeout: 5000 });
+  await B3.click('[data-act="net-undo"]');
+  await waitTurn(B3, 1);
+  check('B\'s board is back to before the move', await hash(B3) === before);
+  await A3.waitForFunction(() => __globus.G.cur === 1, null, { timeout: 10000 });
+  check('A gets the board back too, and it is B\'s turn again', await hash(A3) === before && !(await A3.evaluate(() => !!__globus.G.grid[39])));
+  check('the take-back is posted as a readable line', /взят назад/.test(ghf.comments[ghf.comments.length - 1].body), ghf.comments.slice(-1));
+  await B3.click('[data-act="harvest"]'); await B3.waitForTimeout(300);
+  if (await B3.$('[data-act="end"]')) await B3.click('[data-act="end"]');
+  await waitTurn(A3, 0);
+  check('play goes on after the take-back', await hash(A3) === await hash(B3));
+  await A3.click('[data-act="harvest"]');
+  await waitTurn(B3, 1);
+  check('once A has answered, B has no take-back', !(await B3.$('[data-act="net-undo"]')) && await hash(A3) === await hash(B3));
+
   check('no page errors', errors.length === 0, errors.slice(0, 3));
   console.log(failures() ? `${failures()} FAILED` : 'ALL PASSED');
   await browser.close();

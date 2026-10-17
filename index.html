@@ -468,6 +468,33 @@ function checkDraw(g) {
   g.draw = 'stuck';
   return true;
 }
+// The board replayed from a game record with the engine alone (no animation, no log): what doBuild, doHarvest,
+// doShot, doMove, finishTurn and beginTurn do to the state, turn by turn. Used to take a turn back.
+function rebuildFrom(seed, players, hist0, hist) {
+  const g = makeGame({ seed, players });
+  if (hist0) netApplySnap(g, hist0);
+  const stuck = () => { for (let k = 0; k < g.players.length && g.winner < 0; k++) { if (!checkStuck(g, g.cur) || g.winner >= 0) return; nextPlayer(g); } };
+  stuck();
+  for (const [p, acts] of hist) {
+    if (g.winner >= 0 || g.draw || p !== g.cur) break;
+    for (const a of acts) {
+      if (a[0] === 'b') { const info = buildTargets(g, p, a[1]).get(a[2]); if (info) applyBuild(g, p, a[1], a[2], info); }
+      else if (a[0] === 'h') g.players[p].credits += yieldOf(g, p);
+      else if (a[0] === 's') { const u = g.units[a[1]], gun = u && gunsOf(u)[a[2]]; if (gun && unitAt(g, a[3])) { killAt(g, a[3]); g.lastKill = g.turn; checkEliminations(g); } }
+      else if (a[0] === 'm' && g.units[a[1]]) {
+        const path = a.slice(3), ev = applyMove(g, a[1], path.slice(0, moveEnd(g, g.units[a[1]], path) + 1), !!a[2]);
+        if (ev.some(e => e.victim)) g.lastKill = g.turn;
+        checkEliminations(g);
+      }
+      if (g.winner >= 0) break;
+    }
+    if (g.winner >= 0) break;
+    for (const u of unitList(g)) { delete u.fresh; delete u.aaFresh; }
+    if (checkDraw(g)) break;
+    nextPlayer(g); stuck();
+  }
+  return g;
+}
 function nextPlayer(g) {
   let i = g.cur;
   for (let k = 0; k < g.players.length; k++) { i = (i + 1) % g.players.length; if (i === 0) g.turn++; if (g.players[i].alive) break; }
@@ -1444,7 +1471,9 @@ const STR = {
     lRam: (u, c, v, vp) => `таран на ${c}: ${u} и ${v} (${vp}) уничтожены`,
     actLeft: 'Действие: есть', actDone: 'Действие: сделано', shotLeft: 'Выстрел: есть', shotDone: 'Выстрел: сделан',
     afterActHint: 'Действие сделано. Можно ещё выстрелить любым своим юнитом (кликните по нему) или завершить ход.',
-    lOut: 'людей не осталось, игрок выбывает', lStuck: 'делать нечего, кроме урожая, — игрок выбывает', lWin: 'победа!',
+    lOut: 'людей не осталось, игрок выбывает', lStuck: 'делать нечего, кроме урожая, — игрок выбывает', lUndo: 'берут свой ход назад',
+    undoBtn: 'Взять ход назад', undoHint: 'Можно, пока соперник не ответил на ваш ход', undoAsk: 'Взять свой последний ход назад? Соперник увидит доску до этого хода.',
+    undoLate: 'Соперник уже ответил — ход назад не взять', undoTheirs: 'Соперник взял свой ход назад', netUndoMsg: (n, who) => `↩ ${who}: ход ${n} взят назад.`, lWin: 'победа!',
     withCargo: { human: ' с человеком на борту', aa: ' с зениткой на борту' },
   },
   en: {
@@ -1520,7 +1549,9 @@ const STR = {
     lRam: (u, c, v, vp) => `ram at ${c}: ${u} and ${vp} ${v} destroyed`,
     actLeft: 'Action: available', actDone: 'Action: done', shotLeft: 'Shot: available', shotDone: 'Shot: used',
     afterActHint: 'Action done. You can still fire with any of your units (click it) or end the turn.',
-    lOut: 'no humans left, out of the game', lStuck: 'nothing to do but harvest: out of the game', lWin: 'wins!',
+    lOut: 'no humans left, out of the game', lStuck: 'nothing to do but harvest: out of the game', lUndo: 'take their move back',
+    undoBtn: 'Take move back', undoHint: 'Possible until the opponent answers your move', undoAsk: 'Take your last move back? The opponent will see the board as it was before it.',
+    undoLate: 'The opponent has answered: the move cannot be taken back', undoTheirs: 'The opponent took their move back', netUndoMsg: (n, who) => `↩ ${who}: move ${n} taken back.`, lWin: 'wins!',
     withCargo: { human: ' carrying a human', aa: ' carrying an AA gun' },
   },
 };
@@ -1854,6 +1885,7 @@ function beginTurn(resumed) {
   if (!resumed && !P.ai && !remote && (people > 1 || NET)) toast(t('toastTurn', P.name), pvar(G.cur));
   if (P.ai) aiTurn();
   else if (remote) netWait();
+  else if (NET) netWatch();
 }
 function finishTurn() {
   if (UI.mode !== 'play') return;
@@ -2000,7 +2032,7 @@ function endTurnNow() { if (isHumanTurn() && UI.turn.act) finishTurn(); }
 // snapshot if it missed too many) and posts its own turn by editing that message, plus a readable line in the chat.
 const NET_TAG = 'GLOBUS1:', NET_KEY = 'globus.net.v1';
 let NET = null, JOIN = null, NET_POLL = 4000;
-function saveNet() { try { if (NET) { const { polling, replaying, flushing, ...keep } = NET; localStorage.setItem(NET_KEY, JSON.stringify(keep)); } else localStorage.removeItem(NET_KEY); } catch (e) { /* storage unavailable */ } }
+function saveNet() { try { if (NET) { const { polling, watching, replaying, flushing, ...keep } = NET; localStorage.setItem(NET_KEY, JSON.stringify(keep)); } else localStorage.removeItem(NET_KEY); } catch (e) { /* storage unavailable */ } }
 function loadNet() { try { return JSON.parse(localStorage.getItem(NET_KEY) || 'null'); } catch (e) { return null; } }
 async function tg(token, method, params = {}) {
   const body = new URLSearchParams();
@@ -2077,7 +2109,7 @@ async function netTurnDone(p, done) {
   const turn = { n: NET.n + 1, p, a: (done && done.acts) || [] };
   NET.n = turn.n;
   NET.turns = (NET.turns || []).concat([turn]).slice(-(G.players.length + 1));
-  const payload = { v: 1, g: NET.gid, s: G.seed, P: G.players.map(P => [P.name, P.color]), n: NET.n, T: NET.turns, X: NET.lastSnap, h: NET.lastHash };
+  const payload = { v: 1, g: NET.gid, s: G.seed, P: G.players.map(P => [P.name, P.color]), n: NET.n, T: NET.turns, X: NET.lastSnap, h: NET.lastHash, r: NET.rev || 0 };
   const what = ((done && done.lines) || []).filter(e => e.p === p).map(plainLog).join('; ') || t('lPass');
   const next = G.winner >= 0 ? t('netWin', pname(G.winner)) : G.draw ? t('netDraw') : t('netNext', pname(G.cur));
   NET.outbox = { pinned: `${t(NET.kind === 'gh' ? 'ghNote' : 'netPinnedNote')}\n${NET_TAG}${await pack(payload)}`, line: t('netTurnMsg', turn.n, pname(p), what, next), over: G.winner >= 0 || !!G.draw };
@@ -2116,8 +2148,48 @@ function netResync(p) {
   G.hist0 = p.X; G.hist = [];
   G.last = null; G.now = null; UI.sel = null; UI.hidden = 0;
   UI.mode = (G.winner >= 0 || G.draw) ? 'over' : 'play';
-  NET.n = p.n; NET.turns = p.T.slice(); saveNet(); commit(); renderAll();
+  NET.n = p.n; NET.turns = p.T.slice(); NET.rev = p.r || 0; saveNet(); commit(); renderAll();
   if (UI.mode === 'play') beginTurn(true);
+}
+// While it is my turn, watch for the previous player taking theirs back
+async function netWatch() {
+  const me = NET;
+  if (!me || me.watching) return;
+  me.watching = true;
+  while (NET === me && UI.mode === 'play' && G.cur === me.seat) {
+    await new Promise(r => setTimeout(r, NET_POLL * 2));
+    if (NET !== me || UI.mode !== 'play' || G.cur !== me.seat || me.outbox) continue;
+    try {
+      const p = await netRead(me);
+      if (NET === me && UI.mode === 'play' && G.cur === me.seat && p && p.g === me.gid && p.n <= me.n && (p.r || 0) !== (me.rev || 0)) { me.rev = p.r || 0; toast(t('undoTheirs'), 'var(--ink)', 2600); netResync(p); }
+    } catch (e) { /* try again later */ }
+  }
+  me.watching = false;
+}
+// Take my last turn back while nobody has answered it: the board is rebuilt from the record without it, and the
+// mailbox goes back one turn with a new take-back counter, which tells the others to load the snapshot
+const netCanUndo = () => !!(NET && UI.mode === 'play' && G.cur !== NET.seat && !NET.replaying && G.hist && G.hist.length && G.hist[G.hist.length - 1][0] === NET.seat
+  && NET.turns && NET.turns.length && NET.turns[NET.turns.length - 1].p === NET.seat && NET.turns[NET.turns.length - 1].n === NET.n);
+async function netTakeBack() {
+  const me = NET;
+  if (!netCanUndo() || !window.confirm(t('undoAsk'))) return;
+  netStatus('sending');
+  try {
+    const p = await netRead(me);
+    if (NET !== me || !netCanUndo()) return;
+    if (!p || p.g !== me.gid || p.n !== me.n) { netStatus('ok'); toast(t('undoLate'), 'var(--ink)', 2600); return; }
+    const hist = G.hist.slice(0, -1), g = rebuildFrom(G.seed, G.players.map(P => ({ name: P.name, color: P.color, ai: false })), G.hist0 || null, hist);
+    gameToken++; flushAnims(); releaseGate();
+    netApplySnap(G, netSnap(g));
+    G.hist = hist; G.last = null; G.now = null; UI.sel = null; UI.hidden = 0; UI.busy = false;
+    me.n--; me.turns = me.turns.filter(x => x.n <= me.n); me.rev = (p.r || 0) + 1;
+    addLog({ k: 'undo', p: me.seat });
+    netMark(); commit();
+    const payload = { v: 1, g: me.gid, s: G.seed, P: G.players.map(P => [P.name, P.color]), n: me.n, T: me.turns, X: me.lastSnap, h: me.lastHash, r: me.rev };
+    me.outbox = { pinned: `${t(me.kind === 'gh' ? 'ghNote' : 'netPinnedNote')}\n${NET_TAG}${await pack(payload)}`, line: t('netUndoMsg', me.n + 1, pname(me.seat)) };
+    saveNet(); netFlush();
+    beginTurn(true);
+  } catch (e) { netStatus('error', e.message); }
 }
 async function netCatchUp(p) {
   const need = p.T.filter(x => x.n > NET.n);
@@ -2144,7 +2216,8 @@ async function netWait() {
       const p = await netRead(me);
       if (NET !== me) break;
       if (!p || p.g !== me.gid) netStatus('other');
-      else if (p.n > me.n) { me.msg = p.msg; await netCatchUp(p); netStatus('ok'); }
+      else if (p.n > me.n) { me.msg = p.msg; me.rev = p.r || 0; await netCatchUp(p); netStatus('ok'); }
+      else if ((p.r || 0) !== (me.rev || 0)) { me.rev = p.r || 0; netResync(p); netStatus('ok'); }
       else netStatus(me.outbox ? 'sending' : 'waiting');
     } catch (e) { netStatus('error', e.message); }
     if (NET !== me || UI.mode !== 'play' || G.cur === me.seat) break;
@@ -2563,7 +2636,7 @@ function renderActions() {
   const p = G.cur, P = G.players[p];
   let h = `<div class="turn-head" style="--c:${pvar(p)}"><span class="sw" style="--c:${pcolor(p)}"></span><span class="hand">${esc(P.name)}</span>${P.ai ? `<span class="tag">${t('aiTag')}</span>` : ''}</div>`;
   if (P.ai) return h + `<p class="hint">${t('thinking')}</p>`;
-  if (NET && NET.seat !== p) return h + `<p class="hint">${t(NET.replaying ? 'netReplaying' : 'netWaiting', esc(P.name))}</p>`;
+  if (NET && NET.seat !== p) return h + `<p class="hint">${t(NET.replaying ? 'netReplaying' : 'netWaiting', esc(P.name))}</p>` + (netCanUndo() ? `<div class="row-btns"><button type="button" class="btn" data-act="net-undo" title="${t('undoHint')}">↩ ${t('undoBtn')}</button></div>` : '');
   if (!P.placed) return h + `<p class="hint">${t('placeHint')}</p>`;
   const s = UI.sel, dis = UI.busy ? 'disabled' : '';
   h += `<div class="chips"><span class="chip ${UI.turn.act ? 'done' : ''}">${t(UI.turn.act ? 'actDone' : 'actLeft')}</span><span class="chip ${UI.turn.shot ? 'done' : ''}">${t(UI.turn.shot ? 'shotDone' : 'shotLeft')}</span></div>`;
@@ -2614,6 +2687,7 @@ function fmtLog(e) {
     case 'ram': return t('lRam', uname(e.t), coord(e.c), vic, vp);
     case 'out': return t('lOut');
     case 'stuck': return t('lStuck');
+    case 'undo': return t('lUndo');
     case 'win': return `<span class="win">${t('lWin')}</span>`;
     case 'draw': return `<span class="win">${cap(G.draw === 'calm' ? t('lDrawCalm', CALM_TURNS) : t('lDraw'))}</span>`;
   }
@@ -2724,6 +2798,7 @@ document.addEventListener('click', e => {
     case 'ctl': setup.players[i].ai = b.dataset.v === '1'; renderPanel(); break;
     case 'net-seat': setup.net.seat = i; renderPanel(); break;
     case 'net-find': netFindChats(); break;
+    case 'net-undo': netTakeBack(); break;
     case 'net-via': setup.net.via = b.dataset.v; setup.net.note = ''; renderPanel(); break;
     case 'net-copy': netShareLink('copy'); break;
     case 'net-share': netShareLink('share'); break;
@@ -2795,7 +2870,7 @@ try { window.claude?.hot?.snapshot?.(() => ({ save: JSON.parse(savedString()) })
 window.__globus = {
   get G() { return G; }, get UI() { return UI; },
   setInstant(v) { INSTANT = !!v; },
-  record: recordText, replay: replayRecord,
+  record: recordText, replay: replayRecord, rebuildMatches: () => JSON.stringify(netSnap(rebuildFrom(G.seed, G.players.map(P => ({ name: P.name, color: P.color, ai: P.ai })), G.hist0 || null, G.hist || []))) === JSON.stringify(netSnap(G)),
   start(players, seed) { setup = { players, seed: seed || newSeed() }; startGame(); },
   aiThink, aiContext, aiNextValue, aiCrushNext, aiBestShot, aiRisk, aiWorth, aiReply, aiPlay, AI_LOOK, Solver, buildTargets, genMap, applyMove, arrival, pathVictims, moveEnd,
   render: () => renderAll(), cells: c => ({ x: cx(c), y: cy(c) }),

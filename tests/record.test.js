@@ -16,6 +16,7 @@ const PAGE = 'file://' + path.resolve(__dirname, '..', 'index.html');
     await page.waitForFunction(cap => __globus.G.winner >= 0 || __globus.G.draw || __globus.G.turn >= cap, cap, { timeout: 240000 });
     await page.evaluate(() => __globus.G.players.forEach(P => { P.ai = false; }));   // let the turn in progress finish, then stop
     await page.waitForFunction(() => !__globus.UI.busy, null, { timeout: 20000 }); await page.waitForTimeout(300);
+    check(`seed ${seed}: the engine-only replay of the record (used to take a move back) matches the board`, await page.evaluate(() => __globus.rebuildMatches()));
     const dl = page.waitForEvent('download');
     await page.click('[data-act="rec-save"]');
     const file = await (await dl).path(), text = require('fs').readFileSync(file, 'utf8');
