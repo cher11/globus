@@ -302,7 +302,7 @@ const U = {
   aa:         { cost: 10, dom: 'land', move: 0,  guns: [{ range: 5, mask: BIT.aircraft }], val: 10, shape: 'square' },
   tank:       { cost: 20, dom: 'land', move: 5,  cls: 'land', guns: [{ range: 1, mask: ALL & ~BIT.aircraft }], val: 22, shape: 'round' },
   sub:        { cost: 30, dom: 'sea',  move: 5,  cls: 'sea', guns: [{ range: 1, mask: BIT.sub | BIT.battleship }], val: 28, shape: 'round' },
-  aircraft:   { cost: 40, dom: 'any',  move: 10, cls: 'air', guns: [{ range: 1, mask: ALL & ~BIT.sub }], val: 36, shape: 'round' },
+  aircraft:   { cost: 40, dom: 'any',  build: 'land', move: 10, cls: 'air', guns: [{ range: 1, mask: ALL & ~BIT.sub }], val: 36, shape: 'round' },
   battleship: { cost: 50, dom: 'sea',  move: 5,  cls: 'sea', guns: [{ range: 5, mask: ALL & ~BIT.sub & ~BIT.aircraft }], val: 46, shape: 'round' },
 };
 const AA_GUN = { range: 5, mask: BIT.aircraft, aa: true };
@@ -352,7 +352,7 @@ function buildTargets(g, p, type) {
     return res;
   }
   if (P.credits < U[type].cost) return res;
-  const dom = U[type].dom, near = new Set();
+  const dom = U[type].build || U[type].dom, near = new Set();
   for (const u of unitList(g)) if (u.owner === p && u.type === 'human') for (let d = 0; d < 8; d++) { const n = NB[u.cell * 8 + d]; if (n >= 0) near.add(n); }
   for (const c of near) {
     if (isFree(g, c)) { if (terrainOk(g, c, dom)) res.set(c, { mode: 'build' }); continue; }
@@ -445,7 +445,7 @@ function checkStuck(g, p) {
 function hasOptions(g, p) {
   // a free cell is room only if something can be built there, now or once harvests pay for it (at sea: a submarine at least)
   const P = g.players[p], income = yieldOf(g, p) > 0;
-  const room = n => TYPES.some(ty => terrainOk(g, n, U[ty].dom) && (income || P.credits >= U[ty].cost));
+  const room = n => TYPES.some(ty => terrainOk(g, n, U[ty].build || U[ty].dom) && (income || P.credits >= U[ty].cost));
   for (const u of unitList(g)) {
     if (u.owner !== p) continue;
     for (let d = 0; d < 8; d++) {
@@ -1456,7 +1456,7 @@ const STR = {
       aa: 'Не ходит. Огонь до 5 клеток по самолётам. Можно поставить на линкор.',
       tank: 'Ход ровно на 5 клеток по суше, огонь на 1 (не по самолётам). Давит людей, поля и заводы на пути, таранит технику.',
       sub: 'Ход ровно на 5 клеток по морю, огонь на 1 — по подлодкам и линкорам.',
-      aircraft: 'Ход ровно на 10 клеток где угодно, огонь на 1 по всему, кроме подлодок.',
+      aircraft: 'Строится только на суше. Ход ровно на 10 клеток где угодно, огонь на 1 по всему, кроме подлодок.',
       battleship: 'Ход ровно на 5 клеток по морю, огонь до 5 (не по подлодкам и самолётам). Везёт человека или зенитку — с зениткой сбивает самолёты.',
     },
     lPlace: c => `первый человек на ${c}`,
@@ -1534,7 +1534,7 @@ const STR = {
       aa: 'Cannot move. Fires up to 5 cells at aircraft. Can be mounted on a battleship.',
       tank: 'Moves exactly 5 cells on land, fires at 1 (not at aircraft). Crushes humans, fields and factories on its path, rams machinery.',
       sub: 'Moves exactly 5 cells at sea, fires at 1, only at submarines and battleships.',
-      aircraft: 'Moves exactly 10 cells anywhere, fires at 1 at anything except submarines.',
+      aircraft: 'Built on land only. Moves exactly 10 cells anywhere, fires at 1 at anything except submarines.',
       battleship: 'Moves exactly 5 cells at sea, fires up to 5 (not at submarines or aircraft). Carries a human or an AA gun; with the AA gun it can shoot down aircraft.',
     },
     lPlace: c => `first human at ${c}`,

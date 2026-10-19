@@ -166,6 +166,17 @@ const { open, clickCell, check, failures, W } = require('./helpers');
     check(field ? 'only sea next to the humans but a harvest coming: still in' : 'only sea next to the humans, no harvest, no money for a ship: out', r.out === out, r);
   }
 
+  // ---------- an aircraft is built on land only, a battleship at sea only
+  await start();
+  await clickCell(page, 0); await clickCell(page, 40);   // A at (0,0): its neighbours (1,0) sea, (0,1) land, (1,1) sea
+  const coastal = await page.evaluate(() => {
+    const G = __globus.G, L = __globus.lib, W = 41;
+    G.players[0].credits = 100; G.terrain[1] = L.SEA; G.terrain[W] = L.LAND; G.terrain[W + 1] = L.SEA;
+    const sea = c => G.terrain[c] === L.SEA, air = [...__globus.buildTargets(G, 0, 'aircraft').keys()], ship = [...__globus.buildTargets(G, 0, 'battleship').keys()];
+    return { airSea: air.filter(sea).length, airLand: air.filter(c => !sea(c)).length, shipSea: ship.filter(sea).length };
+  });
+  check('a new aircraft can be built on land but not at sea', coastal.airSea === 0 && coastal.airLand > 0 && coastal.shipSea > 0, coastal);
+
   // ---------- AI vs AI smoke: a few turns without errors
   await page.evaluate(() => { __globus.setInstant(true); __globus.start([{ color: 0, name: '', ai: true }, { color: 1, name: '', ai: true }], 99); });
   await page.waitForFunction(() => __globus.G.turn >= 40 || __globus.G.winner >= 0, null, { timeout: 120000 });
