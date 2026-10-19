@@ -153,6 +153,7 @@ const { open, clickCell, check, failures, W } = require('./helpers');
   await page.click('[data-act="harvest"]'); await page.waitForTimeout(900);
   const boxed = await page.evaluate(() => ({ winner: __globus.G.winner, out: !__globus.G.players[1].alive, log: __globus.G.log.slice(-3).map(e => e.k) }));
   check('a boxed-in player with nothing to do but harvest is out', boxed.out && boxed.winner === 0 && boxed.log.includes('stuck'), boxed);
+  check('the game is over and the loser\'s units stay on the board', await page.evaluate(() => { const u = __globus.G.units[__globus.G.grid[40]]; return !!u && u.owner === 1 && !__globus.G.burnt[40]; }));
 
   // ---------- only sea left next to the humans: out without harvest or money for a ship, still in with a harvest
   for (const [field, out] of [[false, true], [true, false]]) {
@@ -165,6 +166,21 @@ const { open, clickCell, check, failures, W } = require('./helpers');
     const r = await page.evaluate(() => ({ out: !__globus.G.players[1].alive, cur: __globus.G.cur }));
     check(field ? 'only sea next to the humans but a harvest coming: still in' : 'only sea next to the humans, no harvest, no money for a ship: out', r.out === out, r);
   }
+
+  // ---------- three players: one out mid-game burns; the last one out leaves the board as it was
+  const three = await page.evaluate(() => {
+    const X = __globus, L = X.lib, W = 41;
+    X.start([{ color: 0, name: 'A', ai: false }, { color: 1, name: 'B', ai: false }, { color: 2, name: 'C', ai: false }], 4242);
+    const G = X.G, put = (type, owner, c) => { const id = G.nextId++; G.units[id] = { id, type, owner, cell: c, cargo: null }; G.grid[c] = id; };
+    put('human', 0, 0); put('human', 1, 40); put('human', 2, 33 * W); G.players.forEach(P => { P.placed = true; });
+    put('field', 1, 39); put('field', 2, 33 * W + 1);
+    L.killAt(G, 40); L.checkEliminations(G);
+    const mid = { bOut: !G.players[1].alive, fieldBurnt: !G.grid[39] && G.burnt[39] === 1, winner: G.winner };
+    L.killAt(G, 33 * W); L.checkEliminations(G);
+    return { ...mid, end: { winner: G.winner, fieldStays: !!G.grid[33 * W + 1] } };
+  });
+  check('with three players, one out mid-game: its units burn', three.bOut && three.fieldBurnt && three.winner === -1, three);
+  check('the last one out ends the game and its units stay', three.end.winner === 0 && three.end.fieldStays, three);
 
   // ---------- an aircraft is built on land only, a battleship at sea only
   await start();

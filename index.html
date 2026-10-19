@@ -419,9 +419,12 @@ function applyMove(g, id, path, crush) {
   u.cell = to; g.grid[to] = u.id;
   return ev;
 }
-function eliminate(g, i, cells) {
-  g.players[i].alive = false;
-  for (const u of unitList(g)) if (u.owner === i) { cells.push(u.cell); killAt(g, u.cell); }
+// A player who is out: their units burn, so they do not stand in the others' way, unless that ends the game: then the
+// board stays as it was, to see the final position
+function eliminate(g, i) { g.players[i].alive = false; }
+function burnOut(g, out, cells) {
+  if (g.winner >= 0) return;
+  for (const i of out) for (const u of unitList(g)) if (u.owner === i) { cells.push(u.cell); killAt(g, u.cell); }
 }
 function settleWinner(g) {
   const alive = g.players.map((P, i) => P.alive ? i : -1).filter(i => i >= 0);
@@ -429,8 +432,8 @@ function settleWinner(g) {
 }
 function checkEliminations(g) {
   const out = [], cells = [];
-  g.players.forEach((P, i) => { if (P.alive && P.placed && humansOf(g, i) === 0) { eliminate(g, i, cells); out.push(i); } });
-  settleWinner(g);
+  g.players.forEach((P, i) => { if (P.alive && P.placed && humansOf(g, i) === 0) { eliminate(g, i); out.push(i); } });
+  settleWinner(g); burnOut(g, out, cells);
   return { out, cells };
 }
 // A player who starts a turn with nothing to do but harvest (no room to build, no move, no shot) is out.
@@ -438,7 +441,7 @@ function checkStuck(g, p) {
   const P = g.players[p];
   if (!P.alive || !P.placed || hasOptions(g, p)) return null;
   const cells = [];
-  eliminate(g, p, cells); settleWinner(g);
+  eliminate(g, p); settleWinner(g); burnOut(g, [p], cells);
   return cells;
 }
 // Can player p still change anything: build next to a human (one aboard a ship counts: landing), move, fire? A player who can't is out.
@@ -1575,7 +1578,7 @@ function rulesHTML() {
   const table = `<div class="tbl-wrap"><table class="tbl"><thead><tr>${head.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`;
   if (LANG === 'ru') return `
 <h2 class="hand" id="rulesTitle">Правила «Глобуса»</h2>
-<p>Пошаговая стратегия на поле 41×34 клетки. Цель — уничтожить всех людей противника. Игрок, у которого не осталось людей (считая людей на линкорах), выбывает, а его юниты сгорают. Выбывает и тот, кому в начале хода нечего делать, кроме урожая: нет места для постройки, ни один юнит не может сходить и выстрелить не по кому. Свободная морская клетка рядом с человеком не считается местом для постройки, если урожая нет, а денег не хватает даже на подлодку.</p>
+<p>Пошаговая стратегия на поле 41×34 клетки. Цель — уничтожить всех людей противника. Игрок, у которого не осталось людей (считая людей на линкорах), выбывает, а его юниты сгорают; если на этом партия закончилась, поле остаётся как было. Выбывает и тот, кому в начале хода нечего делать, кроме урожая: нет места для постройки, ни один юнит не может сходить и выстрелить не по кому. Свободная морская клетка рядом с человеком не считается местом для постройки, если урожая нет, а денег не хватает даже на подлодку.</p>
 <h3>Поле</h3>
 <p>Суша белая, море синее. Море лежит в центре, не ближе 7 клеток к краю поля, берег извилистый (до 2 клеток), в море есть несколько островов. В клетке может стоять только один юнит. Клетка, которую юнит покинул или по которой попали, сгорает — чернеет до конца игры, и занять её больше нельзя.</p>
 <h3>Ход</h3>
@@ -1610,7 +1613,7 @@ function rulesHTML() {
 </ul>`;
   return `
 <h2 class="hand" id="rulesTitle">The rules of Globus</h2>
-<p>A turn-based strategy game on a 41×34 grid. The goal is to destroy every enemy human. A player with no humans left (counting humans aboard battleships) is out, and their units burn. So is a player who starts a turn with nothing to do but harvest: no room to build, no unit that can move and nothing to fire at. A free sea cell next to a human is no room to build when there is no harvest and not enough credits even for a submarine.</p>
+<p>A turn-based strategy game on a 41×34 grid. The goal is to destroy every enemy human. A player with no humans left (counting humans aboard battleships) is out, and their units burn; when that ends the game, the board stays as it was. So is a player who starts a turn with nothing to do but harvest: no room to build, no unit that can move and nothing to fire at. A free sea cell next to a human is no room to build when there is no harvest and not enough credits even for a submarine.</p>
 <h3>The field</h3>
 <p>Land is white, sea is blue. The sea sits in the centre, at least 7 cells from the edge, with a shoreline that wanders by up to 2 cells and a few islands. A cell holds one unit. A cell that a unit leaves or that gets hit is destroyed: it turns black for the rest of the game and can never be used again.</p>
 <h3>Turns</h3>
@@ -2898,7 +2901,7 @@ window.__globus = {
   brain(p, b) { if (b) BRAINS[p] = b; else delete BRAINS[p]; },
   // engine names the computer player uses, to compile another version's AI section against this engine
   lib: { W, H, N, NB, DX, DY, LAND, SEA, cx, cy, cheb, coord, clamp, forLanes, bfs, TYPES, BIT, ALL, U, AA_GUN, gunsOf, canAct, hasHuman, valueOf,
-    unitAt, isFree, terrainOk, unitList, humansOf, yieldOf, statics, buildTargets, applyBuild, STRUCT, TANK_RAM, arrival, moveEnd, killAt, targetsFrom, pathVictims, applyMove, OPP, nextDirs, Solver },
+    unitAt, isFree, terrainOk, unitList, humansOf, yieldOf, statics, buildTargets, applyBuild, STRUCT, TANK_RAM, arrival, moveEnd, checkEliminations, killAt, targetsFrom, pathVictims, applyMove, OPP, nextDirs, Solver },
 };
 if (window.claude?.hot?.ready) window.claude.hot.ready(boot); else boot(window.claude?.hot?.data ?? {});
 })();
