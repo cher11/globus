@@ -2078,15 +2078,114 @@ async function gh(token, method, path, body) {
 function ghHome() { const m = /^([\w-]+)\.github\.io$/.exec(location.hostname), r = location.pathname.split('/')[1]; return m && r ? `${m[1]}/${r}` : 'cher11/globus'; }
 const b64 = u8 => { let s = ''; for (const x of u8) s += String.fromCharCode(x); return btoa(s); };
 const unb64 = s => Uint8Array.from(atob(s), ch => ch.charCodeAt(0));
+// Raw DEFLATE (RFC 1951) in plain JavaScript, for browsers without CompressionStream (Safari before 16.4). The decoder reads
+// any deflate stream (the browsers' own use dynamic Huffman codes); the encoder writes LZ77 matches with the fixed codes.
+const LBASE = [3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31, 35, 43, 51, 59, 67, 83, 99, 115, 131, 163, 195, 227, 258];
+const LEXT = [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0];
+const DBASE = [1, 2, 3, 4, 5, 7, 9, 13, 17, 25, 33, 49, 65, 97, 129, 193, 257, 385, 513, 769, 1025, 1537, 2049, 3073, 4097, 6145, 8193, 12289, 16385, 24577];
+const DEXT = [0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13];
+function inflateRaw(src) {
+  let pos = 0, bit = 0, n = 0, out = new Uint8Array(Math.max(1024, src.length * 6));
+  const room = k => { if (n + k > out.length) { const o = new Uint8Array(Math.max(out.length * 2, n + k)); o.set(out); out = o; } };
+  const bits = k => { let v = 0; for (let i = 0; i < k; i++) { if (pos >= src.length) throw new Error('inflate: data ends'); v |= (src[pos] >> bit & 1) << i; if (++bit === 8) { bit = 0; pos++; } } return v; };
+  // a Huffman code from code lengths: how many codes of each length, and the symbols in code order
+  const table = lens => {
+    const count = new Uint16Array(16), offs = new Uint16Array(16), sym = new Uint16Array(lens.length);
+    for (let i = 0; i < lens.length; i++) count[lens[i]]++;
+    count[0] = 0;
+    for (let i = 1; i < 16; i++) offs[i] = offs[i - 1] + count[i - 1];
+    for (let i = 0; i < lens.length; i++) if (lens[i]) sym[offs[lens[i]]++] = i;
+    return { count, sym };
+  };
+  const decode = h => {
+    let code = 0, first = 0, index = 0;
+    for (let len = 1; len < 16; len++) {
+      code |= bits(1);
+      const c = h.count[len];
+      if (code - first < c) return h.sym[index + code - first];
+      index += c; first = (first + c) << 1; code <<= 1;
+    }
+    throw new Error('inflate: bad code');
+  };
+  const fl = new Uint8Array(288); fl.fill(8, 0, 144); fl.fill(9, 144, 256); fl.fill(7, 256, 280); fl.fill(8, 280, 288);
+  const FL = table(fl), FD = table(new Uint8Array(30).fill(5));
+  let last;
+  do {
+    last = bits(1);
+    const type = bits(2);
+    if (type === 0) {
+      if (bit) { bit = 0; pos++; }
+      const len = src[pos] | src[pos + 1] << 8; pos += 4;
+      room(len); out.set(src.subarray(pos, pos + len), n); n += len; pos += len;
+      continue;
+    }
+    let lit = FL, dist = FD;
+    if (type === 2) {
+      const hlit = bits(5) + 257, hdist = bits(5) + 1, hclen = bits(4) + 4, cl = new Uint8Array(19);
+      const ORD = [16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15];
+      for (let i = 0; i < hclen; i++) cl[ORD[i]] = bits(3);
+      const ch = table(cl), lens = new Uint8Array(hlit + hdist);
+      for (let i = 0; i < hlit + hdist;) {
+        const sy = decode(ch);
+        if (sy < 16) { lens[i++] = sy; continue; }
+        let r, v = 0;
+        if (sy === 16) { if (!i) throw new Error('inflate: bad lengths'); v = lens[i - 1]; r = 3 + bits(2); } else if (sy === 17) r = 3 + bits(3); else r = 11 + bits(7);
+        while (r--) lens[i++] = v;
+      }
+      lit = table(lens.subarray(0, hlit)); dist = table(lens.subarray(hlit));
+    } else if (type !== 1) throw new Error('inflate: bad block');
+    for (;;) {
+      const sy = decode(lit);
+      if (sy < 256) { room(1); out[n++] = sy; continue; }
+      if (sy === 256) break;
+      const k = sy - 257, len = LBASE[k] + bits(LEXT[k]), d = decode(dist), dd = DBASE[d] + bits(DEXT[d]);
+      room(len);
+      for (let i = 0; i < len; i++, n++) out[n] = out[n - dd];
+    }
+  } while (!last);
+  return out.slice(0, n);
+}
+function deflateRaw(src) {
+  const out = [];
+  let acc = 0, nb = 0;
+  const put = (v, k) => { acc |= v << nb; nb += k; while (nb >= 8) { out.push(acc & 255); acc >>>= 8; nb -= 8; } };
+  const rev = (v, k) => { let r = 0; for (let i = 0; i < k; i++) { r = r << 1 | v & 1; v >>= 1; } return r; };
+  const lit = sy => sy < 144 ? put(rev(0x30 + sy, 8), 8) : sy < 256 ? put(rev(0x190 + sy - 144, 9), 9) : sy < 280 ? put(rev(sy - 256, 7), 7) : put(rev(0xc0 + sy - 280, 8), 8);
+  const head = new Int32Array(1 << 15).fill(-1), prev = new Int32Array(src.length);
+  const hash = i => (src[i] << 10 ^ src[i + 1] << 5 ^ src[i + 2]) & 0x7fff;
+  put(1, 1); put(1, 2);   // a single final block with the fixed codes
+  for (let i = 0; i < src.length;) {
+    let best = 0, bd = 0;
+    if (i + 2 < src.length) for (let j = head[hash(i)], tries = 64; j >= 0 && i - j <= 32768 && tries--; j = prev[j]) {
+      let l = 0;
+      while (l < 258 && i + l < src.length && src[j + l] === src[i + l]) l++;
+      if (l > best) { best = l; bd = i - j; if (l === 258) break; }
+    }
+    const step = best >= 3 ? best : 1;
+    for (let k = i; k < i + step; k++) if (k + 2 < src.length) { const h = hash(k); prev[k] = head[h]; head[h] = k; }
+    if (best >= 3) {
+      let c = 0; while (c < 28 && LBASE[c + 1] <= best) c++;
+      lit(257 + c); put(best - LBASE[c], LEXT[c]);
+      let d = 0; while (d < 29 && DBASE[d + 1] <= bd) d++;
+      put(rev(d, 5), 5); put(bd - DBASE[d], DEXT[d]);
+    } else lit(src[i]);
+    i += step;
+  }
+  lit(256);
+  if (nb) out.push(acc & 255);
+  return Uint8Array.from(out);
+}
+// Game data in a message: 'Z' + base64 of raw deflate (the browser's own compressor where it has one)
 async function pack(o) {
-  const s = JSON.stringify(o);
-  try { return 'Z' + b64(new Uint8Array(await new Response(new Blob([s]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer())); }
-  catch (e) { return 'J' + b64(new TextEncoder().encode(s)); }
+  const bytes = new TextEncoder().encode(JSON.stringify(o));
+  if (typeof CompressionStream === 'function') try { return 'Z' + b64(new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer())); } catch (e) { /* the plain one below */ }
+  return 'Z' + b64(deflateRaw(bytes));
 }
 async function unpack(s) {
   const bytes = unb64(s.slice(1));
-  if (s[0] === 'Z') return JSON.parse(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text());
-  return JSON.parse(new TextDecoder().decode(bytes));
+  if (s[0] !== 'Z') return JSON.parse(new TextDecoder().decode(bytes));
+  if (typeof DecompressionStream === 'function') try { return JSON.parse(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text()); } catch (e) { /* the plain one below */ }
+  return JSON.parse(new TextDecoder().decode(inflateRaw(bytes)));
 }
 function netSnap(g) {
   let b = '';
@@ -2935,6 +3034,7 @@ try { window.claude?.hot?.snapshot?.(() => ({ save: JSON.parse(savedString()) })
 window.__globus = {
   get G() { return G; }, get UI() { return UI; },
   setInstant(v) { INSTANT = !!v; },
+  codec: { inflateRaw, deflateRaw, pack, unpack },
   record: recordText, replay: replayRecord, rebuildMatches: () => JSON.stringify(netSnap(rebuildFrom(G.seed, G.players.map(P => ({ name: P.name, color: P.color, ai: P.ai })), G.hist0 || null, G.hist || []))) === JSON.stringify(netSnap(G)),
   start(players, seed) { setup = { players, seed: seed || newSeed() }; startGame(); },
   aiThink, aiContext, aiNextValue, aiCrushNext, aiBestShot, aiRisk, aiWorth, aiReply, aiPlay, AI_LOOK, Solver, buildTargets, genMap, applyMove, arrival, pathVictims, moveEnd,

@@ -57,8 +57,10 @@ function fakeGitHub(token, repo) {
 
 (async () => {
   const browser = await chromium.launch(), tg = fakeTelegram(), errors = [];
-  const device = async (fake = tg, ghFake = null) => {
+  // old: a browser without CompressionStream / DecompressionStream, like Safari before 16.4
+  const device = async (fake = tg, ghFake = null, old = false) => {
     const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    if (old) await ctx.addInitScript(() => { for (const k of ['CompressionStream', 'DecompressionStream']) Object.defineProperty(window, k, { value: undefined, configurable: true }); });
     await ctx.route('https://api.telegram.org/**', r => fake.route(r));
     if (ghFake) { await ctx.grantPermissions(['clipboard-read', 'clipboard-write']); await ctx.route('https://api.github.com/**', r => ghFake.route(r)); }
     const page = await ctx.newPage();
@@ -153,7 +155,7 @@ function fakeGitHub(token, repo) {
   await A2.waitForFunction(() => __globus.UI.mode === 'play', null, { timeout: 10000 });
   const invite2 = pm.lines().find(x => x.includes('#tg='));
   check('the invite asks to forward the link', !!invite2 && invite2.includes('Перешлите'), pm.lines());
-  const B2 = await device(pm);
+  const B2 = await device(pm, null, true);   // the opponent's browser is an old Safari
   await B2.goto(PAGE + invite2.slice(invite2.indexOf('#tg='))); await fast(B2);
   await B2.waitForSelector('[data-act="net-join"]', { timeout: 10000 });
   await B2.click('[data-act="net-join"][data-i="1"]');
@@ -163,7 +165,7 @@ function fakeGitHub(token, repo) {
   check('the tab title tells B it is their turn', (await B2.title()).startsWith('▶'));
   await clickCell(B2, 40);
   await waitTurn(A2, 0);
-  check('boards match in a private-chat game', await hash(A2) === await hash(B2));
+  check('boards match in a private-chat game, the opponent on a browser without CompressionStream', await hash(A2) === await hash(B2) && await B2.evaluate(() => typeof DecompressionStream === 'undefined'));
   const turns = [...pm.msgs.values()].filter(m => /^Ход \d+ · /.test(m.text));
   check('the host is not pinged for their own move, but is for the opponent\'s', turns.length === 2 && turns[0].quiet && !turns[1].quiet, turns);
   // ---------- through GitHub: the game is an issue of the repository; the invite link is copied from the game

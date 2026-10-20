@@ -8,6 +8,7 @@ npm install            # ставит playwright; браузер: npx playwright
 npm test               # правила и интерфейс (rules.test.js)
 node net.test.js       # игра по сети: два браузера, поддельные Telegram Bot API и GitHub API
 node record.test.js    # запись партии: сохранить, воспроизвести, поле совпадает
+node codec.test.js     # своё сжатие (для Safari до 16.4) и браузерное читают друг друга
 node ai-habits.test.js # привычки компьютера, замеченные в игре: танк не жжёт клетки у своей базы, самолёт не меняется на человека большой колонии, пушка не встаёт под чужой выстрел
 node user-games.test.js [other.html]  # позиции из настоящих партий (записи в games/): компьютер не повторяет ошибку
 node ai-tactics.test.js            # тактические позиции для компьютера (ai-tactics.test.js ../old.html — для другой версии)
