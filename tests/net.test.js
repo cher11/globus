@@ -239,6 +239,38 @@ function fakeGitHub(token, repo) {
   await A3.waitForFunction(() => __globus.G.cur === 1, null, { timeout: 10000 });
   check('then B takes back its own move: both boards as before both moves', await hash(B3) === before2 && await hash(A3) === before2);
 
+  // ---------- one player on two devices: B plays its turn on a second device; the first one catches up by itself
+  const B4 = await device(tg, ghf);
+  await B4.goto(PAGE + copied.slice(copied.indexOf('#gh='))); await fast(B4);
+  await B4.waitForSelector('[data-act="net-join"]', { timeout: 10000 });
+  await B4.click('[data-act="net-join"][data-i="1"]');
+  await waitTurn(B4, 1);
+  check('the second device loads the game as it is now', await hash(B4) === await hash(B3));
+  await B4.click('[data-act="harvest"]'); await B4.waitForTimeout(300);
+  if (await B4.$('[data-act="end"]')) await B4.click('[data-act="end"]');
+  await waitTurn(A3, 0);
+  await B3.waitForFunction(() => __globus.G.cur === 0, null, { timeout: 10000 });
+  check('the first device, which still had B to move, catches up', await hash(B3) === await hash(A3));
+
+  // ---------- a link to another game while a game is on: ask first; staying keeps the game, going opens the link
+  const tgLink = invite.slice(invite.indexOf('#tg='));
+  await B3.goto(PAGE + tgLink); await B3.waitForSelector('#askModal:not([hidden])', { timeout: 5000 });
+  check('a link to another game asks first (online game: it can be picked up later)', /продолжить позже/.test(await B3.textContent('#askText')));
+  await B3.click('#askNo'); await B3.waitForTimeout(300);
+  check('staying keeps the current game', await B3.evaluate(() => __globus.UI.view === 'game' && __globus.net.NET && __globus.net.NET.kind === 'gh'));
+  await B3.goto(PAGE + tgLink); await B3.waitForSelector('#askModal:not([hidden])', { timeout: 5000 });
+  await B3.click('#askOk');
+  await B3.waitForSelector('[data-act="net-join"]', { timeout: 10000 });
+  check('going opens the game from the link', true);
+  const L1 = await device();
+  await L1.goto(PAGE); await L1.waitForTimeout(300);
+  await L1.evaluate(() => __globus.start([{ color: 0, name: 'A', ai: false }, { color: 1, name: 'B', ai: false }], 77));
+  await clickCell(L1, 0);
+  await L1.goto(PAGE + tgLink); await L1.waitForSelector('#askModal:not([hidden])', { timeout: 5000 });
+  check('a local game in progress: the question says it will be lost', /пропадёт/.test(await L1.textContent('#askText')));
+  await L1.click('#askOk');
+  await L1.waitForSelector('[data-act="net-join"]', { timeout: 10000 });
+
   check('no page errors', errors.length === 0, errors.slice(0, 3));
   console.log(failures() ? `${failures()} FAILED` : 'ALL PASSED');
   await browser.close();

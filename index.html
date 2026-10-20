@@ -218,6 +218,13 @@ button { font: inherit; }
     <aside class="panel" id="panel"></aside>
   </main>
 </div>
+<div class="modal" id="askModal" hidden>
+  <div class="modal-card" role="alertdialog" aria-modal="true" aria-labelledby="askTitle" style="width:min(540px,100%)">
+    <h2 class="hand" id="askTitle"></h2>
+    <p id="askText"></p>
+    <div class="row-btns"><button type="button" class="btn primary" id="askOk"></button><button type="button" class="btn" id="askNo"></button></div>
+  </div>
+</div>
 <div class="modal" id="rulesModal" hidden>
   <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="rulesTitle">
     <button type="button" class="btn modal-close" data-act="close-rules" id="rulesClose">×</button>
@@ -1475,6 +1482,9 @@ const STR = {
     actLeft: 'Действие: есть', actDone: 'Действие: сделано', shotLeft: 'Выстрел: есть', shotDone: 'Выстрел: сделан',
     afterActHint: 'Действие сделано. Можно ещё выстрелить любым своим юнитом (кликните по нему) или завершить ход.',
     lOut: 'людей не осталось, игрок выбывает', lStuck: 'делать нечего, кроме урожая, — игрок выбывает', lUndo: 'берут свой ход назад',
+    swTitle: 'Другая партия', swGo: 'Перейти к партии по ссылке', swStay: 'Остаться в своей партии',
+    swNet: 'В этом браузере идёт другая сетевая партия. Её можно будет продолжить позже: откройте ещё раз её ссылку-приглашение (она есть в чате или у соперника).',
+    swLocal: 'В этом браузере идёт незаконченная партия. Если перейти к партии по ссылке, она пропадёт: продолжить её будет нельзя.',
     undoBtn: 'Взять ход назад', undoHint: 'Можно, пока соперник не ответил на ваш ход', undoAsk: 'Взять свой последний ход назад? Соперник увидит доску до этого хода.',
     undoLate: 'Соперник уже ответил — ход назад не взять', undoTheirs: 'Соперник взял свой ход назад', netUndoMsg: (n, who) => `↩ ${who}: ход ${n} взят назад.`, lWin: 'победа!',
     withCargo: { human: ' с человеком на борту', aa: ' с зениткой на борту' },
@@ -1553,6 +1563,9 @@ const STR = {
     actLeft: 'Action: available', actDone: 'Action: done', shotLeft: 'Shot: available', shotDone: 'Shot: used',
     afterActHint: 'Action done. You can still fire with any of your units (click it) or end the turn.',
     lOut: 'no humans left, out of the game', lStuck: 'nothing to do but harvest: out of the game', lUndo: 'take their move back',
+    swTitle: 'Another game', swGo: 'Go to the game from the link', swStay: 'Stay in my game',
+    swNet: 'Another online game is on in this browser. You can pick it up later: open its invite link again (it is in the chat or with your opponent).',
+    swLocal: 'An unfinished game is on in this browser. If you go to the game from the link, it will be lost: there is no way to continue it.',
     undoBtn: 'Take move back', undoHint: 'Possible until the opponent answers your move', undoAsk: 'Take your last move back? The opponent will see the board as it was before it.',
     undoLate: 'The opponent has answered: the move cannot be taken back', undoTheirs: 'The opponent took their move back', netUndoMsg: (n, who) => `↩ ${who}: move ${n} taken back.`, lWin: 'wins!',
     withCargo: { human: ' carrying a human', aa: ' carrying an AA gun' },
@@ -2184,7 +2197,9 @@ async function netWatch() {
     if (NET !== me || UI.mode !== 'play' || G.cur !== me.seat || me.outbox) continue;
     try {
       const p = await netRead(me);
-      if (NET === me && UI.mode === 'play' && G.cur === me.seat && p && p.g === me.gid && p.n <= me.n && (p.r || 0) !== (me.rev || 0)) { toast(t('undoTheirs'), 'var(--ink)', 2600); netRewind(p); }
+      if (NET !== me || UI.mode !== 'play' || G.cur !== me.seat || !p || p.g !== me.gid) continue;
+      if (p.n <= me.n && (p.r || 0) !== (me.rev || 0)) { toast(t('undoTheirs'), 'var(--ink)', 2600); netRewind(p); }
+      else if (p.n > me.n && !UI.busy) { me.msg = p.msg; me.rev = p.r || 0; if (G.now && G.now.acts.length) netResync(p); else await netCatchUp(p); }
     } catch (e) { /* try again later */ }
   }
   me.watching = false;
@@ -2321,6 +2336,28 @@ async function netFindChats() {
     netNote(sn.chats.length ? '' : t('netNoChats'));
   } catch (e) { netNote(t('netFail', e.message)); }
 }
+// A question with two answers in a dialog; resolves to true for the first
+function ask(title, text, ok, no) {
+  return new Promise(res => {
+    const m = $('#askModal'), a = $('#askOk'), b = $('#askNo');
+    $('#askTitle').textContent = title; $('#askText').textContent = text; a.textContent = ok; b.textContent = no;
+    const done = v => { m.hidden = true; a.onclick = b.onclick = null; res(v); };
+    a.onclick = () => done(true); b.onclick = () => done(false);
+    m.hidden = false; a.focus();
+  });
+}
+// Bring a resumed online game up to the mailbox: turns made meanwhile (by the others, or by me on another device), or
+// turns taken back. A turn I had begun here on the old board is dropped.
+async function netRefresh() {
+  const me = NET;
+  if (!me || me.outbox || UI.mode !== 'play') return;
+  try {
+    const p = await netRead(me);
+    if (NET !== me || !p || p.g !== me.gid) return;
+    if (p.n > me.n) { me.msg = p.msg; me.rev = p.r || 0; if (G.now && G.now.acts.length) netResync(p); else await netCatchUp(p); }
+    else if ((p.r || 0) !== (me.rev || 0) && p.n <= me.n) netRewind(p);
+  } catch (e) { netStatus('error', e.message); }
+}
 // Opening an invite link: #tg=<token, chat, game id> or #gh=<token, owner/repo, issue, game id>
 async function netJoinFromHash() {
   const m = /^#(tg|gh)=(.+)$/.exec(location.hash);
@@ -2332,7 +2369,10 @@ async function netJoinFromHash() {
   } catch (e) { return false; }
   history.replaceState(null, '', location.pathname + location.search);
   const saved = loadNet();
-  if (saved && saved.gid === gid && G && G.net === gid) return false; // already in this game: just resume
+  if (saved && saved.gid === gid && G && G.net === gid) return false; // already in this game: just resume (and refresh)
+  // another game is on in this browser: an online one can be picked up again from its own link, a local one is lost
+  if (UI.mode === 'play' && !(await ask(t('swTitle'), t(NET ? 'swNet' : 'swLocal'), t('swGo'), t('swStay')))) return false;
+  gameToken++; flushAnims(); releaseGate(); NET = null;
   JOIN = { kind: m[1] === 'gh' ? 'gh' : undefined, token, chat, msg, gid, status: 'loading' }; UI.view = 'join'; renderAll();
   try {
     const p = await netRead(JOIN);
@@ -2882,11 +2922,13 @@ function boot(data) {
   NET = net && G && G.net === net.gid ? net : null;
   layout(); renderAll();
   requestAnimationFrame(loop);
-  netJoinFromHash().then(joining => {
+  const resume = joining => {
     if (joining) return;
     if (UI.mode === 'play') beginTurn(true);
-    if (NET && NET.outbox) netFlush();
-  });
+    if (NET && NET.outbox) netFlush(); else netRefresh();
+  };
+  netJoinFromHash().then(resume);
+  window.addEventListener('hashchange', () => { if (/^#(tg|gh)=/.test(location.hash)) netJoinFromHash().then(j => { if (!j) netRefresh(); }); });
 }
 try { window.claude?.hot?.snapshot?.(() => ({ save: JSON.parse(savedString()) })); } catch (e) { /* no viewer hook */ }
 
