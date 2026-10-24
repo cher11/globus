@@ -530,7 +530,8 @@ class Solver {
   dest(c) {
     if (c === this.start || this.g.burnt[c]) return false;
     const v = unitAt(this.g, c);
-    return !v || (v.owner !== this.owner && arrival(this.type, v) !== '');
+    // an enemy it can take or ram; a tank may also end on its own human, field or factory, which it destroys
+    return !v || (v.owner !== this.owner ? arrival(this.type, v) !== '' : this.type === 'tank' && !!(BIT[v.type] & STRUCT));
   }
   // a tank that enters enemy machinery rams it: the move ends there, whatever steps are left
   stop(c) { if (this.type !== 'tank') return false; const v = unitAt(this.g, c); return !!v && v.owner !== this.owner && !!(BIT[v.type] & TANK_RAM); }
@@ -1097,7 +1098,7 @@ function aiEvalUnit(g, ctx, u, consider, shotFree, v0, ex) {
   if (!sv.good(u.cell, -1, ut.move)) return;
   let gainFn = () => 0;
   if (u.type === 'tank') gainFn = c => aiCrushGain(g, ctx, c);
-  const finalFn = c => { const v = unitAt(g, c); if (!v || v.owner === p) return 0; return killValue(g, ctx, v) - (arrival(u.type, v) === 'ram' ? me * 1.1 : 0); };
+  const finalFn = c => { const v = unitAt(g, c); if (!v) return 0; if (v.owner === p) return -aiWorth(ctx.humanCount, v) * 1.5 - 5; return killValue(g, ctx, v) - (arrival(u.type, v) === 'ram' ? me * 1.1 : 0); };
   // a battleship wanted for a colony heads for a landing spot with a human aboard, for my coast without one
   const ferry = u.type === 'battleship' && u.cargo !== 'aa' && ctx.want ? (u.cargo ? ctx.shipGoal : ctx.pickup) : null;
   const plans = sv.plan(u.cell, -1, ut.move, gainFn, finalFn), dm = ferry || ctx.dist[u.type], d0 = dm[u.cell], pw = ferry ? 2 + ctx.want * 0.05 : ctx.aggr * 0.25;
@@ -1446,7 +1447,7 @@ const STR = {
     gunMain: 'Выстрел', gunAA: 'Зенитка', ready: 'готов', used: 'сделан', noTargets: 'целей нет',
     moveL: 'Ход', moveN: n => `${n} кл.`, moveDone: 'сделан', moveNone: 'некуда',
     crush: 'Давить клетки на пути', crushHint: 'Вражеские люди, поля и заводы на пути погибнут, пустые клетки сгорят. Свои юниты и самолёты (под ними танк проезжает) не пострадают. Вражеская техника на пути — всегда таран: гибнут оба, ход кончается там.',
-    actHelp: 'Красный прицел — выстрел. Кольцо — где может закончиться ход: наведите, чтобы увидеть путь. Точка — следующий шаг. Встать можно и на врага: танк и самолёт уничтожают человека, поле или завод; танк на технике, самолёт на самолёте, корабль на таком же корабле — таран, гибнут оба. Жирное кольцо вокруг вражеского юнита — на него можно наехать (красный пунктир — таран).',
+    actHelp: 'Красный прицел — выстрел. Кольцо — где может закончиться ход: наведите, чтобы увидеть путь. Точка — следующий шаг. Встать можно и на врага: танк и самолёт уничтожают человека, поле или завод; танк на технике, самолёт на самолёте, корабль на таком же корабле — таран, гибнут оба. Танк может встать и на своего человека, поле или завод — тот уничтожится. Жирное кольцо вокруг юнита — на него можно наехать (красный пунктир — таран).',
     undo: 'Шаг назад', cancel: 'Отмена', endTurn: 'Завершить ход',
     logL: 'Журнал', logEmpty: 'Здесь появятся ходы.',
     recCopy: 'Скопировать запись партии', recSave: 'Скачать запись', recHint: 'Все ходы партии одним текстом — чтобы разобрать игру',
@@ -1464,7 +1465,7 @@ const STR = {
       factory: 'Урожай +5 кр.',
       artillery: 'Не ходит. Огонь до 5 клеток по всему, кроме самолётов.',
       aa: 'Не ходит. Огонь до 5 клеток по самолётам. Можно поставить на линкор.',
-      tank: 'Ход ровно на 5 клеток по суше, огонь на 1 (не по самолётам). Давит людей, поля и заводы на пути, таранит технику.',
+      tank: 'Ход ровно на 5 клеток по суше, огонь на 1 (не по самолётам). Давит людей, поля и заводы на пути, таранит технику. Может встать и на своего человека, поле или завод — тот уничтожится.',
       sub: 'Ход ровно на 5 клеток по морю, огонь на 1 — по подлодкам и линкорам.',
       aircraft: 'Строится только на суше. Ход ровно на 10 клеток где угодно, огонь на 1 по всему, кроме подлодок.',
       battleship: 'Ход ровно на 5 клеток по морю, огонь до 5 (не по подлодкам и самолётам). Везёт человека или зенитку — с зениткой сбивает самолёты.',
@@ -1527,7 +1528,7 @@ const STR = {
     gunMain: 'Shot', gunAA: 'AA gun', ready: 'ready', used: 'used', noTargets: 'no targets',
     moveL: 'Move', moveN: n => `${n} cells`, moveDone: 'done', moveNone: 'blocked',
     crush: 'Crush cells along the path', crushHint: 'Enemy humans, fields and factories on the path are destroyed and empty cells burn. Your own units and aircraft (the tank drives under them) are spared. Enemy machinery on the path always means a ram: both are destroyed and the move ends there.',
-    actHelp: 'Red crosshair: fire. Ring: where the move can end; hover it to see the path. Dot: the next step. You may end on an enemy: a tank or aircraft destroys a human, field or factory; a tank on machinery, an aircraft on an aircraft or a ship on a ship of its kind means a ram and both are destroyed. A bold ring around an enemy unit: you can end your move on it (red dashes: a ram).',
+    actHelp: 'Red crosshair: fire. Ring: where the move can end; hover it to see the path. Dot: the next step. You may end on an enemy: a tank or aircraft destroys a human, field or factory; a tank on machinery, an aircraft on an aircraft or a ship on a ship of its kind means a ram and both are destroyed. A tank may also end on your own human, field or factory, destroying it. A bold ring around a unit: you can end your move on it (red dashes: a ram).',
     undo: 'Step back', cancel: 'Cancel', endTurn: 'End turn',
     logL: 'Log', logEmpty: 'Moves will appear here.',
     recCopy: 'Copy game record', recSave: 'Download record', recHint: 'Every move of the game as one text, to study the game',
@@ -1545,7 +1546,7 @@ const STR = {
       factory: 'Harvest +5 cr.',
       artillery: 'Cannot move. Fires up to 5 cells at anything except aircraft.',
       aa: 'Cannot move. Fires up to 5 cells at aircraft. Can be mounted on a battleship.',
-      tank: 'Moves exactly 5 cells on land, fires at 1 (not at aircraft). Crushes humans, fields and factories on its path, rams machinery.',
+      tank: 'Moves exactly 5 cells on land, fires at 1 (not at aircraft). Crushes humans, fields and factories on its path, rams machinery. May end on your own human, field or factory, destroying it.',
       sub: 'Moves exactly 5 cells at sea, fires at 1, only at submarines and battleships.',
       aircraft: 'Built on land only. Moves exactly 10 cells anywhere, fires at 1 at anything except submarines.',
       battleship: 'Moves exactly 5 cells at sea, fires up to 5 (not at submarines or aircraft). Carries a human or an AA gun; with the AA gun it can shoot down aircraft.',
@@ -1613,7 +1614,7 @@ function rulesHTML() {
 <li>Подлодка, как и остальные, ходит ровно на 5 клеток.</li>
 <li>Танк по умолчанию давит всё на пути: вражеские люди, поля и заводы гибнут, пустые клетки сгорают. Свои юниты и самолёты (под ними танк проезжает) не страдают. Давку можно отключить.</li>
 <li>Если на пути танка вражеский танк, артиллерия или зенитка, это таран (и без давки): гибнут оба, клетка сгорает, ход танка на ней кончается.</li>
-<li>Закончить ход на клетке врага: танк и самолёт уничтожают человека, поле или завод и занимают клетку. Таран — танк на танке, артиллерии или зенитке, самолёт на самолёте, подлодка на подлодке, линкор на линкоре: гибнут оба, клетка сгорает. Остальное недоступно.</li>
+<li>Закончить ход на клетке врага: танк и самолёт уничтожают человека, поле или завод и занимают клетку. Таран — танк на танке, артиллерии или зенитке, самолёт на самолёте, подлодка на подлодке, линкор на линкоре: гибнут оба, клетка сгорает. Остальное недоступно. Танк может закончить ход и на своём человеке, поле или заводе: тот уничтожается, танк встаёт на его клетку.</li>
 <li>Юниты разных уровней — воздух (самолёты), поверхность (всё на суше и линкоры), под водой (подлодки) — не давят и не таранят друг друга: самолёт и подлодка проходят над всем и под всем, танк проезжает под самолётом, линкор проходит над подлодкой.</li>
 <li>Высаженный человек покидает линкор, и линкор можно загрузить снова.</li>
 <li>Ничья объявляется, если ни у кого не осталось ни места для постройки, ни выстрела, ни хода, а также если 150 ходов подряд никто никого не уничтожил, — чтобы партия не тянулась бесконечно.</li>
@@ -1648,7 +1649,7 @@ function rulesHTML() {
 <li>Submarines move exactly 5 cells, like everything else.</li>
 <li>A tank crushes its path by default: enemy humans, fields and factories die, empty cells burn. Your own units and aircraft (the tank drives under them) are spared. Crushing can be switched off.</li>
 <li>An enemy tank, artillery or AA gun on a tank's path means a ram (crushing or not): both are destroyed, the cell burns and the tank's move ends there.</li>
-<li>Ending a move on an enemy: a tank or an aircraft destroys a human, field or factory and takes the cell. A ram is a tank on a tank, artillery or AA gun, an aircraft on an aircraft, a submarine on a submarine or a battleship on a battleship: both are destroyed and the cell burns. Nothing else can be reached.</li>
+<li>Ending a move on an enemy: a tank or an aircraft destroys a human, field or factory and takes the cell. A ram is a tank on a tank, artillery or AA gun, an aircraft on an aircraft, a submarine on a submarine or a battleship on a battleship: both are destroyed and the cell burns. Nothing else can be reached. A tank may also end its move on your own human, field or factory: it is destroyed and the tank takes its cell.</li>
 <li>Units on different levels, air (aircraft), surface (everything on land and battleships) and underwater (submarines), never crush or ram each other: aircraft and submarines pass over and under anything, a tank drives under aircraft, a battleship passes over submarines.</li>
 <li>A landed human leaves the battleship, which can then be loaded again.</li>
 <li>The game is a draw if nobody has room to build, a shot or a move left, or if nothing is destroyed for 150 turns in a row, so a game cannot drag on forever.</li>

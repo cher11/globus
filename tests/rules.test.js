@@ -182,6 +182,18 @@ const { open, clickCell, check, failures, W } = require('./helpers');
   check('with three players, one out mid-game: its units burn', three.bOut && three.fieldBurnt && three.winner === -1, three);
   check('the last one out ends the game and its units stay', three.end.winner === 0 && three.end.fieldStays, three);
 
+  // ---------- a tank may end its move on its own human, field or factory (destroying it), not on its own machinery
+  await start();
+  await clickCell(page, 0); await clickCell(page, 40);
+  await put('tank', 0, 31 * W + 10); await put('field', 0, 31 * W + 15); await put('artillery', 0, 36 * W + 10); await put('factory', 0, 26 * W + 10);
+  await page.evaluate(() => { __globus.UI.sel = null; __globus.render(); });
+  await clickCell(page, 31 * W + 10, 300);
+  const own = await page.evaluate(() => { const p = __globus.UI.sel && __globus.UI.sel.plans; return { field: !!p && p.has(31 * 41 + 15), factory: !!p && p.has(26 * 41 + 10), artillery: !!p && p.has(36 * 41 + 10) }; });
+  check('a tank can end on its own field or factory, not on its own artillery', own.field && own.factory && !own.artillery, own);
+  await clickCell(page, 31 * W + 15, 1500);
+  const onField = await page.evaluate(() => { const G = __globus.G, u = G.units[G.grid[31 * 41 + 15]]; return { type: u && u.type, owner: u && u.owner, burnt: G.burnt[31 * 41 + 15], fields: Object.values(G.units).filter(x => x.type === 'field').length }; });
+  check('ending on its own field destroys the field; the tank takes the cell', onField.type === 'tank' && onField.owner === 0 && !onField.burnt && onField.fields === 0, onField);
+
   // ---------- an aircraft is built on land only, a battleship at sea only
   await start();
   await clickCell(page, 0); await clickCell(page, 40);   // A at (0,0): its neighbours (1,0) sea, (0,1) land, (1,1) sea
