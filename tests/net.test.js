@@ -273,6 +273,25 @@ function fakeGitHub(token, repo) {
   await L1.click('#askOk');
   await L1.waitForSelector('[data-act="net-join"]', { timeout: 10000 });
 
+  // ---------- the same seat in two windows, both showing its turn: the one that sends second must not write over the first
+  const A5 = await device(tg, ghf);
+  await A5.goto(PAGE + copied.slice(copied.indexOf('#gh=')));
+  await A5.waitForSelector('[data-act="net-join"]', { timeout: 10000 });
+  await A5.evaluate(() => __globus.net.poll(600000));   // this window will not look at the mailbox again before it moves
+  await A5.click('[data-act="net-join"][data-i="0"]');
+  await waitTurn(A5, 0);
+  await A3.click('[data-act="build"][data-type="field"]'); await clickCell(A3, 1, 600);
+  if (await A3.$('[data-act="end"]')) await A3.click('[data-act="end"]');
+  await waitTurn(B4, 1);
+  check('the second window still shows the turn as its own', await A5.evaluate(() => __globus.G.cur === 0));
+  const comments0 = ghf.comments.length;
+  await A5.click('[data-act="build"][data-type="field"]'); await clickCell(A5, 41, 600);
+  if (await A5.$('[data-act="end"]')) await A5.click('[data-act="end"]');
+  await A5.waitForFunction(() => __globus.G.cur === 1 && !__globus.net.NET.outbox, null, { timeout: 10000 });
+  const fields = pg => pg.evaluate(() => [1, 41].map(c => { const u = __globus.G.units[__globus.G.grid[c]]; return u ? u.type : ''; }).join());
+  check('the late window drops its turn and shows the game as it is', await hash(A5) === await hash(A3) && await fields(A5) === 'field,', await fields(A5));
+  check('the turn already played is not overwritten', await hash(B4) === await hash(A3) && ghf.comments.length === comments0 && await fields(B4) === 'field,', ghf.comments.slice(comments0));
+
   check('no page errors', errors.length === 0, errors.slice(0, 3));
   console.log(failures() ? `${failures()} FAILED` : 'ALL PASSED');
   await browser.close();

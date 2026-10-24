@@ -1481,7 +1481,7 @@ const STR = {
     lRam: (u, c, v, vp) => `таран на ${c}: ${u} и ${v} (${vp}) уничтожены`,
     actLeft: 'Действие: есть', actDone: 'Действие: сделано', shotLeft: 'Выстрел: есть', shotDone: 'Выстрел: сделан',
     afterActHint: 'Действие сделано. Можно ещё выстрелить любым своим юнитом (кликните по нему) или завершить ход.',
-    lOut: 'людей не осталось, игрок выбывает', lStuck: 'делать нечего, кроме урожая, — игрок выбывает', lUndo: 'берут свой ход назад',
+    lOut: 'людей не осталось, игрок выбывает', lStuck: 'делать нечего, кроме урожая, — игрок выбывает', lUndo: 'берут свой ход назад', netStale: 'Этот ход уже сделан в другом окне или на другом устройстве — показываю партию как есть',
     swTitle: 'Другая партия', swGo: 'Перейти к партии по ссылке', swStay: 'Остаться в своей партии',
     swNet: 'В этом браузере идёт другая сетевая партия. Её можно будет продолжить позже: откройте ещё раз её ссылку-приглашение (она есть в чате или у соперника).',
     swLocal: 'В этом браузере идёт незаконченная партия. Если перейти к партии по ссылке, она пропадёт: продолжить её будет нельзя.',
@@ -1562,7 +1562,7 @@ const STR = {
     lRam: (u, c, v, vp) => `ram at ${c}: ${u} and ${vp} ${v} destroyed`,
     actLeft: 'Action: available', actDone: 'Action: done', shotLeft: 'Shot: available', shotDone: 'Shot: used',
     afterActHint: 'Action done. You can still fire with any of your units (click it) or end the turn.',
-    lOut: 'no humans left, out of the game', lStuck: 'nothing to do but harvest: out of the game', lUndo: 'take their move back',
+    lOut: 'no humans left, out of the game', lStuck: 'nothing to do but harvest: out of the game', lUndo: 'take their move back', netStale: 'This turn was already played in another window or on another device: showing the game as it is',
     swTitle: 'Another game', swGo: 'Go to the game from the link', swStay: 'Stay in my game',
     swNet: 'Another online game is on in this browser. You can pick it up later: open its invite link again (it is in the chat or with your opponent).',
     swLocal: 'An unfinished game is on in this browser. If you go to the game from the link, it will be lost: there is no way to continue it.',
@@ -2227,25 +2227,50 @@ async function netTurnDone(p, done) {
   const payload = { v: 1, g: NET.gid, s: G.seed, P: G.players.map(P => [P.name, P.color]), n: NET.n, T: NET.turns, X: NET.lastSnap, h: NET.lastHash, r: NET.rev || 0 };
   const what = ((done && done.lines) || []).filter(e => e.p === p).map(plainLog).join('; ') || t('lPass');
   const next = G.winner >= 0 ? t('netWin', pname(G.winner)) : G.draw ? t('netDraw') : t('netNext', pname(G.cur));
-  NET.outbox = { pinned: `${t(NET.kind === 'gh' ? 'ghNote' : 'netPinnedNote')}\n${NET_TAG}${await pack(payload)}`, line: t('netTurnMsg', turn.n, pname(p), what, next), over: G.winner >= 0 || !!G.draw };
+  const before = NET.outbox && !NET.flushing && !NET.outbox.lineDone ? NET.outbox.line + '\n' : '';
+  NET.outbox = { pinned: `${t(NET.kind === 'gh' ? 'ghNote' : 'netPinnedNote')}\n${NET_TAG}${await pack(payload)}`, line: before + t('netTurnMsg', turn.n, pname(p), what, next), over: G.winner >= 0 || !!G.draw, n: turn.n, r: NET.rev || 0, h: NET.lastHash };
   saveNet();
   netFlush();
 }
 async function netFlush() {
   const me = NET;
   if (!me || !me.outbox || me.flushing) return;
+  const o = me.outbox;
   me.flushing = true; netStatus('sending');
   try {
-    if (!me.outbox.pinnedDone) {
-      if (me.kind === 'gh') await gh(me.token, 'PATCH', `/repos/${me.chat}/issues/${me.msg}`, me.outbox.over ? { body: me.outbox.pinned, state: 'closed' } : { body: me.outbox.pinned });
-      else try { await tg(me.token, 'editMessageText', { chat_id: me.chat, message_id: me.msg, text: me.outbox.pinned }); }
-      catch (e) { if (!/not modified/i.test(e.message)) throw e; }
-      me.outbox.pinnedDone = true; saveNet();
+    // First a look at the mailbox: it must still be where I last left or saw it (me.sent). If my other window or device
+    // has played meanwhile, or someone took a turn back, drop my turn and load the game as it is: never write over it
+    if (!o.pinnedDone && o.n != null && me.sent) {
+      const p = await netRead(me);
+      if (NET !== me) return;
+      if (p && p.g === me.gid) {
+        if (p.n === o.n && (p.r || 0) === o.r && p.h === o.h) o.pinnedDone = true;   // an earlier try went through
+        else if (p.n !== me.sent.n || (p.r || 0) !== me.sent.r) {
+          if (me.outbox === o) me.outbox = null;
+          me.flushing = false; saveNet(); netStatus('ok');
+          toast(t('netStale'), 'var(--ink)', 3600);
+          netResync(p);
+          return;
+        }
+      }
     }
+    if (!o.pinnedDone) {
+      if (me.kind === 'gh') await gh(me.token, 'PATCH', `/repos/${me.chat}/issues/${me.msg}`, o.over ? { body: o.pinned, state: 'closed' } : { body: o.pinned });
+      else try { await tg(me.token, 'editMessageText', { chat_id: me.chat, message_id: me.msg, text: o.pinned }); }
+      catch (e) { if (!/not modified/i.test(e.message)) throw e; }
+      o.pinnedDone = true;
+    }
+    if (o.n != null) me.sent = { n: o.n, r: o.r, h: o.h };
+    saveNet();
     // the readable line: on GitHub a comment (it may hit GitHub's limit on new comments; the game does not wait for it)
-    if (me.kind === 'gh') await gh(me.token, 'POST', `/repos/${me.chat}/issues/${me.msg}/comments`, { body: me.outbox.line }).catch(() => {});
-    else await tg(me.token, 'sendMessage', { chat_id: me.chat, text: me.outbox.line, disable_web_page_preview: true, disable_notification: !!me.quiet });
-    me.outbox = null; saveNet(); me.flushing = false; netStatus('sent');
+    if (!o.lineDone) {
+      if (me.kind === 'gh') await gh(me.token, 'POST', `/repos/${me.chat}/issues/${me.msg}/comments`, { body: o.line }).catch(() => {});
+      else await tg(me.token, 'sendMessage', { chat_id: me.chat, text: o.line, disable_web_page_preview: true, disable_notification: !!me.quiet });
+      o.lineDone = true;
+    }
+    if (me.outbox === o) me.outbox = null;
+    saveNet(); me.flushing = false; netStatus('sent');
+    if (me.outbox) netFlush();   // a newer turn came while this one was going out
   } catch (e) {
     me.flushing = false; netStatus('error', e.message);
     setTimeout(() => { if (NET === me) netFlush(); }, NET_POLL * 1.5);
@@ -2263,7 +2288,7 @@ function netResync(p) {
   G.hist0 = p.X; G.hist = [];
   G.last = null; G.now = null; UI.sel = null; UI.hidden = 0;
   UI.mode = (G.winner >= 0 || G.draw) ? 'over' : 'play';
-  NET.n = p.n; NET.turns = p.T.slice(); NET.rev = p.r || 0; saveNet(); commit(); renderAll();
+  NET.n = p.n; NET.turns = p.T.slice(); NET.rev = p.r || 0; NET.sent = { n: p.n, r: p.r || 0, h: p.h }; saveNet(); commit(); renderAll();
   if (UI.mode === 'play') beginTurn(true);
 }
 // Someone took turns back (the mailbox is k turns behind me): drop those turns from my record and rebuild the board, so I
@@ -2277,7 +2302,7 @@ function netRewind(p) {
       netApplySnap(G, netSnap(g));
       G.hist = hist; G.last = null; G.now = null; UI.sel = null; UI.hidden = 0; UI.busy = false;
       UI.mode = (G.winner >= 0 || G.draw) ? 'over' : 'play';
-      NET.n = p.n; NET.turns = p.T.slice(); NET.rev = p.r || 0;
+      NET.n = p.n; NET.turns = p.T.slice(); NET.rev = p.r || 0; NET.sent = { n: p.n, r: p.r || 0, h: p.h };
       addLog({ k: 'undo', p: G.cur });
       netMark(); saveNet(); commit(); renderAll();
       if (UI.mode === 'play') beginTurn(true);
@@ -2292,7 +2317,7 @@ async function netWatch() {
   if (!me || me.watching) return;
   me.watching = true;
   while (NET === me && UI.mode === 'play' && G.cur === me.seat) {
-    await new Promise(r => setTimeout(r, NET_POLL * 2));
+    await new Promise(r => setTimeout(r, NET_POLL));
     if (NET !== me || UI.mode !== 'play' || G.cur !== me.seat || me.outbox) continue;
     try {
       const p = await netRead(me);
@@ -2323,7 +2348,7 @@ async function netTakeBack() {
     addLog({ k: 'undo', p: me.seat });
     netMark(); commit();
     const payload = { v: 1, g: me.gid, s: G.seed, P: G.players.map(P => [P.name, P.color]), n: me.n, T: me.turns, X: me.lastSnap, h: me.lastHash, r: me.rev };
-    me.outbox = { pinned: `${t(me.kind === 'gh' ? 'ghNote' : 'netPinnedNote')}\n${NET_TAG}${await pack(payload)}`, line: t('netUndoMsg', me.n + 1, pname(me.seat)) };
+    me.outbox = { pinned: `${t(me.kind === 'gh' ? 'ghNote' : 'netPinnedNote')}\n${NET_TAG}${await pack(payload)}`, line: t('netUndoMsg', me.n + 1, pname(me.seat)), n: me.n, r: me.rev, h: me.lastHash, undo: true };
     saveNet(); netFlush();
     beginTurn(true);
   } catch (e) { netStatus('error', e.message); }
@@ -2342,7 +2367,7 @@ async function netCatchUp(p) {
   }
   NET.replaying = false;
   if (!ok || NET.lastHash !== p.h) { netResync(p); return; }
-  NET.turns = p.T.slice(); saveNet(); renderAll();
+  NET.turns = p.T.slice(); NET.sent = { n: p.n, r: p.r || 0, h: p.h }; saveNet(); renderAll();
 }
 async function netWait() {
   const me = NET;
@@ -2385,7 +2410,7 @@ async function startNetGame() {
     await tg(token, 'sendMessage', { chat_id: chat, text: t('netInvite', players.map(q => q.name).join(', '), netLink({ token, chat, gid }), priv), disable_web_page_preview: true });
     sn.note = '';
     netStartLocal(players, setup.seed, gid);
-    NET = { token, chat, gid, seat: Math.min(sn.seat || 0, players.length - 1), msg: m.message_id, n: 0, turns: [], status: 'ok', quiet: priv };  // my own moves need no ping in my own chat
+    NET = { token, chat, gid, seat: Math.min(sn.seat || 0, players.length - 1), msg: m.message_id, n: 0, turns: [], status: 'ok', quiet: priv, sent: { n: 0, r: 0, h: payload.h } };  // my own moves need no ping in my own chat
     saveNet();
     beginTurn(false);
   } catch (e) { netNote(t('netFail', e.message)); }
@@ -2405,7 +2430,7 @@ async function startGhGame() {
     const is = await gh(token, 'POST', `/repos/${repo}/issues`, { title: t('ghTitle', gid, players.map(q => q.name).join(', ')), body: `${t('ghNote')}\n${NET_TAG}${await pack(payload)}` });
     sn.note = '';
     netStartLocal(players, setup.seed, gid);
-    NET = { kind: 'gh', token, chat: repo, gid, seat: Math.min(sn.seat || 0, players.length - 1), msg: is.number, n: 0, turns: [], status: 'ok', host: true };
+    NET = { kind: 'gh', token, chat: repo, gid, seat: Math.min(sn.seat || 0, players.length - 1), msg: is.number, n: 0, turns: [], status: 'ok', host: true, sent: { n: 0, r: 0, h: payload.h } };
     saveNet();
     beginTurn(false);
   } catch (e) { netNote(t('netFail', e.message)); }
@@ -2485,7 +2510,7 @@ function netJoinAs(i) {
   const j = JOIN, p = j && j.payload;
   if (!p) return;
   netStartLocal(p.P.map(([name, color]) => ({ name, color, ai: false })), p.s, j.gid);
-  NET = { kind: j.kind, token: j.token, chat: j.chat, gid: j.gid, seat: i, msg: p.msg, n: 0, turns: [], status: 'ok' };
+  NET = { kind: j.kind, token: j.token, chat: j.chat, gid: j.gid, seat: i, msg: p.msg, n: 0, turns: [], status: 'ok', sent: { n: p.n, r: p.r || 0, h: p.h } };
   JOIN = null;
   if (p.n > 0) netResync(p); else { saveNet(); beginTurn(false); }
 }
