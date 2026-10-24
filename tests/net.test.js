@@ -235,7 +235,8 @@ function fakeGitHub(token, repo) {
   await A3.waitForSelector('[data-act="net-undo"]', { timeout: 5000 });
   await A3.click('[data-act="net-undo"]');
   await B3.waitForFunction(() => __globus.G.cur === 0, null, { timeout: 10000 });
-  check('B follows A\'s take-back and keeps its record', await hash(A3) === await hash(B3) && await B3.evaluate(() => __globus.G.hist.length > 0 && __globus.G.hist[__globus.G.hist.length - 1][0] === 1));
+  const follow = { a: await hash(A3), b: await hash(B3), hist: await B3.evaluate(() => __globus.G.hist.map(x => x[0]).join('')), log: await B3.evaluate(() => __globus.G.log.slice(-4).map(e => e.k + e.p).join(' ')) };
+  check('B follows A\'s take-back and keeps its record', follow.a === follow.b && /1$/.test(follow.hist), follow);
   await B3.waitForSelector('[data-act="net-undo"]', { timeout: 5000 });
   await B3.click('[data-act="net-undo"]');
   await A3.waitForFunction(() => __globus.G.cur === 1, null, { timeout: 10000 });

@@ -1906,6 +1906,7 @@ function beginTurn(resumed) {
 }
 function finishTurn() {
   if (UI.mode !== 'play') return;
+  netBump();
   const p = G.cur, done = G.now;
   G.last = G.now; G.now = null;
   for (const u of unitList(G)) { delete u.fresh; delete u.aaFresh; }
@@ -1967,10 +1968,13 @@ async function humanAction(fn, kind) {
   if (!isHumanTurn()) return;
   const tok = gameToken;
   UI.busy = true; renderPanel(); requestDraw();
+  const acts = G.now ? G.now.acts.length : 0;
   try { await fn(); } catch (err) { console.error(err); }
   if (tok !== gameToken || UI.mode !== 'play') return;
-  UI.turn[kind] = true;
   UI.busy = false;
+  // nothing was done (the board changed under a stale choice, e.g. an online update): the turn is not used up
+  if (!G.now || G.now.acts.length === acts) { UI.sel = null; renderAll(); return; }
+  UI.turn[kind] = true;
   if (UI.sel && UI.sel.kind === 'build') UI.sel = null;
   if (UI.sel && UI.sel.kind === 'act') { recomputeAct(); const s = UI.sel; if (s && !s.targets.size && (UI.turn.act || !s.canMove)) UI.sel = null; }
   if (UI.turn.act && (UI.turn.shot || !anyShot(G.cur))) { finishTurn(); return; }
@@ -2049,7 +2053,7 @@ function endTurnNow() { if (isHumanTurn() && UI.turn.act) finishTurn(); }
 // snapshot if it missed too many) and posts its own turn by editing that message, plus a readable line in the chat.
 const NET_TAG = 'GLOBUS1:', NET_KEY = 'globus.net.v1';
 let NET = null, JOIN = null, NET_POLL = 4000;
-function saveNet() { try { if (NET) { const { polling, watching, replaying, flushing, ...keep } = NET; localStorage.setItem(NET_KEY, JSON.stringify(keep)); } else localStorage.removeItem(NET_KEY); } catch (e) { /* storage unavailable */ } }
+function saveNet() { try { if (NET) { const { polling, watching, replaying, flushing, ver, ...keep } = NET; localStorage.setItem(NET_KEY, JSON.stringify(keep)); } else localStorage.removeItem(NET_KEY); } catch (e) { /* storage unavailable */ } }
 function loadNet() { try { return JSON.parse(localStorage.getItem(NET_KEY) || 'null'); } catch (e) { return null; } }
 async function tg(token, method, params = {}) {
   const body = new URLSearchParams();
@@ -2285,6 +2289,7 @@ async function netPerform(a) {
 }
 // Load the board straight from the snapshot (missed turns, a fresh join, or a mismatch after replaying)
 function netResync(p) {
+  netBump();
   netApplySnap(G, p.X);
   G.hist0 = p.X; G.hist = [];
   G.last = null; G.now = null; UI.sel = null; UI.hidden = 0;
@@ -2299,6 +2304,7 @@ function netRewind(p) {
   if (k > 0 && G.hist && G.hist.length >= k) {
     const hist = G.hist.slice(0, -k), g = rebuildFrom(G.seed, G.players.map(P => ({ name: P.name, color: P.color, ai: false })), G.hist0 || null, hist);
     if (stateHash(g) === p.h) {
+      netBump();
       gameToken++; flushAnims(); releaseGate();
       netApplySnap(G, netSnap(g));
       G.hist = hist; G.last = null; G.now = null; UI.sel = null; UI.hidden = 0; UI.busy = false;
@@ -2321,8 +2327,8 @@ async function netWatch() {
     await new Promise(r => setTimeout(r, NET_POLL));
     if (NET !== me || UI.mode !== 'play' || G.cur !== me.seat || me.outbox) continue;
     try {
-      const p = await netRead(me);
-      if (NET !== me || UI.mode !== 'play' || G.cur !== me.seat || !p || p.g !== me.gid) continue;
+      const v0 = me.ver || 0, p = await netRead(me);
+      if (NET !== me || UI.mode !== 'play' || G.cur !== me.seat || !p || p.g !== me.gid || (me.ver || 0) !== v0) continue;
       if (p.n <= me.n && (p.r || 0) !== (me.rev || 0)) { toast(t('undoTheirs'), 'var(--ink)', 2600); netRewind(p); }
       else if (p.n > me.n && !UI.busy) { me.msg = p.msg; me.rev = p.r || 0; if (G.now && G.now.acts.length) netResync(p); else await netCatchUp(p); }
     } catch (e) { /* try again later */ }
@@ -2342,6 +2348,7 @@ async function netTakeBack() {
     if (NET !== me || !netCanUndo()) return;
     if (!p || p.g !== me.gid || p.n !== me.n) { netStatus('ok'); toast(t('undoLate'), 'var(--ink)', 2600); return; }
     const hist = G.hist.slice(0, -1), g = rebuildFrom(G.seed, G.players.map(P => ({ name: P.name, color: P.color, ai: false })), G.hist0 || null, hist);
+    netBump();
     gameToken++; flushAnims(); releaseGate();
     netApplySnap(G, netSnap(g));
     G.hist = hist; G.last = null; G.now = null; UI.sel = null; UI.hidden = 0; UI.busy = false;
@@ -2376,8 +2383,9 @@ async function netWait() {
   me.polling = true;
   while (NET === me && UI.mode === 'play' && G.cur !== me.seat) {
     try {
-      const p = await netRead(me);
+      const v0 = me.ver || 0, p = await netRead(me);
       if (NET !== me) break;
+      if ((me.ver || 0) !== v0) continue;   // the board changed while the answer was on its way
       if (!p || p.g !== me.gid) netStatus('other');
       else if (p.n > me.n) { me.msg = p.msg; me.rev = p.r || 0; await netCatchUp(p); netStatus('ok'); }
       else if ((p.r || 0) !== (me.rev || 0)) { netRewind(p); netStatus('ok'); }
@@ -2388,6 +2396,8 @@ async function netWait() {
   }
   me.polling = false;
 }
+// Every change of the board bumps NET.ver: a mailbox answer read across a change may be stale, and is read again
+function netBump() { if (NET) NET.ver = (NET.ver || 0) + 1; }
 function netStop() { NET = null; JOIN = null; saveNet(); }
 function netNote(msg) { if (!setup.net) return; setup.net.note = msg; renderPanel(); }
 function netStartLocal(players, seed, gid) {
@@ -2477,8 +2487,8 @@ async function netRefresh() {
   const me = NET;
   if (!me || me.outbox || UI.mode !== 'play') return;
   try {
-    const p = await netRead(me);
-    if (NET !== me || !p || p.g !== me.gid) return;
+    const v0 = me.ver || 0, p = await netRead(me);
+    if (NET !== me || !p || p.g !== me.gid || (me.ver || 0) !== v0) return;
     if (p.n > me.n) { me.msg = p.msg; me.rev = p.r || 0; if (G.now && G.now.acts.length) netResync(p); else await netCatchUp(p); }
     else if ((p.r || 0) !== (me.rev || 0) && p.n <= me.n) netRewind(p);
   } catch (e) { netStatus('error', e.message); }
