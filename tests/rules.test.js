@@ -194,6 +194,18 @@ const { open, clickCell, check, failures, W } = require('./helpers');
   const onField = await page.evaluate(() => { const G = __globus.G, u = G.units[G.grid[31 * 41 + 15]]; return { type: u && u.type, owner: u && u.owner, burnt: G.burnt[31 * 41 + 15], fields: Object.values(G.units).filter(x => x.type === 'field').length }; });
   check('ending on its own field destroys the field; the tank takes the cell', onField.type === 'tank' && onField.owner === 0 && !onField.burnt && onField.fields === 0, onField);
 
+  // ---------- crushing enemies only: enemy units on the path die, empty cells do not burn
+  await start();
+  await clickCell(page, 0); await clickCell(page, 40);
+  await put('tank', 0, 31 * W + 10); await put('field', 1, 31 * W + 12);
+  await page.evaluate(() => { __globus.UI.sel = null; __globus.render(); });
+  await clickCell(page, 31 * W + 10, 300);
+  await page.click('[data-act="crush"][data-v="2"]'); await page.waitForTimeout(100);
+  await clickCell(page, 31 * W + 15, 1500);
+  const foes = await page.evaluate(() => { const G = __globus.G, c = x => 31 * 41 + x; return { tank: !!G.grid[c(15)], field: !!G.grid[c(12)], burnt: [11, 12, 13, 14].map(x => G.burnt[c(x)]).join(''), act: JSON.stringify(G.last && G.last.acts) }; });
+  check('crushing enemies only: the enemy field dies (its cell burns), the empty cells stay', foes.tank && !foes.field && foes.burnt === '0100', foes);
+  check('the move is recorded with that way of crushing', /"m",\d+,2,/.test(foes.act), foes.act);
+
   // ---------- an aircraft is built on land only, a battleship at sea only
   await start();
   await clickCell(page, 0); await clickCell(page, 40);   // A at (0,0): its neighbours (1,0) sea, (0,1) land, (1,1) sea

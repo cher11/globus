@@ -402,12 +402,13 @@ function targetsFrom(g, owner, from, gun) {
 }
 // Cells on the way that a crushing tank destroys: enemy humans, fields and factories, and empty cells burn; it spares
 // its own units and drives under aircraft. The cell where the move ends is handled by arrival().
+// crush: 0 nothing, 1 (or true) everything, 2 enemy units only (empty cells on the way do not burn).
 function pathVictims(g, u, path, crush) {
   const out = [], end = moveEnd(g, u, path), to = path[end], seen = new Set();
   if (u.type !== 'tank' || !crush) return out;
   for (let i = 0; i < end; i++) {
     const c = path[i], v = unitAt(g, c);
-    if (c === to || seen.has(c) || g.burnt[c] || (v && (v.owner === u.owner || v.type === 'aircraft'))) continue;
+    if (c === to || seen.has(c) || g.burnt[c] || (v && (v.owner === u.owner || v.type === 'aircraft')) || (crush === 2 && !v)) continue;
     seen.add(c); out.push(c);
   }
   return out;
@@ -492,7 +493,7 @@ function rebuildFrom(seed, players, hist0, hist) {
       else if (a[0] === 'h') g.players[p].credits += yieldOf(g, p);
       else if (a[0] === 's') { const u = g.units[a[1]], gun = u && gunsOf(u)[a[2]]; if (gun && unitAt(g, a[3])) { killAt(g, a[3]); g.lastKill = g.turn; checkEliminations(g); } }
       else if (a[0] === 'm' && g.units[a[1]]) {
-        const path = a.slice(3), ev = applyMove(g, a[1], path.slice(0, moveEnd(g, g.units[a[1]], path) + 1), !!a[2]);
+        const path = a.slice(3), ev = applyMove(g, a[1], path.slice(0, moveEnd(g, g.units[a[1]], path) + 1), a[2]);
         if (ev.some(e => e.victim)) g.lastKill = g.turn;
         checkEliminations(g);
       }
@@ -1105,9 +1106,12 @@ function aiEvalUnit(g, ctx, u, consider, shotFree, v0, ex) {
   for (const [c, pl] of plans) {
     let crush = false, gain = Math.max(0, pl.gain);
     if (u.type === 'tank') {
+      // the best of: crush everything, only enemy units, nothing
       const path = Solver.pathOf(pl.state);
-      let cg = 0; for (const x of pathVictims(g, u, path, true)) cg += aiCrushGain(g, ctx, x);
-      crush = cg > 0.1; gain = crush ? pl.gain : pl.gain - cg;
+      let all = 0, foes = 0;
+      for (const x of pathVictims(g, u, path, 1)) { const v = aiCrushGain(g, ctx, x); all += v; if (g.grid[x]) foes += v; }
+      crush = Math.max(all, foes) <= 0.1 ? 0 : all >= foes ? 1 : 2;
+      gain = pl.gain - all + (crush === 1 ? all : crush === 2 ? foes : 0);
     }
     const v = unitAt(g, c);
     if (v && arrival(u.type, v) === 'ram') { consider({ kind: 'act', id: u.id, st: pl.state, crush, after: null, score: (u.type === 'tank' ? gain : pl.gain) - 0.4 + riskNow }); continue; }
@@ -1446,7 +1450,10 @@ const STR = {
     actHint: 'Чтобы ходить или стрелять, кликните по своему юниту. Выстрел не тратит ход: за ход можно одно действие и один выстрел любым юнитом.',
     gunMain: 'Выстрел', gunAA: 'Зенитка', ready: 'готов', used: 'сделан', noTargets: 'целей нет',
     moveL: 'Ход', moveN: n => `${n} кл.`, moveDone: 'сделан', moveNone: 'некуда',
-    crush: 'Давить клетки на пути', crushHint: 'Вражеские люди, поля и заводы на пути погибнут, пустые клетки сгорят. Свои юниты и самолёты (под ними танк проезжает) не пострадают. Вражеская техника на пути — всегда таран: гибнут оба, ход кончается там.',
+    crush: 'Давить на пути', crushAll: 'всё', crushFoes: 'только врагов', crushNone: 'ничего',
+    crushHint: 'Вражеские люди, поля и заводы на пути погибнут, пустые клетки сгорят. Свои юниты и самолёты (под ними танк проезжает) не пострадают. Вражеская техника на пути — всегда таран: гибнут оба, ход кончается там.',
+    crushFoesHint: 'Вражеские люди, поля и заводы на пути погибнут, пустые клетки останутся целы. Вражеская техника на пути — всегда таран: гибнут оба, ход кончается там.',
+    crushNoneHint: 'Танк проедет, ничего не тронув. Вражеская техника на пути — всё равно таран: гибнут оба, ход кончается там.',
     actHelp: 'Красный прицел — выстрел. Кольцо — где может закончиться ход: наведите, чтобы увидеть путь. Точка — следующий шаг. Встать можно и на врага: танк и самолёт уничтожают человека, поле или завод; танк на технике, самолёт на самолёте, корабль на таком же корабле — таран, гибнут оба. Танк может встать и на своего человека, поле или завод — тот уничтожится. Жирное кольцо вокруг юнита — на него можно наехать (красный пунктир — таран).',
     undo: 'Шаг назад', cancel: 'Отмена', endTurn: 'Завершить ход',
     logL: 'Журнал', logEmpty: 'Здесь появятся ходы.',
@@ -1475,7 +1482,7 @@ const STR = {
     lLoad: (u, c) => `${u} на борту линкора ${c}`,
     lLand: c => `высадка с линкора на ${c}`,
     lHarvest: n => `урожай +${n} кр.`, lPass: 'пропуск хода',
-    lMove: (u, a, b, crush) => `${u} ${a} → ${b}${crush ? ', давит клетки' : ''}`,
+    lMove: (u, a, b, crush) => `${u} ${a} → ${b}${crush === 2 ? ', давит врагов' : crush ? ', давит клетки' : ''}`,
     lKill: (u, a, c, v, vp, gd) => `${u} ${a} бьёт по ${c}: ${['уничтожен', 'уничтожена', 'уничтожено'][gd]} ${v} (${vp})`,
     lCrush: (c, v, vp, gd) => `на ${c} ${['раздавлен', 'раздавлена', 'раздавлено'][gd]} ${v} (${vp})`,
     lSmash: (u, c, v, vp, gd) => `${u} встаёт на ${c}: ${['уничтожен', 'уничтожена', 'уничтожено'][gd]} ${v} (${vp})`,
@@ -1527,7 +1534,10 @@ const STR = {
     actHint: 'To move or fire, click one of your units. Firing does not use up the turn: one action and one shot with any unit per turn.',
     gunMain: 'Shot', gunAA: 'AA gun', ready: 'ready', used: 'used', noTargets: 'no targets',
     moveL: 'Move', moveN: n => `${n} cells`, moveDone: 'done', moveNone: 'blocked',
-    crush: 'Crush cells along the path', crushHint: 'Enemy humans, fields and factories on the path are destroyed and empty cells burn. Your own units and aircraft (the tank drives under them) are spared. Enemy machinery on the path always means a ram: both are destroyed and the move ends there.',
+    crush: 'Crush on the way', crushAll: 'everything', crushFoes: 'enemies only', crushNone: 'nothing',
+    crushHint: 'Enemy humans, fields and factories on the path are destroyed and empty cells burn. Your own units and aircraft (the tank drives under them) are spared. Enemy machinery on the path always means a ram: both are destroyed and the move ends there.',
+    crushFoesHint: 'Enemy humans, fields and factories on the path are destroyed; empty cells stay as they are. Enemy machinery on the path always means a ram: both are destroyed and the move ends there.',
+    crushNoneHint: 'The tank drives through without touching anything. Enemy machinery on the path still means a ram: both are destroyed and the move ends there.',
     actHelp: 'Red crosshair: fire. Ring: where the move can end; hover it to see the path. Dot: the next step. You may end on an enemy: a tank or aircraft destroys a human, field or factory; a tank on machinery, an aircraft on an aircraft or a ship on a ship of its kind means a ram and both are destroyed. A tank may also end on your own human, field or factory, destroying it. A bold ring around a unit: you can end your move on it (red dashes: a ram).',
     undo: 'Step back', cancel: 'Cancel', endTurn: 'End turn',
     logL: 'Log', logEmpty: 'Moves will appear here.',
@@ -1556,7 +1566,7 @@ const STR = {
     lLoad: (u, c) => `${u} boarded the battleship at ${c}`,
     lLand: c => `landed a human at ${c}`,
     lHarvest: n => `harvest +${n} cr`, lPass: 'passed',
-    lMove: (u, a, b, crush) => `${u} ${a} → ${b}${crush ? ', crushing' : ''}`,
+    lMove: (u, a, b, crush) => `${u} ${a} → ${b}${crush === 2 ? ', crushing enemies' : crush ? ', crushing' : ''}`,
     lKill: (u, a, c, v, vp) => `${u} ${a} fires at ${c}: ${vp} ${v} destroyed`,
     lCrush: (c, v, vp) => `${vp} ${v} crushed at ${c}`,
     lSmash: (u, c, v, vp) => `${u} lands on ${c}: ${vp} ${v} destroyed`,
@@ -1612,7 +1622,7 @@ function rulesHTML() {
 <li>Выстрел не тратит ход: за ход можно сделать одно действие и один выстрел любым юнитом. Линкор с зениткой тоже стреляет один раз — из пушки или из зенитки.</li>
 <li>Стрелять можно только по вражеским юнитам.</li>
 <li>Подлодка, как и остальные, ходит ровно на 5 клеток.</li>
-<li>Танк по умолчанию давит всё на пути: вражеские люди, поля и заводы гибнут, пустые клетки сгорают. Свои юниты и самолёты (под ними танк проезжает) не страдают. Давку можно отключить.</li>
+<li>Танк по умолчанию давит всё на пути: вражеские люди, поля и заводы гибнут, пустые клетки сгорают. Свои юниты и самолёты (под ними танк проезжает) не страдают. Можно давить только врагов (пустые клетки не сгорают) или не давить вовсе.</li>
 <li>Если на пути танка вражеский танк, артиллерия или зенитка, это таран (и без давки): гибнут оба, клетка сгорает, ход танка на ней кончается.</li>
 <li>Закончить ход на клетке врага: танк и самолёт уничтожают человека, поле или завод и занимают клетку. Таран — танк на танке, артиллерии или зенитке, самолёт на самолёте, подлодка на подлодке, линкор на линкоре: гибнут оба, клетка сгорает. Остальное недоступно. Танк может закончить ход и на своём человеке, поле или заводе: тот уничтожается, танк встаёт на его клетку.</li>
 <li>Юниты разных уровней — воздух (самолёты), поверхность (всё на суше и линкоры), под водой (подлодки) — не давят и не таранят друг друга: самолёт и подлодка проходят над всем и под всем, танк проезжает под самолётом, линкор проходит над подлодкой.</li>
@@ -1647,7 +1657,7 @@ function rulesHTML() {
 <li>Firing does not use up the turn: one action plus one shot with any unit per turn. A battleship carrying an AA gun also fires once, with either gun.</li>
 <li>Only enemy units can be fired at.</li>
 <li>Submarines move exactly 5 cells, like everything else.</li>
-<li>A tank crushes its path by default: enemy humans, fields and factories die, empty cells burn. Your own units and aircraft (the tank drives under them) are spared. Crushing can be switched off.</li>
+<li>A tank crushes its path by default: enemy humans, fields and factories die, empty cells burn. Your own units and aircraft (the tank drives under them) are spared. You can crush enemies only (empty cells do not burn) or nothing at all.</li>
 <li>An enemy tank, artillery or AA gun on a tank's path means a ram (crushing or not): both are destroyed, the cell burns and the tank's move ends there.</li>
 <li>Ending a move on an enemy: a tank or an aircraft destroys a human, field or factory and takes the cell. A ram is a tank on a tank, artillery or AA gun, an aircraft on an aircraft, a submarine on a submarine or a battleship on a battleship: both are destroyed and the cell burns. Nothing else can be reached. A tank may also end its move on your own human, field or factory: it is destroyed and the tank takes its cell.</li>
 <li>Units on different levels, air (aircraft), surface (everything on land and battleships) and underwater (submarines), never crush or ram each other: aircraft and submarines pass over and under anything, a tank drives under aircraft, a battleship passes over submarines.</li>
@@ -1855,7 +1865,7 @@ async function doShot(id, gi, cell) {
 async function doMove(id, path, crush) {
   const tok = gameToken, u = G.units[id];
   if (!u || !path || !path.length) return;
-  track('acts', ['m', id, crush ? 1 : 0, ...path]);
+  track('acts', ['m', id, crush === 2 ? 2 : crush ? 1 : 0, ...path]);
   const from = u.cell;
   path = path.slice(0, moveEnd(G, u, path) + 1);
   await animMove(u, path, crush);
@@ -1986,9 +1996,10 @@ function uiGain(u, s) {
   return () => 0;
 }
 function selectUnit(u) {
-  UI.sel = { kind: 'act', id: u.id, path: [], dirs: [], crush: u.type === 'tank' };
+  UI.sel = { kind: 'act', id: u.id, path: [], dirs: [], crush: u.type === 'tank' ? CRUSH : 0 };
   recomputeAct(); renderAll();
 }
+let CRUSH = 1;   // the last way of crushing chosen for a tank
 function recomputeAct() {
   const s = UI.sel, u = s && G.units[s.id];
   if (!u) { UI.sel = null; return; }
@@ -2285,7 +2296,7 @@ async function netPerform(a) {
   if (a[0] === 'b') await doBuild(a[1], a[2]);
   else if (a[0] === 'h') await doHarvest();
   else if (a[0] === 's') await doShot(a[1], a[2], a[3]);
-  else if (a[0] === 'm') await doMove(a[1], a.slice(3), !!a[2]);
+  else if (a[0] === 'm') await doMove(a[1], a.slice(3), a[2]);
 }
 // Load the board straight from the snapshot (missed turns, a fresh join, or a mismatch after replaying)
 function netResync(p) {
@@ -2861,7 +2872,7 @@ function renderActPanel(s) {
   });
   if (ut.move) h += `<span class="chip ${UI.turn.act || !s.canMove ? 'done' : ''}">${t('moveL')}: ${UI.turn.act ? t('moveDone') : s.canMove ? t('moveN', ut.move) : t('moveNone')}</span>`;
   h += `</div>`;
-  if (u.type === 'tank' && !UI.turn.act && s.canMove) h += `<label class="check" for="crushBox"><input type="checkbox" id="crushBox" ${s.crush ? 'checked' : ''} ${dis}><span>${t('crush')}<small>${t('crushHint')}</small></span></label>`;
+  if (u.type === 'tank' && !UI.turn.act && s.canMove) h += `<p class="label">${t('crush')}</p><div class="seg" role="group" aria-label="${t('crush')}">${[[1, 'crushAll'], [2, 'crushFoes'], [0, 'crushNone']].map(([v, k]) => `<button type="button" data-act="crush" data-v="${v}" aria-pressed="${(s.crush || 0) === v}" ${dis}>${t(k)}</button>`).join('')}</div><p class="hint">${t(['crushNoneHint', 'crushHint', 'crushFoesHint'][s.crush || 0])}</p>`;
   h += `<p class="hint">${t('actHelp')}</p><div class="row-btns">`;
   if (s.path.length && !UI.turn.act) h += `<button type="button" class="btn" data-act="undo" ${dis}>${t('undo')}</button>`;
   h += `<button type="button" class="btn" data-act="cancel" ${dis}>${t('cancel')}</button>`;
@@ -2996,6 +3007,7 @@ document.addEventListener('click', e => {
     case 'ctl': setup.players[i].ai = b.dataset.v === '1'; renderPanel(); break;
     case 'net-seat': setup.net.seat = i; renderPanel(); break;
     case 'net-find': netFindChats(); break;
+    case 'crush': if (UI.sel && UI.sel.kind === 'act') { UI.sel.crush = CRUSH = +b.dataset.v; recomputeAct(); renderPanel(); requestDraw(); } break;
     case 'net-undo': netTakeBack(); break;
     case 'net-via': setup.net.via = b.dataset.v; setup.net.note = ''; renderPanel(); break;
     case 'net-copy': netShareLink('copy'); break;
