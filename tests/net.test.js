@@ -96,6 +96,7 @@ function fakeGitHub(token, repo) {
   // ---------- first turns: placing humans
   await clickCell(A, 0);
   await waitTurn(B, 1);
+  check('the waiting player reads "through Telegram"', /через Telegram/.test(await A.textContent('#panel')));
   check('B sees A\'s first human', await B.evaluate(() => { const u = __globus.G.units[__globus.G.grid[0]]; return !!u && u.owner === 0; }));
   await clickCell(B, 40);
   await waitTurn(A, 0);
@@ -196,6 +197,7 @@ function fakeGitHub(token, repo) {
   await clickCell(B3, 40);
   await waitTurn(A3, 0);
   check('boards match in a GitHub game', await hash(A3) === await hash(B3));
+  check('the waiting player reads "through GitHub"', /через GitHub/.test(await B3.textContent('#panel')), await B3.textContent('#panel'));
   check('a readable comment per turn', ghf.comments.length === 2 && /^Ход 2 · /.test(ghf.comments[1].body), ghf.comments);
   await B3.reload(); await B3.waitForTimeout(500); await fast(B3);
   await A3.click('[data-act="harvest"]');

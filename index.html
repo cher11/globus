@@ -1439,7 +1439,7 @@ const STR = {
     netNoGame: 'в чате не закреплена эта партия', netPinnedNote: 'Служебное сообщение игры «Глобус». Не открепляйте, пока идёт партия.',
     netInvite: (names, link, priv) => priv ? `Новая партия «Глобус»: ${names}.\nПерешлите эту ссылку соперникам. По ней они выберут себя и сыграют, Telegram им не нужен: ${link}` : `Новая партия «Глобус»: ${names}.\nОткройте ссылку, выберите себя и играйте: ${link}`,
     netTurnMsg: (n, who, what, next) => `Ход ${n} · ${who}: ${what}. ${next}`, netNext: n => `Ходят: ${n}.`, netWin: n => `Победа: ${n}!`, netDraw: 'Ничья.',
-    netWaiting: n => `Сейчас ходят ${n}. Ждём их ход через Telegram…`, netReplaying: n => `Показываем ход: ${n}…`,
+    netWaiting: (n, via) => `Сейчас ходят ${n}. Ждём их ход через ${via}…`, netReplaying: n => `Показываем ход: ${n}…`,
     netLine: (g, me) => `Сеть: партия #${g}, вы — ${me}`, netErr: m => `ошибка связи (${m}), повторим`,
     netSt_ok: 'на связи', netSt_waiting: 'ждём ход', netSt_sending: 'отправляем ход…', netSt_sent: 'ход отправлен', netSt_other: 'в чате закреплена другая партия',
     joinTitle: 'Сетевая партия', joinLoading: 'Загружаем партию из Telegram…', joinPick: 'За кого вы играете?',
@@ -1523,7 +1523,7 @@ const STR = {
     netNoGame: 'this game is not pinned in the chat', netPinnedNote: 'Globus game data. Keep it pinned while the game is on.',
     netInvite: (names, link, priv) => priv ? `New Globus game: ${names}.\nForward this link to your opponents. They pick themselves there and play, no Telegram needed: ${link}` : `New Globus game: ${names}.\nOpen the link, pick yourself and play: ${link}`,
     netTurnMsg: (n, who, what, next) => `Turn ${n} · ${who}: ${what}. ${next}`, netNext: n => `${n} to move.`, netWin: n => `${n} wins!`, netDraw: 'Draw.',
-    netWaiting: n => `${n} to move. Waiting for their move through Telegram…`, netReplaying: n => `Showing ${n}'s move…`,
+    netWaiting: (n, via) => `${n} to move. Waiting for their move through ${via}…`, netReplaying: n => `Showing ${n}'s move…`,
     netLine: (g, me) => `Online: game #${g}, you are ${me}`, netErr: m => `connection error (${m}), retrying`,
     netSt_ok: 'connected', netSt_waiting: 'waiting for a move', netSt_sending: 'sending your move…', netSt_sent: 'move sent', netSt_other: 'another game is pinned in the chat',
     joinTitle: 'Online game', joinLoading: 'Loading the game from Telegram…', joinPick: 'Which player are you?',
@@ -2845,7 +2845,7 @@ function renderActions() {
   const p = G.cur, P = G.players[p];
   let h = `<div class="turn-head" style="--c:${pvar(p)}"><span class="sw" style="--c:${pcolor(p)}"></span><span class="hand">${esc(P.name)}</span>${P.ai ? `<span class="tag">${t('aiTag')}</span>` : ''}</div>`;
   if (P.ai) return h + `<p class="hint">${t('thinking')}</p>`;
-  if (NET && NET.seat !== p) return h + `<p class="hint">${t(NET.replaying ? 'netReplaying' : 'netWaiting', esc(P.name))}</p>` + (netCanUndo() ? `<div class="row-btns"><button type="button" class="btn" data-act="net-undo" title="${t('undoHint')}">↩ ${t('undoBtn')}</button></div>` : '');
+  if (NET && NET.seat !== p) return h + `<p class="hint">${t(NET.replaying ? 'netReplaying' : 'netWaiting', esc(P.name), NET.kind === 'gh' ? 'GitHub' : 'Telegram')}</p>` + (netCanUndo() ? `<div class="row-btns"><button type="button" class="btn" data-act="net-undo" title="${t('undoHint')}">↩ ${t('undoBtn')}</button></div>` : '');
   if (!P.placed) return h + `<p class="hint">${t('placeHint')}</p>`;
   const s = UI.sel, dis = UI.busy ? 'disabled' : '';
   h += `<div class="chips"><span class="chip ${UI.turn.act ? 'done' : ''}">${t(UI.turn.act ? 'actDone' : 'actLeft')}</span><span class="chip ${UI.turn.shot ? 'done' : ''}">${t(UI.turn.shot ? 'shotDone' : 'shotLeft')}</span></div>`;
