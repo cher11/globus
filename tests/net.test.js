@@ -93,6 +93,11 @@ function fakeGitHub(token, repo) {
   await B.waitForFunction(() => __globus.UI.mode === 'play', null, { timeout: 10000 });
   check('the token is removed from the address bar', !(await B.evaluate(() => location.hash)).includes('tg='));
 
+  // ---------- an online turn with no action at all does not end (it would go out as an empty pass)
+  const lines0 = tg.lines().length;
+  await A.evaluate(() => __globus.endTurn()); await A.waitForTimeout(400);
+  check('a turn with no action does not end and sends nothing', await A.evaluate(() => __globus.G.cur === 0) && tg.lines().length === lines0);
+
   // ---------- first turns: placing humans
   await clickCell(A, 0);
   await waitTurn(B, 1);

@@ -1916,8 +1916,10 @@ function beginTurn(resumed) {
 }
 function finishTurn() {
   if (UI.mode !== 'play') return;
-  netBump();
   const p = G.cur, done = G.now;
+  // an online turn of mine with no action at all is a glitch (a pass is an action too): it does not end
+  if (NET && p === NET.seat && !NET.replaying && !(done && done.acts && done.acts.length)) { UI.turn = { act: false, shot: UI.turn.shot }; UI.busy = false; renderAll(); return; }
+  netBump();
   G.last = G.now; G.now = null;
   for (const u of unitList(G)) { delete u.fresh; delete u.aaFresh; }
   histPush(p, done);
@@ -3050,6 +3052,22 @@ new MutationObserver(onTheme).observe(document.documentElement, { attributes: tr
 new ResizeObserver(() => layout()).observe($('.board-col'));
 window.addEventListener('resize', layout);
 
+// ===================== Updates =====================
+// A tab left open for days (a phone keeps it and restores it without loading; a second browser stays on) goes on
+// running old code. When the site has a newer page than this one, reload at a quiet moment: the game is saved at turn
+// boundaries, so nothing but an unfinished turn could be lost, and then it waits.
+const quietNow = () => !UI.busy && !UI.sel && !(UI.mode === 'play' && UI.turn && (UI.turn.act || UI.turn.shot)) && !(NET && (NET.outbox || NET.replaying)) && $('#askModal').hidden;
+async function checkUpdate() {
+  if (!/^https?:$/.test(location.protocol)) return;
+  try {
+    const r = await fetch(location.pathname, { method: 'HEAD', cache: 'no-store' }), mod = Date.parse(r.headers.get('last-modified') || ''), mine = Date.parse(document.lastModified);
+    if (mod && mine && mod > mine + 1000 && quietNow()) location.reload();
+  } catch (e) { /* offline: later */ }
+}
+setInterval(checkUpdate, 10 * 60 * 1000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) checkUpdate(); });
+window.addEventListener('pageshow', e => { if (e.persisted) checkUpdate(); });
+
 // ===================== Boot =====================
 function boot(data) {
   const saved = (data && data.save) || loadSaved();
@@ -3082,6 +3100,7 @@ try { window.claude?.hot?.snapshot?.(() => ({ save: JSON.parse(savedString()) })
 window.__globus = {
   get G() { return G; }, get UI() { return UI; },
   setInstant(v) { INSTANT = !!v; },
+  endTurn: () => finishTurn(),
   codec: { inflateRaw, deflateRaw, pack, unpack },
   record: recordText, replay: replayRecord, rebuildMatches: () => JSON.stringify(netSnap(rebuildFrom(G.seed, G.players.map(P => ({ name: P.name, color: P.color, ai: P.ai })), G.hist0 || null, G.hist || []))) === JSON.stringify(netSnap(G)),
   start(players, seed) { setup = { players, seed: seed || newSeed() }; startGame(); },
