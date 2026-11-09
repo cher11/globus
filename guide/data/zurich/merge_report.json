@@ -1,0 +1,172 @@
+{
+ "built": "2026-11-09",
+ "candidates_by_source": {
+  "osm": 8417,
+  "zuerich_tourism": 1419,
+  "stadt_zuerich": 6792,
+  "wikivoyage": 277,
+  "wikidata": 886
+ },
+ "outside_bbox_dropped": 382,
+ "dropped": {
+  "osm_dropped": {
+   "unnamed": 6010,
+   "no guide-relevant tag": 5808,
+   "tourism=information (boards, guideposts)": 1996,
+   "leisure=swimming_pool (mostly private)": 1540,
+   "access restricted/private": 548
+  },
+  "tourism_dropped": {
+   "no name/coords": 3
+  },
+  "szh_dropped": {
+   "Brunnen (infrastructure, not a guide place)": 1286,
+   "Gastwirtschaft type Kleinverkaufsstelle (canteens, kiosks, shops...)": 962,
+   "Hundezonen (infrastructure, not a guide place)": 728,
+   "Standorte_ZueriVelo (infrastructure, not a guide place)": 294,
+   "Gastwirtschaft type Nebenwirtschaft (canteens, kiosks, shops...)": 194,
+   "line layers (trail geometry)": 145,
+   "Zueri_WC (infrastructure, not a guide place)": 139,
+   "layer poi_picknickplatz_view (not guide-relevant)": 95,
+   "Gastwirtschaft type Ausgabestelle (canteens, kiosks, shops...)": 55,
+   "Gastwirtschaft type Kiosk (canteens, kiosks, shops...)": 51,
+   "walking tour routes (lines/tours)": 35,
+   "Statistische_Quartiere (infrastructure, not a guide place)": 34,
+   "Gastwirtschaft type Kantine / Mensa (canteens, kiosks, shops...)": 31,
+   "Gastwirtschaft type Patentbefreit (canteens, kiosks, shops...)": 25,
+   "Gastwirtschaft type Tankstelle (canteens, kiosks, shops...)": 21,
+   "layer poi_schulschwimmanlage_view (not guide-relevant)": 18,
+   "layer poi_waldhuette_view (not guide-relevant)": 16,
+   "Stadtkreise (infrastructure, not a guide place)": 12,
+   "layer poi_sportgarderobe_view (not guide-relevant)": 7,
+   "unnamed/demolished": 4
+  },
+  "wv_dropped": {
+   "kind taxi": 9,
+   "kind tram": 5,
+   "kind school": 3,
+   "kind airport": 1,
+   "kind train": 1,
+   "kind bus": 1,
+   "kind university": 1,
+   "kind consulate": 1
+  },
+  "wd_dropped": {
+   "type not guide-relevant": 3849,
+   "no sitelinks": 423,
+   "no label": 121
+  }
+ },
+ "hard_links": {
+  "shared QID": 321,
+  "OSM wikipedia tag": 4,
+  "Tourism osm_id": 508,
+  "Tourism osm_id not found in OSM extract": 136,
+  "Tourism osm_id rejected (>400 m)": 6,
+  "Wikivoyage unique exact name (no coords)": 15
+ },
+ "wikivoyage_no_coords": {
+  "placed": 15,
+  "dropped": 56
+ },
+ "fuzzy": {
+  "accepted": 2357,
+  "by_pair": {
+   "osm+wikidata": 53,
+   "osm+zuerich_tourism": 169,
+   "osm+stadt_zuerich": 1555,
+   "stadt_zuerich+wikidata": 179,
+   "stadt_zuerich+zuerich_tourism": 233,
+   "osm+wikivoyage": 66,
+   "wikivoyage+zuerich_tourism": 35,
+   "wikidata+wikivoyage": 8,
+   "stadt_zuerich+wikivoyage": 44,
+   "wikidata+zuerich_tourism": 15
+  },
+  "blocked_qid_conflict": 87,
+  "blocked_source_overlap": 1055,
+  "rejected_by_threshold": 422,
+  "samples": [
+   "stadt_zuerich:Villa Brandt | wikidata:Villa Brandt | sim=1.00 d=5m",
+   "osm:Sando | zuerich_tourism:Sando | sim=1.00 d=5m",
+   "osm:Rote Fabrik | stadt_zuerich:Rote Fabrik | sim=1.00 d=5m",
+   "osm:Troja | stadt_zuerich:Restaurant Bistro Troja | sim=0.98 d=5m",
+   "stadt_zuerich:Friedhof Oerlikon | wikidata:Friedhof Oerlikon | sim=1.00 d=3m",
+   "osm:Schweizerdegen El Papi | stadt_zuerich:Schweizerdegen | sim=0.98 d=4m",
+   "stadt_zuerich:Maaghof | wikidata:Maaghof | sim=1.00 d=29m",
+   "osm:Seebacher Treff | stadt_zuerich:Seebacher Treff | sim=1.00 d=4m",
+   "stadt_zuerich:\"Bacchantenzug\" | wikidata:Bacchantenzug | sim=1.00 d=0m",
+   "osm:Kulturamboss 80 | stadt_zuerich:Kulturamboss 80 | sim=1.00 d=0m",
+   "osm:Gabbiano | stadt_zuerich:GABBiANO | sim=1.00 d=1m",
+   "stadt_zuerich:Freibad Allenmoos | wikidata:Freibad Allenmoos | sim=1.00 d=54m",
+   "osm:Hitzberger | stadt_zuerich:Hitzberger Neumarkt Oerlikon | sim=0.92 d=39m",
+   "zuerich_tourism:Bianchi | stadt_zuerich:Bianchi | sim=1.00 d=4m",
+   "osm:Sportzentrum Heuried | stadt_zuerich:Sportzentrum Heuried | sim=1.00 d=73m",
+   "osm:Im Guet | stadt_zuerich:Im Guet | sim=1.00 d=14m",
+   "osm:D'Aurora | stadt_zuerich:D' Aurora | sim=1.00 d=2m",
+   "osm:Herzogenmühle | stadt_zuerich:Herzogenmühle | sim=1.00 d=2m",
+   "osm:Payamlino Take Away | stadt_zuerich:Payamlino Take Away | sim=1.00 d=2m",
+   "osm:Sportanlage Utogrund | stadt_zuerich:Sportanlage Utogrund | sim=1.00 d=70m",
+   "osm:Biondi | stadt_zuerich:Biondi | sim=1.00 d=1m",
+   "osm:Ying Cusine | stadt_zuerich:Ying Cusine | sim=1.00 d=9m",
+   "osm:Seerose | stadt_zuerich:Seerose | sim=1.00 d=1m",
+   "osm:Schützengasse | stadt_zuerich:Schützengasse | sim=1.00 d=4m",
+   "osm:Incontro | stadt_zuerich:Incontro | sim=1.00 d=14m"
+  ],
+  "sim_ge_0.98": 2207,
+  "sim_0.9_0.98": 116,
+  "sim_0.8_0.9": 34
+ },
+ "strong_exact": {
+  "merged": 1305,
+  "qid_conflict_merged": 22,
+  "same_source_merged": 1207,
+  "samples": [
+   "osm:Sportgeschäft Sport Birrer | osm:Sportgeschäft Sport Birrer d=0m qidconflict=False",
+   "stadt_zuerich:Freibad Allenmoos | stadt_zuerich:Freibad Allenmoos d=0m qidconflict=False",
+   "stadt_zuerich:Sportzentrum Fronwald | stadt_zuerich:Sportzentrum Fronwald d=0m qidconflict=False",
+   "stadt_zuerich:Sportzentrum Fronwald | stadt_zuerich:Sportzentrum Fronwald d=0m qidconflict=False",
+   "stadt_zuerich:Sportzentrum Heerenschürli | stadt_zuerich:Sportzentrum Heerenschürli d=0m qidconflict=False",
+   "stadt_zuerich:Sportzentrum Buchlern | stadt_zuerich:Sportzentrum Buchlern d=0m qidconflict=False",
+   "stadt_zuerich:Freibad Zwischen den Hölzern | stadt_zuerich:Freibad Zwischen den Hölzern d=0m qidconflict=False",
+   "stadt_zuerich:Freibad Seebach | stadt_zuerich:Freibad Seebach d=0m qidconflict=False",
+   "stadt_zuerich:Sportpark Neunbrunnenstrasse | stadt_zuerich:Sportpark Neunbrunnenstrasse d=0m qidconflict=False",
+   "stadt_zuerich:Sportzentrum Sihlhölzli | stadt_zuerich:Sportzentrum Sihlhölzli d=0m qidconflict=False",
+   "stadt_zuerich:Sportzentrum Utogrund | stadt_zuerich:Sportzentrum Utogrund d=0m qidconflict=False",
+   "stadt_zuerich:Sportzentrum Josef | stadt_zuerich:Sportzentrum Josef d=0m qidconflict=False",
+   "stadt_zuerich:Messehalle 9 | stadt_zuerich:Messehalle 9 d=0m qidconflict=False",
+   "stadt_zuerich:Fichtentritt | stadt_zuerich:Fichtentritt d=0m qidconflict=False",
+   "stadt_zuerich:Büste | stadt_zuerich:Büste d=0m qidconflict=False",
+   "stadt_zuerich:Ganswürger | stadt_zuerich:Ganswürger d=0m qidconflict=False",
+   "stadt_zuerich:Brunnen mit drei Pinguinen | stadt_zuerich:Brunnen mit drei Pinguinen d=0m qidconflict=False",
+   "stadt_zuerich:\"Das Mädchen\" | stadt_zuerich:\"Das Mädchen\" d=0m qidconflict=False",
+   "stadt_zuerich:Weiblicher Torso | stadt_zuerich:Weiblicher Torso d=0m qidconflict=False",
+   "stadt_zuerich:\"Die Schreitende\" | stadt_zuerich:\"Die Schreitende\" d=0m qidconflict=False",
+   "stadt_zuerich:\"Springbrunnen Linthescherhof\" | stadt_zuerich:\"Springbrunnen Linthescherhof\" d=0m qidconflict=False",
+   "stadt_zuerich:Kakteen | stadt_zuerich:Kakteen d=0m qidconflict=False",
+   "stadt_zuerich:Befreiung | stadt_zuerich:Befreiung d=0m qidconflict=False",
+   "stadt_zuerich:\"Immerwährendes Glück\" | stadt_zuerich:\"Immerwährendes Glück\" d=0m qidconflict=False",
+   "stadt_zuerich:Brunnen mit \"Känguru\" | stadt_zuerich:Brunnen mit \"Känguru\" d=0m qidconflict=False"
+  ]
+ },
+ "fuzzy_recall_on_hard_links": {
+  "hard_pairs": 815,
+  "found_by_fuzzy_rule": 598,
+  "share": 0.734
+ },
+ "websearch_mentions_attached": 6,
+ "places": 12861,
+ "places_by_tier": {
+  "core": 4556,
+  "minor": 8305
+ },
+ "sources_per_place": {
+  "1": 10464,
+  "2": 1823,
+  "3": 436,
+  "4": 115,
+  "5": 23
+ },
+ "candidates_total": 17409,
+ "merged_away": 4548
+}

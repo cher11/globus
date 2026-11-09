@@ -1,0 +1,8 @@
+{
+ "fetched": "2026-11-09",
+ "license": "CC BY-SA 4.0 (Wikipedia contributors)",
+ "source": "https://{en,de}.wikipedia.org/w/api.php (prop=extracts)",
+ "requested": 150,
+ "extracts": 270,
+ "failed_chunks": []
+}

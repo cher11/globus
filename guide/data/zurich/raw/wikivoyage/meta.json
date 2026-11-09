@@ -1,0 +1,108 @@
+{
+ "fetched": "2026-11-09",
+ "license": "CC BY-SA 4.0",
+ "articles": [
+  {
+   "lang": "en",
+   "title": "Zurich",
+   "url": "https://en.wikivoyage.org/wiki/Zurich",
+   "status": "ok",
+   "bytes": 121243,
+   "listings": 166,
+   "with_coords": 160,
+   "with_wikidata": 30
+  },
+  {
+   "lang": "en",
+   "title": "Zurich Airport",
+   "url": "https://en.wikivoyage.org/wiki/Zurich_Airport",
+   "status": "ok",
+   "bytes": 19516,
+   "listings": 24,
+   "with_coords": 4,
+   "with_wikidata": 1
+  },
+  {
+   "lang": "en",
+   "title": "Zurich Hauptbahnhof",
+   "url": "https://en.wikivoyage.org/wiki/Zurich_Hauptbahnhof",
+   "status": "redirect: #REDIRECT [[Zürich HB]]"
+  },
+  {
+   "lang": "de",
+   "title": "Zürich",
+   "url": "https://de.wikivoyage.org/wiki/Z%C3%BCrich",
+   "status": "ok",
+   "bytes": 74696,
+   "listings": 104,
+   "with_coords": 47,
+   "with_wikidata": 22
+  },
+  {
+   "lang": "de",
+   "title": "Zürich/Flughafen",
+   "url": "https://de.wikivoyage.org/wiki/Z%C3%BCrich/Flughafen",
+   "status": "redirect: #REDIRECT [[Flughafen Zürich]]\n[[Kategorie:Redirect]]"
+  },
+  {
+   "lang": "de",
+   "title": "Zürich Hauptbahnhof",
+   "url": "https://de.wikivoyage.org/wiki/Z%C3%BCrich_Hauptbahnhof",
+   "status": "ok",
+   "bytes": 4936,
+   "listings": 5,
+   "with_coords": 5,
+   "with_wikidata": 0
+  },
+  {
+   "lang": "de",
+   "title": "Zürichsee",
+   "url": "https://de.wikivoyage.org/wiki/Z%C3%BCrichsee",
+   "status": "ok",
+   "bytes": 3036,
+   "listings": 0,
+   "with_coords": 0,
+   "with_wikidata": 0
+  }
+ ],
+ "listings": 299,
+ "by_lang_kind": {
+  "en": {
+   "eat": 45,
+   "drink": 39,
+   "sleep": 36,
+   "see": 24,
+   "do": 17,
+   "buy": 15,
+   "go": 7,
+   "listing": 7
+  },
+  "de": {
+   "hotel": 18,
+   "park": 13,
+   "restaurant": 13,
+   "museum": 11,
+   "taxi": 9,
+   "festival": 6,
+   "do": 5,
+   "tram": 5,
+   "church": 4,
+   "memorial": 4,
+   "discotheque": 3,
+   "school": 3,
+   "flea market": 2,
+   "market": 2,
+   "airport": 1,
+   "train": 1,
+   "bus": 1,
+   "zoo": 1,
+   "viewpoint": 1,
+   "shop": 1,
+   "restaurant, brewery": 1,
+   "bar": 1,
+   "campsite": 1,
+   "university": 1,
+   "consulate": 1
+  }
+ }
+}

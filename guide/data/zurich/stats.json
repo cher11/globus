@@ -1,0 +1,689 @@
+{
+ "lines": 12861,
+ "unparsable": 0,
+ "outside_bbox": 0,
+ "duplicate_ids": 0,
+ "missing_required": 0,
+ "by_tier": {
+  "core": 4556,
+  "minor": 8305
+ },
+ "by_group": {
+  "sights": {
+   "all": 3687,
+   "core": 236
+  },
+  "food": {
+   "all": 2762,
+   "core": 2071
+  },
+  "shopping": {
+   "all": 2324,
+   "core": 182
+  },
+  "sports_active": {
+   "all": 967,
+   "core": 276
+  },
+  "cafes": {
+   "all": 593,
+   "core": 507
+  },
+  "bars_nightlife": {
+   "all": 493,
+   "core": 397
+  },
+  "practical": {
+   "all": 434,
+   "core": 69
+  },
+  "nature_views": {
+   "all": 400,
+   "core": 175
+  },
+  "culture_events": {
+   "all": 378,
+   "core": 142
+  },
+  "lodging": {
+   "all": 290,
+   "core": 239
+  },
+  "family": {
+   "all": 289,
+   "core": 32
+  },
+  "museums_art": {
+   "all": 206,
+   "core": 192
+  },
+  "wellness": {
+   "all": 29,
+   "core": 29
+  },
+  "sports_watch": {
+   "all": 9,
+   "core": 9
+  }
+ },
+ "by_category": {
+  "food/restaurant": 1703,
+  "sights/public_art": 1576,
+  "food/unclassified": 1575,
+  "sights/architecture": 1047,
+  "shopping/fashion": 978,
+  "shopping/other": 789,
+  "cafes/cafe": 599,
+  "sights/historic": 580,
+  "food/fast_food": 478,
+  "bars_nightlife/bar": 466,
+  "shopping/food_specialty": 448,
+  "sports_active/other": 285,
+  "practical/grocery": 285,
+  "sports_active/fitness": 270,
+  "lodging/hotel": 269,
+  "family/playground": 268,
+  "sights/fountain": 206,
+  "nature_views/park": 205,
+  "sights/attraction": 146,
+  "sights/church": 141,
+  "sights/square": 130,
+  "bars_nightlife/club": 129,
+  "culture_events/community_centre": 123,
+  "sports_active/football_pitch": 115,
+  "museums_art/museum": 114,
+  "museums_art/gallery": 98,
+  "practical/transport": 94,
+  "culture_events/library": 90,
+  "nature_views/viewpoint": 85,
+  "nature_views/lake_river": 84,
+  "sports_active/swim": 75,
+  "sports_active/tennis": 74,
+  "bars_nightlife/pub": 71,
+  "shopping/books": 70,
+  "bars_nightlife/live_music": 66,
+  "sights/monument": 65,
+  "cafes/tea_room": 62,
+  "culture_events/theatre": 61,
+  "shopping/souvenir": 60,
+  "sports_active/bike_hike": 59,
+  "culture_events/event_venue": 57,
+  "sights/landmark": 53,
+  "sights/bridge": 53,
+  "sports_active/pitch": 52,
+  "shopping/mall": 48,
+  "sights/cemetery": 46,
+  "nature_views/garden": 44,
+  "sports_active/hall": 38,
+  "practical/education": 33,
+  "cafes/ice_cream": 33,
+  "sights/tower": 32,
+  "lodging/apartment": 32,
+  "culture_events/activity": 30,
+  "family/entertainment": 30,
+  "food/food_court": 30,
+  "culture_events/arts_centre": 25,
+  "nature_views/peak": 24,
+  "wellness/bath": 24,
+  "practical/info": 24,
+  "wellness/spa": 19,
+  "culture_events/cinema": 18,
+  "sports_active/ice": 17,
+  "food/farm_shop": 17,
+  "sports_active/skate": 17,
+  "shopping/market": 12,
+  "culture_events/concert_venue": 12,
+  "nature_views/nature_reserve": 12,
+  "sports_active/climbing": 10,
+  "sports_watch/stadium": 9,
+  "practical/other": 9,
+  "family/zoo": 6,
+  "lodging/hostel": 4,
+  "culture_events/festival": 4,
+  "bars_nightlife/winery": 4,
+  "bars_nightlife/brewery": 3,
+  "lodging/camp": 3,
+  "sports_active/golf": 3,
+  "sports_watch/arena": 2,
+  "bars_nightlife/casino": 2,
+  "sports_active/winter": 2
+ },
+ "by_source_places": {
+  "osm": 8417,
+  "stadt_zuerich": 6784,
+  "zuerich_tourism": 1046,
+  "wikidata": 885,
+  "wikipedia": 270,
+  "wikivoyage": 221
+ },
+ "by_source_set": {
+  "osm": 6009,
+  "stadt_zuerich": 2966,
+  "osm+stadt_zuerich": 1055,
+  "stadt_zuerich+stadt_zuerich": 671,
+  "wikidata": 404,
+  "osm+zuerich_tourism": 270,
+  "zuerich_tourism": 269,
+  "osm+stadt_zuerich+zuerich_tourism": 250,
+  "osm+stadt_zuerich+stadt_zuerich": 180,
+  "osm+wikidata": 86,
+  "stadt_zuerich+wikidata": 64,
+  "wikivoyage": 49,
+  "osm+stadt_zuerich+wikivoyage+zuerich_tourism": 43,
+  "osm+stadt_zuerich+wikidata": 38,
+  "osm+osm": 35
+ },
+ "by_license": {
+  "ODbL-1.0": 8304,
+  "CC0-1.0": 6181,
+  "CC BY-SA": 917,
+  "CC-BY-SA-4.0": 336,
+  "restricted-zurich-tourism": 117,
+  "CC BY-NC-ND": 1
+ },
+ "coverage_all": {
+  "n": 12861,
+  "opening_hours": 0.399,
+  "description": 0.376,
+  "description_long": 0.19,
+  "image": 0.13,
+  "website": 0.413,
+  "phone": 0.239,
+  "address_street": 0.675,
+  "district": 0.84,
+  "wikidata": 0.095,
+  "cuisine": 0.132,
+  "price": 0.009,
+  "accessibility": 0.315,
+  "name_en": 0.181
+ },
+ "coverage_core": {
+  "n": 4556,
+  "opening_hours": 0.625,
+  "description": 0.32,
+  "description_long": 0.274,
+  "image": 0.279,
+  "website": 0.692,
+  "phone": 0.433,
+  "address_street": 0.725,
+  "district": 0.795,
+  "wikidata": 0.103,
+  "cuisine": 0.368,
+  "price": 0.027,
+  "accessibility": 0.491,
+  "name_en": 0.307
+ },
+ "coverage_by_group_core": {
+  "sights": {
+   "n": 236,
+   "opening_hours": 0.153,
+   "description": 0.64,
+   "description_long": 0.479,
+   "image": 0.733,
+   "website": 0.331,
+   "phone": 0.131,
+   "address_street": 0.479,
+   "district": 0.881,
+   "wikidata": 0.386,
+   "cuisine": 0.004,
+   "price": 0.021,
+   "accessibility": 0.208,
+   "name_en": 0.826
+  },
+  "food": {
+   "n": 2071,
+   "opening_hours": 0.795,
+   "description": 0.199,
+   "description_long": 0.179,
+   "image": 0.166,
+   "website": 0.745,
+   "phone": 0.478,
+   "address_street": 0.766,
+   "district": 0.777,
+   "wikidata": 0.014,
+   "cuisine": 0.721,
+   "price": 0.005,
+   "accessibility": 0.584,
+   "name_en": 0.179
+  },
+  "shopping": {
+   "n": 182,
+   "opening_hours": 0.819,
+   "description": 0.791,
+   "description_long": 0.775,
+   "image": 0.731,
+   "website": 0.901,
+   "phone": 0.687,
+   "address_street": 0.874,
+   "district": 0.874,
+   "wikidata": 0.077,
+   "cuisine": 0.005,
+   "price": 0.027,
+   "accessibility": 0.478,
+   "name_en": 0.802
+  },
+  "sports_active": {
+   "n": 276,
+   "opening_hours": 0.156,
+   "description": 0.21,
+   "description_long": 0.163,
+   "image": 0.167,
+   "website": 0.511,
+   "phone": 0.279,
+   "address_street": 0.743,
+   "district": 0.688,
+   "wikidata": 0.062,
+   "cuisine": 0.0,
+   "price": 0.051,
+   "accessibility": 0.098,
+   "name_en": 0.174
+  },
+  "cafes": {
+   "n": 507,
+   "opening_hours": 0.821,
+   "description": 0.112,
+   "description_long": 0.085,
+   "image": 0.087,
+   "website": 0.677,
+   "phone": 0.3,
+   "address_street": 0.665,
+   "district": 0.824,
+   "wikidata": 0.006,
+   "cuisine": 0.288,
+   "price": 0.002,
+   "accessibility": 0.548,
+   "name_en": 0.087
+  },
+  "bars_nightlife": {
+   "n": 397,
+   "opening_hours": 0.725,
+   "description": 0.368,
+   "description_long": 0.35,
+   "image": 0.307,
+   "website": 0.693,
+   "phone": 0.416,
+   "address_street": 0.733,
+   "district": 0.872,
+   "wikidata": 0.018,
+   "cuisine": 0.063,
+   "price": 0.008,
+   "accessibility": 0.599,
+   "name_en": 0.36
+  },
+  "practical": {
+   "n": 69,
+   "opening_hours": 0.072,
+   "description": 0.942,
+   "description_long": 0.797,
+   "image": 0.899,
+   "website": 0.203,
+   "phone": 0.101,
+   "address_street": 0.232,
+   "district": 0.623,
+   "wikidata": 0.841,
+   "cuisine": 0.014,
+   "price": 0.0,
+   "accessibility": 0.58,
+   "name_en": 1.0
+  },
+  "nature_views": {
+   "n": 175,
+   "opening_hours": 0.114,
+   "description": 0.474,
+   "description_long": 0.274,
+   "image": 0.331,
+   "website": 0.257,
+   "phone": 0.091,
+   "address_street": 0.383,
+   "district": 0.726,
+   "wikidata": 0.349,
+   "cuisine": 0.0,
+   "price": 0.029,
+   "accessibility": 0.097,
+   "name_en": 0.423
+  },
+  "culture_events": {
+   "n": 142,
+   "opening_hours": 0.254,
+   "description": 0.43,
+   "description_long": 0.331,
+   "image": 0.345,
+   "website": 0.838,
+   "phone": 0.415,
+   "address_street": 0.761,
+   "district": 0.901,
+   "wikidata": 0.317,
+   "cuisine": 0.007,
+   "price": 0.063,
+   "accessibility": 0.444,
+   "name_en": 0.38
+  },
+  "lodging": {
+   "n": 239,
+   "opening_hours": 0.163,
+   "description": 0.682,
+   "description_long": 0.665,
+   "image": 0.594,
+   "website": 0.908,
+   "phone": 0.808,
+   "address_street": 0.933,
+   "district": 0.745,
+   "wikidata": 0.293,
+   "cuisine": 0.029,
+   "price": 0.063,
+   "accessibility": 0.456,
+   "name_en": 0.644
+  },
+  "family": {
+   "n": 32,
+   "opening_hours": 0.375,
+   "description": 0.25,
+   "description_long": 0.188,
+   "image": 0.156,
+   "website": 0.75,
+   "phone": 0.562,
+   "address_street": 0.562,
+   "district": 0.688,
+   "wikidata": 0.125,
+   "cuisine": 0.0,
+   "price": 0.062,
+   "accessibility": 0.156,
+   "name_en": 0.188
+  },
+  "museums_art": {
+   "n": 192,
+   "opening_hours": 0.719,
+   "description": 0.453,
+   "description_long": 0.333,
+   "image": 0.365,
+   "website": 0.807,
+   "phone": 0.594,
+   "address_street": 0.755,
+   "district": 0.891,
+   "wikidata": 0.328,
+   "cuisine": 0.005,
+   "price": 0.24,
+   "accessibility": 0.573,
+   "name_en": 0.38
+  },
+  "wellness": {
+   "n": 29,
+   "opening_hours": 0.586,
+   "description": 0.586,
+   "description_long": 0.552,
+   "image": 0.586,
+   "website": 1.0,
+   "phone": 0.793,
+   "address_street": 0.966,
+   "district": 0.586,
+   "wikidata": 0.034,
+   "cuisine": 0.0,
+   "price": 0.172,
+   "accessibility": 0.103,
+   "name_en": 0.586
+  },
+  "sports_watch": {
+   "n": 9,
+   "opening_hours": 0.111,
+   "description": 0.556,
+   "description_long": 0.444,
+   "image": 0.556,
+   "website": 0.667,
+   "phone": 0.333,
+   "address_street": 0.667,
+   "district": 0.444,
+   "wikidata": 0.667,
+   "cuisine": 0.0,
+   "price": 0.0,
+   "accessibility": 0.111,
+   "name_en": 0.444
+  }
+ },
+ "coverage_by_source_set": {},
+ "same_name_within_60m_pairs": 205,
+ "same_name_within_60m_core_core": 19,
+ "same_name_within_60m_samples": [
+  "Uetliberg",
+  "Uetliberg",
+  "Rote Fabrik",
+  "Platzspitz",
+  "Bäckeranlage",
+  "Bäckeranlage",
+  "Mövenpick Hotel Zürich Airport",
+  "Josefwiese",
+  "Josefwiese",
+  "Bullingerhof",
+  "Bürkliplatz",
+  "Helvetia",
+  "Metropol",
+  "Metropol",
+  "Seebad Enge"
+ ],
+ "spot": {
+  "Grossmünster": {
+   "n": 6,
+   "top": [
+    "Grossmünster [wd:Q684948] core sights/church src=zuer+wiki+osm+wiki+wiki+wiki+stad+stad+wiki+wiki d=12 im=4 oh=y",
+    "Kreuzgang (Grossmünster) [zt:538186] core sights/church src=zuer+stad d=6 im=4 oh=n",
+    "Glasfenster von Sigmar Polke im Grossmünster [zt:1894] core sights/landmark src=zuer d=4 im=1 oh=y"
+   ]
+  },
+  "Fraumünster": {
+   "n": 8,
+   "top": [
+    "Fraumünster [wd:Q690944] core sights/church src=wiki+wiki+wiki+wiki d=5 im=1 oh=y",
+    "Fraumünster – Kunst, Geschichte und himmlische Glasfenster [zt:1763] core sights/church src=zuer d=4 im=4 oh=y",
+    "Marc Chagalls Kirchenfenster im Fraumünster [zt:1888] core sights/landmark src=zuer d=4 im=1 oh=y"
+   ]
+  },
+  "Kunsthaus": {
+   "n": 6,
+   "top": [
+    "Kunsthaus Zürich [wd:Q685038] core museums_art/museum src=zuer+wiki+osm+wiki+stad+wiki+wiki d=12 im=4 oh=y",
+    "Kunsthaus Bar [osm:n9201875603] core food/restaurant src=zuer+osm+stad d=4 im=4 oh=y",
+    "Bei Moudi am Kunsthaus [osm:n270938093] core food/restaurant src=osm+stad d=0 im=0 oh=y"
+   ]
+  },
+  "Landesmuseum": {
+   "n": 5,
+   "top": [
+    "Landesmuseum Zürich [wd:Q691896] core museums_art/museum src=zuer+zuer+wiki+osm+wiki+wiki+wiki+wiki+wiki d=18 im=4 oh=y",
+    "Zürich Landesmuseum [osm:n29383266] core culture_events/theatre src=zuer+wiki+osm d=5 im=4 oh=n",
+    "Erweiterungsbau Landesmuseum [zt:231298] core sights/architecture src=zuer d=4 im=4 oh=y"
+   ]
+  },
+  "Lindenhof": {
+   "n": 9,
+   "top": [
+    "Lindenhof [wd:Q39374] core nature_views/viewpoint src=zuer+wiki+osm+osm+wiki+stad+stad+stad+stad+stad+wiki+wiki d=15 im=4 oh=y",
+    "Lindenhof [osm:n2376930920] minor family/playground src=osm+stad d=1 im=0 oh=n",
+    "Zurlindenhof I [osm:w244981287] minor family/playground src=osm+stad d=1 im=0 oh=n"
+   ]
+  },
+  "Uetliberg": {
+   "n": 27,
+   "top": [
+    "Uetliberg [wd:Q16524] core nature_views/viewpoint src=zuer+wiki+osm+wiki+wiki+wiki d=9 im=4 oh=n",
+    "Fernsehturm Uetliberg [wd:Q691044] core sights/tower src=osm+wiki+wiki+wiki d=5 im=1 oh=n",
+    "Mountainbike-Trails auf dem Uetliberg in Zürich [zt:40372] core sports_active/bike_hike src=zuer d=4 im=1 oh=n"
+   ]
+  },
+  "Zoo Zürich": {
+   "n": 3,
+   "top": [
+    "Zoo Zürich [wd:Q220109] core family/zoo src=zuer+wiki+osm+wiki+stad+wiki+wiki d=9 im=4 oh=y",
+    "Restaurant Pantanal – Zoo Zürich [zt:1012565] core food/fast_food src=zuer d=4 im=4 oh=y",
+    "Besucherzentrum Zoo Zürich [osm:n13083950570] minor practical/info src=osm d=0 im=0 oh=n"
+   ]
+  },
+  "FIFA": {
+   "n": 1,
+   "top": [
+    "FIFA Museum [wd:Q22984572] core museums_art/museum src=zuer+wiki+osm+wiki+stad+stad+wiki+wiki d=12 im=4 oh=y"
+   ]
+  },
+  "Letzigrund": {
+   "n": 5,
+   "top": [
+    "Letzigrund [wd:Q207623] core sports_watch/stadium src=zuer+osm+wiki+stad+stad+stad+wiki+wiki d=10 im=2 oh=y",
+    "Ooki Pavillon Letzigrund [osm:n319291882] core food/restaurant src=osm d=0 im=0 oh=y",
+    "Brunnen (beim Sportplatz Letzigrund) [wd:Q55170975] minor sights/fountain src=wiki d=2 im=1 oh=n"
+   ]
+  },
+  "Hallenstadion": {
+   "n": 1,
+   "top": [
+    "Hallenstadion [wd:Q666984] core sports_watch/stadium src=wiki+stad+wiki+wiki d=4 im=1 oh=n"
+   ]
+  },
+  "Bahnhofstrasse": {
+   "n": 15,
+   "top": [
+    "John Baker [osm:n5663143938] core cafes/cafe src=zuer+osm+stad d=4 im=4 oh=y",
+    "Läderach [osm:n693318653] core shopping/food_specialty src=zuer+osm d=4 im=1 oh=y",
+    "Bahnhofstrasse [wd:Q675026] core sights/historic src=wiki+stad d=3 im=1 oh=n"
+   ]
+  },
+  "Frau Gerolds": {
+   "n": 2,
+   "top": [
+    "Frau Gerolds Garten [osm:n2124855613] core food/restaurant src=zuer+wiki+osm+stad d=5 im=4 oh=y",
+    "Frau Gerolds Winterstube und Winter-Garten [zt:122914] core food/restaurant src=zuer d=4 im=4 oh=n"
+   ]
+  },
+  "Rote Fabrik": {
+   "n": 3,
+   "top": [
+    "Rote Fabrik [wd:Q491344] core culture_events/concert_venue src=zuer+wiki+osm+wiki+stad+stad+wiki+wiki d=11 im=4 oh=n",
+    "Rote Fabrik [osm:n650460756] minor family/playground src=osm+stad d=1 im=0 oh=n",
+    "Rad-Los! Rote Fabrik [osm:n3169072019] minor shopping/other src=osm d=0 im=0 oh=y"
+   ]
+  },
+  "Seebad Enge": {
+   "n": 3,
+   "top": [
+    "Seebad Enge [osm:r8428062] core sports_active/swim src=zuer+osm+stad d=4 im=3 oh=y",
+    "Seebad Enge [osm:n297747293] core wellness/spa src=zuer+osm d=4 im=4 oh=y",
+    "Restaurant & Bar Seebad Enge [zt:1997] core food/restaurant src=zuer d=4 im=3 oh=y"
+   ]
+  },
+  "Sprüngli": {
+   "n": 22,
+   "top": [
+    "Sprüngli [wd:Q692605] core food/restaurant src=zuer+wiki+osm d=5 im=4 oh=y",
+    "Sprüngli [osm:n4424654368] core shopping/food_specialty src=zuer+osm d=4 im=1 oh=y",
+    "Sprüngli [osm:n4860115692] core shopping/food_specialty src=zuer+osm d=4 im=1 oh=y"
+   ]
+  },
+  "Kronenhalle": {
+   "n": 2,
+   "top": [
+    "Kronenhalle [wd:Q1789864] core food/restaurant src=zuer+wiki+osm+wiki+stad+stad d=8 im=4 oh=y",
+    "Kronenhalle Bar [zt:524706] core bars_nightlife/bar src=zuer+wiki d=5 im=4 oh=y"
+   ]
+  },
+  "Opernhaus": {
+   "n": 2,
+   "top": [
+    "Opernhaus Zürich [wd:Q670406] core bars_nightlife/club src=zuer+wiki+osm+wiki+stad+wiki+wiki d=12 im=4 oh=n",
+    "Sechseläutenplatz und Opernhaus [szh:zzf:zzfp25_1] minor sights/historic src=stad d=2 im=0 oh=n"
+   ]
+  },
+  "Prime Tower": {
+   "n": 1,
+   "top": [
+    "Prime Tower [zt:2013] core sights/architecture src=zuer+stad+stad d=4 im=4 oh=n"
+   ]
+  },
+  "Hiltl": {
+   "n": 5,
+   "top": [
+    "Haus Hiltl [wd:Q5764402] core food/restaurant src=zuer+wiki+wiki+osm+osm+stad d=6 im=4 oh=y",
+    "Hiltl Dachterrasse [osm:n4941865456] core food/restaurant src=zuer+osm+stad d=4 im=4 oh=y",
+    "Hiltl Sihlpost [osm:n4034163671] core food/restaurant src=zuer+osm+stad d=4 im=4 oh=y"
+   ]
+  },
+  "Cabaret Voltaire": {
+   "n": 2,
+   "top": [
+    "Cabaret Voltaire [wd:Q661745] core culture_events/theatre src=zuer+osm+osm+wiki+stad+wiki+wiki d=8 im=4 oh=y",
+    "Bar/Café Cabaret Voltaire [zt:16030] core bars_nightlife/bar src=zuer d=4 im=4 oh=y"
+   ]
+  },
+  "Dolder": {
+   "n": 18,
+   "top": [
+    "The Dolder Grand [wd:Q692578] core lodging/hotel src=zuer+zuer+wiki+wiki+osm+wiki+stad+wiki+wiki d=13 im=4 oh=y",
+    "Kunsteisbahn Dolder [wd:Q139935659] core sports_active/ice src=zuer+osm+wiki+stad d=5 im=4 oh=y",
+    "Dolder Wellenbad [zt:29432] core sports_active/swim src=zuer+stad d=4 im=4 oh=y"
+   ]
+  },
+  "Zürichhorn": {
+   "n": 5,
+   "top": [
+    "Sheep Piece [wd:Q19759382] core sights/public_art src=zuer+osm+stad+stad d=5 im=3 oh=n",
+    "Zürichhorn [wd:Q248693] core sports_active/swim src=osm+wiki+stad+wiki+wiki d=4 im=1 oh=n",
+    "Kasino Zürichhorn [szh:agb:aba76] minor sights/architecture src=stad+stad d=0 im=0 oh=n"
+   ]
+  },
+  "Lake Zurich|Zürichsee": {
+   "n": 16,
+   "top": [
+    "Alex Lake Zürich [osm:n574289154] core lodging/hotel src=zuer+osm d=4 im=4 oh=n",
+    "Alex Restaurant [osm:n574288532] core food/restaurant src=zuer+osm d=4 im=4 oh=y",
+    "Seebad Enge [osm:n297747293] core wellness/spa src=zuer+osm d=4 im=4 oh=y"
+   ]
+  },
+  "Josef": {
+   "n": 21,
+   "top": [
+    "Josef [osm:n2904487294] core food/restaurant src=zuer+wiki+osm+stad d=5 im=3 oh=y",
+    "Josefwiese [wd:Q118436098] core nature_views/park src=zuer+osm+wiki+stad d=5 im=4 oh=n",
+    "St. Josef [wd:Q111409748] core lodging/hotel src=zuer+osm+stad d=4 im=4 oh=n"
+   ]
+  },
+  "Street Parade": {
+   "n": 0,
+   "top": []
+  },
+  "Hardturm": {
+   "n": 6,
+   "top": [
+    "Hardturm [wd:Q1585183] core sights/tower src=osm+wiki+stad d=4 im=1 oh=n",
+    "Hardturmviadukt [wd:Q1585184] minor sights/bridge src=osm+wiki d=2 im=1 oh=n",
+    "Gewerbehaus Hardturmstrasse [szh:agb:aba64] minor sights/architecture src=stad+stad d=0 im=0 oh=n"
+   ]
+  },
+  "Swiss National Museum": {
+   "n": 2,
+   "top": [
+    "Landesmuseum Zürich [wd:Q691896] core museums_art/museum src=zuer+zuer+wiki+osm+wiki+wiki+wiki+wiki+wiki d=18 im=4 oh=y",
+    "Erweiterungsbau Landesmuseum [zt:231298] core sights/architecture src=zuer d=4 im=4 oh=y"
+   ]
+  },
+  "Niederdorf": {
+   "n": 11,
+   "top": [
+    "5. Akt [osm:n370835059] core bars_nightlife/bar src=zuer+osm+stad d=4 im=3 oh=y",
+    "Holy Cow! [osm:n656327806] core food/restaurant src=zuer+osm+stad d=4 im=4 oh=y",
+    "Negishi Sushi Bar [osm:n4869996373] core food/restaurant src=zuer+osm+stad d=4 im=4 oh=y"
+   ]
+  },
+  "Sechseläutenplatz": {
+   "n": 9,
+   "top": [
+    "Sechseläutenplatz – Vereint Tradition mit Moderne [zt:2114] core sights/square src=zuer d=4 im=4 oh=n",
+    "Zürcher «Wienachtsdorf» [zt:26032] core shopping/other src=zuer d=4 im=4 oh=n",
+    "Sechseläutenplatz [wd:Q15059954] core sights/square src=wiki d=2 im=1 oh=n"
+   ]
+  },
+  "Botanischer Garten": {
+   "n": 5,
+   "top": [
+    "Botanischer Garten Zürich [wd:Q686324] core nature_views/park src=zuer+wiki+osm+wiki+stad+wiki+wiki d=8 im=4 oh=y",
+    "Alter Botanischer Garten Zürich [wd:Q437802] core nature_views/park src=zuer+osm+wiki+stad+stad+wiki+wiki d=10 im=4 oh=y",
+    "Cafeteria UZH Botanischer Garten [osm:n3547784304] core cafes/cafe src=osm+stad d=0 im=0 oh=y"
+   ]
+  }
+ }
+}

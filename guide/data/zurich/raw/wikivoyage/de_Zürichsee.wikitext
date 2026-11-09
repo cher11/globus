@@ -1,0 +1,111 @@
+Die Region '''Zürichsee''' liegt in der [[Schweiz]]. Wie der Name es schon vermuten lässt, beinhaltet sie die Ortschaften um den [[:wikipedia:Zürichsee|Zürichsee]], wobei die Stadt [[Zürich]] oft nicht mitgezählt wird. Ebenso gehört die Linthebene bis Weesen zur Region. Wobei je nach Auslegung auch der Walensee als Unterregion dazugezählt wird. Auch das Sihltal mit dem Sihlsee wird zur Region gezählt.
+
+Dadurch liegt die Region in den Kantonen [[Glarus (Kanton)|Glarus]], [[Schwyz (Kanton)|Schwyz]], [[St. Gallen (Kanton)|St. Gallen]] und [[Zürich (Kanton)|Zürich]].
+
+== Regionen ==
+
+* Goldküste, das untere rechte Zürichseeufer
+
+* Das untere linke Zürichseeuffer wird scherzhaft ''[[Pfnüselküste]]'' genannt
+
+* March, der Teil des Kanton Schwyz in der Linthebene
+
+* Sihltal
+
+* Walensee
+
+== Orte ==
+
+* [[Altendorf SZ]]
+* [[Einsiedeln]]
+* [[Freienbach]] mit Orteilen
+** [[Pfäffikon SZ]]
+** Wilen bei Wollerau
+** Bäch SZ
+** Hurden
+* [[Galgenen]]
+* [[Horgen]]
+* [[Innerthal]]
+* [[Kilchberg]]
+* [[Küsnacht ZH]]
+* [[Lachen]]
+* [[Meilen]]
+* [[Oberrieden]]
+* [[Thalwil]]
+* [[Männendorf]]
+* [[Rapperswil-Jona]]
+* [[Schänis]]
+* [[Schmerikon]]
+* [[Siebnen]]
+* [[Stäfa]]
+* [[Uetikon am See|Uetikon]]
+* [[Uznach]]
+* [[Wädenswil]] mit Orteilen
+** Au ZH
+** Berg
+* [[Wangen SZ]]
+* [[Weesen]]
+* [[Wollerau]]
+
+== Weitere Ziele ==
+
+* Halbinsel Hurden mit dem Seedamm
+
+* [[Insel Ufnau]]
+
+* [[Wägitalersee]]
+
+* Zürichsee mit dem Obersee
+
+== Hintergrund ==
+
+== Sprache ==
+
+Die Bevölkerung spricht hauptsächlich einen alemannischen Dialekt (Schweizerdeutsch). Die Schulsprache ist aber Schriftdeutsch, so das eine Verständigung problemlos möglich ist. Daneben sind Französisch und Englisch als Zweitsprache weit verbreitet. Natürlich gibt es bedingt durch Einwanderung auch andere Muttersprachen als Schweizerdeutsch.
+
+== Anreise ==
+
+Die Anreise ist am einfachsten über Zürich.
+
+=== Auf der Straße ===
+
+Am linken Zürichseeufer entlang verläuft die Autobahn A 3, welche Von Basel her bis nach Sargans führt, wo sie in die A13 St.Margerten - Chur mündet.
+
+=== Mit der Bahn ===
+
+Die wichtigste Bahnlinie führt am linken Zürichseeufer entlang, Die Linie Zürich - Chur. Zwischen Zürich und Thalwil, fahren auch die Züge in Richtung Gotthard und Zug - Luzern. Die Züge Richtung Chur fahren meist direkt ab Basel.
+
+=== Flughafen ===
+
+Der internationale Flughafen Zürich-Kloten ist mit direkten S-Bahnen an die Region angeschlossen.
+
+== Mobilität ==
+
+Beidseitig des Sees verlaufen Hauptverkehrsachsen (Bahn und Strasse).
+
+Der Großteil der Region befindet sich im Einzugsgebiet des ZVV und der Zürcher S-Bahn. Dadurch ist ein sehr gutes Angebot des öffentlichen Verkehrs vorhanden.
+
+== Sehenswürdigkeiten ==
+
+* Altstadt von [[Rapperswil-Jona]]
+* Stadt [[Zürich]]
+
+== Aktivitäten ==
+
+== Küche ==
+
+== Nachtleben ==
+
+== Sicherheit ==
+
+== Klima ==
+
+== Literatur ==
+
+== Weblinks ==
+
+* [http://www.zuerichsee.ch Tourismussseite der Region]
+
+{{class-2}}
+{{GeoData| lat= | long= | radius= }}
+{{IstInKat|Region Zürich}}

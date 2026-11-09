@@ -1,0 +1,44 @@
+{
+ "osm": {
+  "url": "https://download.bbbike.org/osm/bbbike/Zuerich/Zuerich.osm.pbf",
+  "license": "ODbL-1.0",
+  "attribution": "© OpenStreetMap contributors",
+  "fetched": "2026-11-09",
+  "places_with_source": 8304
+ },
+ "zuerich_tourism": {
+  "url": "https://www.zuerich.com/en/api/v2/data",
+  "license": "per record: CC BY-SA / CC BY-NC-ND / CC BY-NC / restricted-zurich-tourism",
+  "attribution": "Zürich Tourismus, www.zuerich.com (copyrightHolder per record)",
+  "fetched": "2026-11-09",
+  "places_with_source": 1033
+ },
+ "stadt_zuerich": {
+  "url": "https://data.stadt-zuerich.ch/",
+  "license": "CC0-1.0 (all fetched datasets, CKAN license_id cc-zero)",
+  "attribution": "Stadt Zürich Open Data (attribution appreciated, not required)",
+  "fetched": "2026-11-09",
+  "places_with_source": 5577
+ },
+ "wikidata": {
+  "url": "https://query.wikidata.org/sparql",
+  "license": "CC0-1.0",
+  "attribution": "Wikidata (none required)",
+  "fetched": "2026-11-09",
+  "places_with_source": 871
+ },
+ "wikipedia": {
+  "url": "https://en.wikipedia.org/ , https://de.wikipedia.org/",
+  "license": "CC-BY-SA-4.0",
+  "attribution": "Wikipedia contributors, link to the article and license",
+  "fetched": "2026-11-09",
+  "places_with_source": 150
+ },
+ "wikivoyage": {
+  "url": "https://en.wikivoyage.org/ , https://de.wikivoyage.org/",
+  "license": "CC-BY-SA-4.0",
+  "attribution": "Wikivoyage contributors, link to the article and license",
+  "fetched": "2026-11-09",
+  "places_with_source": 208
+ }
+}
