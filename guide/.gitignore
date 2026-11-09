@@ -1,0 +1,4 @@
+# large downloads, re-fetched by tools/collect
+data/*/cache/
+__pycache__/
+*.pyc
