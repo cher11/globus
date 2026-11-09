@@ -1,0 +1,2121 @@
+[
+ {
+  "id": "201",
+  "parent": "166",
+  "swissId": "culinary-dinner",
+  "name": {
+   "de": "Abendessen",
+   "en": "Dinner",
+   "fr": "Dîner",
+   "it": "Cena"
+  },
+  "path": "/api/v2/data?id=201",
+  "_object_count": 204
+ },
+ {
+  "id": "71",
+  "parent": "0",
+  "swissId": "",
+  "name": {
+   "de": "Übernachten",
+   "en": "Accommodation",
+   "fr": "Logement",
+   "it": "Ospitalità"
+  },
+  "path": "/api/v2/data?id=71",
+  "_object_count": 180
+ },
+ {
+  "id": "159",
+  "parent": "99",
+  "swissId": "",
+  "name": {
+   "de": "Wasser",
+   "en": "Water",
+   "fr": "Eau",
+   "it": "Acqua"
+  },
+  "path": "/api/v2/data?id=159",
+  "_object_count": 45
+ },
+ {
+  "id": "10004",
+  "parent": "136",
+  "swissId": "audience-info-children",
+  "name": {
+   "de": "Kinderfreundlich",
+   "en": "Child-friendly",
+   "fr": "Pour les enfants",
+   "it": "Adatto ai bambini"
+  },
+  "path": "/api/v2/data?id=10004",
+  "_object_count": 19
+ },
+ {
+  "id": "10005",
+  "parent": "10026",
+  "swissId": "audience-info-children",
+  "name": {
+   "de": "Familienfreundlich",
+   "en": "Family-friendly",
+   "fr": "Pour les famillies",
+   "it": "Adatto per le famiglie"
+  },
+  "path": "/api/v2/data?id=10005",
+  "_object_count": 9
+ },
+ {
+  "id": "1429",
+  "parent": "162",
+  "swissId": "",
+  "name": {
+   "de": "Afterhour",
+   "en": "Afterhours",
+   "fr": "Afters",
+   "it": "After-hour"
+  },
+  "path": "/api/v2/data?id=1429",
+  "_object_count": 1
+ },
+ {
+  "id": "1459",
+  "parent": "103",
+  "swissId": "",
+  "name": {
+   "de": "Afterwork",
+   "en": "After-work",
+   "fr": "Afterwork",
+   "it": "After-work"
+  },
+  "path": "/api/v2/data?id=1459",
+  "_object_count": 29
+ },
+ {
+  "id": "1480",
+  "parent": "1471",
+  "swissId": "atmosphere-lively-and-cheerful",
+  "name": {
+   "de": "Fröhlich-ausgelassen",
+   "en": "Lively and Cheerful",
+   "fr": "Joyeux et pétulant",
+   "it": "Allegra/Spensierata"
+  },
+  "path": "/api/v2/data?id=1480",
+  "_object_count": 36
+ },
+ {
+  "id": "1474",
+  "parent": "1471",
+  "swissId": "atmosphere-alternativ-arty",
+  "name": {
+   "de": "Alternativ-Arty",
+   "en": "Alternative and Arty",
+   "fr": "Fête alternative",
+   "it": "Alternative/Arty"
+  },
+  "path": "/api/v2/data?id=1474",
+  "_object_count": 34
+ },
+ {
+  "id": "1471",
+  "parent": "100",
+  "swissId": "atmosphere",
+  "name": {
+   "de": "Atmosphäre",
+   "en": "Atmosphere",
+   "fr": "Ambiance",
+   "it": "Atmosfera"
+  },
+  "path": "/api/v2/data?id=1471",
+  "_object_count": 170
+ },
+ {
+  "id": "193",
+  "parent": "165",
+  "swissId": "culinary-american",
+  "name": {
+   "de": "Amerikanisch",
+   "en": "American",
+   "fr": "Américaine",
+   "it": "Americano"
+  },
+  "path": "/api/v2/data?id=193",
+  "_object_count": 22
+ },
+ {
+  "id": "144",
+  "parent": "97",
+  "swissId": "sui_010518",
+  "name": {
+   "de": "Sommer Rodeln",
+   "en": "Summer Tobogganing",
+   "fr": "Faire de la luge été",
+   "it": "Andare in slitta estate"
+  },
+  "path": "/api/v2/data?id=144",
+  "_object_count": 4
+ },
+ {
+  "id": "405",
+  "parent": "75",
+  "swissId": "",
+  "name": {
+   "de": "Andere",
+   "en": "Other",
+   "fr": "Divers",
+   "it": "Diverso"
+  },
+  "path": "/api/v2/data?id=405",
+  "_object_count": 0
+ },
+ {
+  "id": "83",
+  "parent": "71",
+  "swissId": "",
+  "name": {
+   "de": "Appartement",
+   "en": "Apartments",
+   "fr": "Appartement",
+   "it": "Appartamenti"
+  },
+  "path": "/api/v2/data?id=83",
+  "_object_count": 12
+ },
+ {
+  "id": "730",
+  "parent": "71",
+  "swissId": "",
+  "name": {
+   "de": "Ferienwohnungen",
+   "en": "Vacation Apartments",
+   "fr": "Appartement de vacances",
+   "it": "Appartamenti vacanze"
+  },
+  "path": "/api/v2/data?id=730",
+  "_object_count": 4
+ },
+ {
+  "id": "87",
+  "parent": "72",
+  "swissId": "sui_0202",
+  "name": {
+   "de": "Architektur",
+   "en": "Architecture",
+   "fr": "Architecture",
+   "it": "Architettura"
+  },
+  "path": "/api/v2/data?id=87",
+  "_object_count": 29
+ },
+ {
+  "id": "145",
+  "parent": "97",
+  "swissId": "sui_010403",
+  "name": {
+   "de": "Klettern",
+   "en": "Climbing",
+   "fr": "Faire de l'escalade",
+   "it": "Arrampicarsi"
+  },
+  "path": "/api/v2/data?id=145",
+  "_object_count": 14
+ },
+ {
+  "id": "177",
+  "parent": "136",
+  "swissId": "sui_0210",
+  "name": {
+   "de": "Kunst",
+   "en": "Art",
+   "fr": "Art",
+   "it": "Arte"
+  },
+  "path": "/api/v2/data?id=177",
+  "_object_count": 27
+ },
+ {
+  "id": "188",
+  "parent": "165",
+  "swissId": "culinary-asian",
+  "name": {
+   "de": "Asiatisch",
+   "en": "Asian",
+   "fr": "Asiatique",
+   "it": "Asiatica"
+  },
+  "path": "/api/v2/data?id=188",
+  "_object_count": 46
+ },
+ {
+  "id": "72",
+  "parent": "73",
+  "swissId": "",
+  "name": {
+   "de": "Sehenswürdigkeiten",
+   "en": "Attractions",
+   "fr": "Attractions touristiques",
+   "it": "Attrazioni turistiche"
+  },
+  "path": "/api/v2/data?id=72",
+  "_object_count": 110
+ },
+ {
+  "id": "85",
+  "parent": "71",
+  "swissId": "",
+  "name": {
+   "de": "Hostel",
+   "en": "Hostels",
+   "fr": "Auberges",
+   "it": "Hostel"
+  },
+  "path": "/api/v2/data?id=85",
+  "_object_count": 3
+ },
+ {
+  "id": "1453",
+  "parent": "103",
+  "swissId": "",
+  "name": {
+   "de": "Ausgewählte Spirituosen",
+   "en": "Choice Spirits",
+   "fr": "Spiritueux sélectionnés",
+   "it": "Liquori selezionati"
+  },
+  "path": "/api/v2/data?id=1453",
+  "_object_count": 18
+ },
+ {
+  "id": "88",
+  "parent": "72",
+  "swissId": "",
+  "name": {
+   "de": "Aussichtspunkte",
+   "en": "Vantage Points",
+   "fr": "Points de vue",
+   "it": "Belvedere"
+  },
+  "path": "/api/v2/data?id=88",
+  "_object_count": 25
+ },
+ {
+  "id": "105",
+  "parent": "75",
+  "swissId": "",
+  "name": {
+   "de": "Ausstellung",
+   "en": "Exhibitions",
+   "fr": "Exposition",
+   "it": "Mostra"
+  },
+  "path": "/api/v2/data?id=105",
+  "_object_count": 0
+ },
+ {
+  "id": "84",
+  "parent": "71",
+  "swissId": "",
+  "name": {
+   "de": "B&B",
+   "en": "B&Bs",
+   "fr": "B&Bs",
+   "it": "B&Bs"
+  },
+  "path": "/api/v2/data?id=84",
+  "_object_count": 2
+ },
+ {
+  "id": "406",
+  "parent": "75",
+  "swissId": "",
+  "name": {
+   "de": "Kinder und Familien",
+   "en": "Children and families",
+   "fr": "Enfants & Famille",
+   "it": "Bambini & Famiglia"
+  },
+  "path": "/api/v2/data?id=406",
+  "_object_count": 0
+ },
+ {
+  "id": "103",
+  "parent": "100",
+  "swissId": "",
+  "name": {
+   "de": "Bar & Lounge",
+   "en": "Bars & Lounges",
+   "fr": "Bars & Lounges",
+   "it": "Bar & Lounge"
+  },
+  "path": "/api/v2/data?id=103",
+  "_object_count": 222
+ },
+ {
+  "id": "1438",
+  "parent": "103",
+  "swissId": "",
+  "name": {
+   "de": "Cocktailbar",
+   "en": "Cocktail Bar",
+   "fr": "Bar à cocktails",
+   "it": "Cocktail-bar"
+  },
+  "path": "/api/v2/data?id=1438",
+  "_object_count": 52
+ },
+ {
+  "id": "1441",
+  "parent": "103",
+  "swissId": "",
+  "name": {
+   "de": "Musikbar/Live Music",
+   "en": "Music Bar / Live Music",
+   "fr": "Bar à musique / musique en direct",
+   "it": "Bar con musica / Musica dal vivo"
+  },
+  "path": "/api/v2/data?id=1441",
+  "_object_count": 59
+ },
+ {
+  "id": "1465",
+  "parent": "103",
+  "swissId": "",
+  "name": {
+   "de": "Weinbar",
+   "en": "Wine Bar",
+   "fr": "Bar à vins",
+   "it": "Wine-bar"
+  },
+  "path": "/api/v2/data?id=1465",
+  "_object_count": 16
+ },
+ {
+  "id": "1468",
+  "parent": "103",
+  "swissId": "",
+  "name": {
+   "de": "Quartierbar",
+   "en": "Neighborhood Bar",
+   "fr": "Bar du quartier",
+   "it": "Bar di quartiere"
+  },
+  "path": "/api/v2/data?id=1468",
+  "_object_count": 25
+ },
+ {
+  "id": "1450",
+  "parent": "103",
+  "swissId": "",
+  "name": {
+   "de": "Hotelbar",
+   "en": "Hotel Bar",
+   "fr": "Bar d’hôtel",
+   "it": "Hotel bar"
+  },
+  "path": "/api/v2/data?id=1450",
+  "_object_count": 15
+ },
+ {
+  "id": "195",
+  "parent": "165",
+  "swissId": "culinary-bbq",
+  "name": {
+   "de": "Grill",
+   "en": "BBQ",
+   "fr": "Barbecue",
+   "it": "Griglia"
+  },
+  "path": "/api/v2/data?id=195",
+  "_object_count": 34
+ },
+ {
+  "id": "98",
+  "parent": "73",
+  "swissId": "",
+  "name": {
+   "de": "Wellness",
+   "en": "Wellness",
+   "fr": "Wellness",
+   "it": "Benessere"
+  },
+  "path": "/api/v2/data?id=98",
+  "_object_count": 27
+ },
+ {
+  "id": "158",
+  "parent": "99",
+  "swissId": "",
+  "name": {
+   "de": "Berge",
+   "en": "Mountains",
+   "fr": "Montagne",
+   "it": "Montagna"
+  },
+  "path": "/api/v2/data?id=158",
+  "_object_count": 48
+ },
+ {
+  "id": "1090",
+  "parent": "95",
+  "swissId": "",
+  "name": {
+   "de": "Fahrradverleih",
+   "en": "Bike Hire",
+   "fr": "Vélib",
+   "it": "Noleggio bici"
+  },
+  "path": "/api/v2/data?id=1090",
+  "_object_count": 3
+ },
+ {
+  "id": "139",
+  "parent": "97",
+  "swissId": "sui_010203",
+  "name": {
+   "de": "Fahrradtour",
+   "en": "Bike Tours",
+   "fr": "Randonnée à vélo",
+   "it": "Tour in bicicletta"
+  },
+  "path": "/api/v2/data?id=139",
+  "_object_count": 20
+ },
+ {
+  "id": "182",
+  "parent": "136",
+  "swissId": "sui_0214",
+  "name": {
+   "de": "Naturwissenschaften & Technik",
+   "en": "Science & Technology",
+   "fr": "Biologie humaine & technologie",
+   "it": "Biologia umana & tecnologia"
+  },
+  "path": "/api/v2/data?id=182",
+  "_object_count": 15
+ },
+ {
+  "id": "192",
+  "parent": "165",
+  "swissId": "",
+  "name": {
+   "de": "Bistro",
+   "en": "Bistro",
+   "fr": "Bistro",
+   "it": "Bistrò"
+  },
+  "path": "/api/v2/data?id=192",
+  "_object_count": 39
+ },
+ {
+  "id": "1492",
+  "parent": "1471",
+  "swissId": "atmosphere-cool-and-trendy",
+  "name": {
+   "de": "Szenig-angesagt",
+   "en": "Cool and Trendy",
+   "fr": "Branché et tendance",
+   "it": "Di tendenza/Alla moda"
+  },
+  "path": "/api/v2/data?id=1492",
+  "_object_count": 33
+ },
+ {
+  "id": "198",
+  "parent": "166",
+  "swissId": "culinary-breakfast",
+  "name": {
+   "de": "Frühstück",
+   "en": "Breakfast",
+   "fr": "Petit-déjeuner",
+   "it": "Colazione"
+  },
+  "path": "/api/v2/data?id=198",
+  "_object_count": 56
+ },
+ {
+  "id": "199",
+  "parent": "166",
+  "swissId": "culinary-brunch",
+  "name": {
+   "de": "Brunch",
+   "en": "Brunch",
+   "fr": "Brunch",
+   "it": "Brunch"
+  },
+  "path": "/api/v2/data?id=199",
+  "_object_count": 68
+ },
+ {
+  "id": "135",
+  "parent": "96",
+  "swissId": "",
+  "name": {
+   "de": "Bühne",
+   "en": "Stages",
+   "fr": "Scène",
+   "it": "Scena"
+  },
+  "path": "/api/v2/data?id=135",
+  "_object_count": 19
+ },
+ {
+  "id": "167",
+  "parent": "102",
+  "swissId": "",
+  "name": {
+   "de": "Kaffee",
+   "en": "Coffee",
+   "fr": "Café",
+   "it": "Caffè"
+  },
+  "path": "/api/v2/data?id=167",
+  "_object_count": 48
+ },
+ {
+  "id": "102",
+  "parent": "165",
+  "swissId": "",
+  "name": {
+   "de": "Kaffee & Teeraum",
+   "en": "Coffee Houses & Tea Rooms",
+   "fr": "Salon de thé",
+   "it": "Caffè"
+  },
+  "path": "/api/v2/data?id=102",
+  "_object_count": 77
+ },
+ {
+  "id": "169",
+  "parent": "102",
+  "swissId": "",
+  "name": {
+   "de": "Kuchen",
+   "en": "Cakes",
+   "fr": "Gâteau",
+   "it": "Dolce"
+  },
+  "path": "/api/v2/data?id=169",
+  "_object_count": 29
+ },
+ {
+  "id": "86",
+  "parent": "71",
+  "swissId": "",
+  "name": {
+   "de": "Camping",
+   "en": "Campsites",
+   "fr": "Camping",
+   "it": "Campeggi"
+  },
+  "path": "/api/v2/data?id=86",
+  "_object_count": 7
+ },
+ {
+  "id": "164",
+  "parent": "100",
+  "swissId": "",
+  "name": {
+   "de": "Casinos",
+   "en": "Casinos",
+   "fr": "Casinos",
+   "it": "Casinò"
+  },
+  "path": "/api/v2/data?id=164",
+  "_object_count": 3
+ },
+ {
+  "id": "417",
+  "parent": "95",
+  "swissId": "",
+  "name": {
+   "de": "Einkaufszentrum",
+   "en": "Shopping Mall",
+   "fr": "Centre commercial",
+   "it": "Centro Commerciale"
+  },
+  "path": "/api/v2/data?id=417",
+  "_object_count": 8
+ },
+ {
+  "id": "92",
+  "parent": "72",
+  "swissId": "",
+  "name": {
+   "de": "Kirchen",
+   "en": "Churches",
+   "fr": "Églises",
+   "it": "Chiese"
+  },
+  "path": "/api/v2/data?id=92",
+  "_object_count": 13
+ },
+ {
+  "id": "418",
+  "parent": "95",
+  "swissId": "market-christmas-market",
+  "name": {
+   "de": "Weihnachtsmarkt",
+   "en": "Christmas Market",
+   "fr": "Marché de Noël",
+   "it": "Mercatino di Natale"
+  },
+  "path": "/api/v2/data?id=418",
+  "_object_count": 13
+ },
+ {
+  "id": "414",
+  "parent": "75",
+  "swissId": "",
+  "name": {
+   "de": "Klassik",
+   "en": "Classical",
+   "fr": "Classique",
+   "it": "Musica classica"
+  },
+  "path": "/api/v2/data?id=414",
+  "_object_count": 0
+ },
+ {
+  "id": "162",
+  "parent": "100",
+  "swissId": "",
+  "name": {
+   "de": "Club & Disco",
+   "en": "Clubs & Discos",
+   "fr": "Club & Discothèque",
+   "it": "Club & Discoteca"
+  },
+  "path": "/api/v2/data?id=162",
+  "_object_count": 71
+ },
+ {
+  "id": "112",
+  "parent": "75",
+  "swissId": "",
+  "name": {
+   "de": "Komödie",
+   "en": "Comedy",
+   "fr": "Marché",
+   "it": "Comédie"
+  },
+  "path": "/api/v2/data?id=112",
+  "_object_count": 2
+ },
+ {
+  "id": "10006",
+  "parent": "10026",
+  "swissId": "",
+  "name": {
+   "de": "Gartenterrasse",
+   "en": "Garden Terrace",
+   "fr": "Terrasse de jardin",
+   "it": "Con terrazza fiorita"
+  },
+  "path": "/api/v2/data?id=10006",
+  "_object_count": 24
+ },
+ {
+  "id": "168",
+  "parent": "102",
+  "swissId": "",
+  "name": {
+   "de": "Konditorei",
+   "en": "Confectionery",
+   "fr": "Pâtisserie",
+   "it": "Pasticceria"
+  },
+  "path": "/api/v2/data?id=168",
+  "_object_count": 16
+ },
+ {
+  "id": "625",
+  "parent": "75",
+  "swissId": "",
+  "name": {
+   "de": "Konferenzen & Kongresse",
+   "en": "Conferences and congresses",
+   "fr": null,
+   "it": null
+  },
+  "path": "/api/v2/data?id=625",
+  "_object_count": 2
+ },
+ {
+  "id": "143",
+  "parent": "97",
+  "swissId": "sui_010105",
+  "name": {
+   "de": "Joggen",
+   "en": "Running",
+   "fr": "Courir",
+   "it": "Running"
+  },
+  "path": "/api/v2/data?id=143",
+  "_object_count": 12
+ },
+ {
+  "id": "157",
+  "parent": "97",
+  "swissId": "sui_011007",
+  "name": {
+   "de": "Langlauf",
+   "en": "Cross-Country Skiing",
+   "fr": "Ski de fond",
+   "it": "Sci di fondo"
+  },
+  "path": "/api/v2/data?id=157",
+  "_object_count": 19
+ },
+ {
+  "id": "165",
+  "parent": "101",
+  "swissId": "",
+  "name": {
+   "de": "Küche",
+   "en": "Cuisine",
+   "fr": "Cuisine",
+   "it": "Cucina"
+  },
+  "path": "/api/v2/data?id=165",
+  "_object_count": 458
+ },
+ {
+  "id": "96",
+  "parent": "73",
+  "swissId": "sui_02",
+  "name": {
+   "de": "Kultur",
+   "en": "Culture",
+   "fr": "Culture",
+   "it": "Cultura"
+  },
+  "path": "/api/v2/data?id=96",
+  "_object_count": 132
+ },
+ {
+  "id": "1486",
+  "parent": "1471",
+  "swissId": "atmosphere-cultural-and-inspiring",
+  "name": {
+   "de": "Kulturell-inspirierend",
+   "en": "Cultural and Inspiring",
+   "fr": "Culturellement inspirant",
+   "it": "Culturale/Suggestiva"
+  },
+  "path": "/api/v2/data?id=1486",
+  "_object_count": 14
+ },
+ {
+  "id": "181",
+  "parent": "136",
+  "swissId": "sui_0209",
+  "name": {
+   "de": "Kulturgeschichte",
+   "en": "Cultural History",
+   "fr": "Histoire culturelle",
+   "it": "Storia culturale"
+  },
+  "path": "/api/v2/data?id=181",
+  "_object_count": 38
+ },
+ {
+  "id": "1456",
+  "parent": "103",
+  "swissId": "",
+  "name": {
+   "de": "Kulturlokal",
+   "en": "Cultural Locale",
+   "fr": "Etablissement culturel",
+   "it": "Locale culturale"
+  },
+  "path": "/api/v2/data?id=1456",
+  "_object_count": 17
+ },
+ {
+  "id": "1477",
+  "parent": "1471",
+  "swissId": "atmosphere-relaxed-and-cosy",
+  "name": {
+   "de": "Entspannt-gemütlich",
+   "en": "Relaxed and Cozy",
+   "fr": "Décontracté et convivial",
+   "it": "Rilassata/Accogliente"
+  },
+  "path": "/api/v2/data?id=1477",
+  "_object_count": 11
+ },
+ {
+  "id": "1462",
+  "parent": "103",
+  "swissId": "",
+  "name": {
+   "de": "Freiluft-Bereich",
+   "en": "Open-air Area",
+   "fr": "Zone en plein air",
+   "it": "Dehors"
+  },
+  "path": "/api/v2/data?id=1462",
+  "_object_count": 53
+ },
+ {
+  "id": "200",
+  "parent": "166",
+  "swissId": "culinary-lunch",
+  "name": {
+   "de": "Mittagessen",
+   "en": "Lunch",
+   "fr": "Déjeuner",
+   "it": "Pranzo"
+  },
+  "path": "/api/v2/data?id=200",
+  "_object_count": 210
+ },
+ {
+  "id": "89",
+  "parent": "72",
+  "swissId": "",
+  "name": {
+   "de": "Denkmäler",
+   "en": "Monuments",
+   "fr": "Monuments",
+   "it": "Monumenti"
+  },
+  "path": "/api/v2/data?id=89",
+  "_object_count": 12
+ },
+ {
+  "id": "416",
+  "parent": "95",
+  "swissId": "",
+  "name": {
+   "de": "Kaufhaus",
+   "en": "Department store",
+   "fr": "Grand magasin",
+   "it": "Grande magazzino"
+  },
+  "path": "/api/v2/data?id=416",
+  "_object_count": 4
+ },
+ {
+  "id": "180",
+  "parent": "136",
+  "swissId": "sui_0205",
+  "name": {
+   "de": "Design & Architektur",
+   "en": "Design & Architecture",
+   "fr": "Design & Architecture",
+   "it": "Design & Architettura"
+  },
+  "path": "/api/v2/data?id=180",
+  "_object_count": 16
+ },
+ {
+  "id": "1275",
+  "parent": "165",
+  "swissId": "",
+  "name": {
+   "de": "Weingut",
+   "en": "Winery",
+   "fr": "Domaine viticole",
+   "it": "Tenuta vinicola"
+  },
+  "path": "/api/v2/data?id=1275",
+  "_object_count": 13
+ },
+ {
+  "id": "156",
+  "parent": "97",
+  "swissId": "sui_011004",
+  "name": {
+   "de": "Eislaufen",
+   "en": "Ice Skating",
+   "fr": "Patinage sur glace",
+   "it": "Pattinaggio su ghiaccio"
+  },
+  "path": "/api/v2/data?id=156",
+  "_object_count": 10
+ },
+ {
+  "id": "205",
+  "parent": "184",
+  "swissId": "",
+  "name": {
+   "de": "Zürcher Geschnetzeltes",
+   "en": "Zürcher Geschnetzeltes",
+   "fr": "Émincé zurichois",
+   "it": "Specialità zurighesi"
+  },
+  "path": "/api/v2/data?id=205",
+  "_object_count": 35
+ },
+ {
+  "id": "186",
+  "parent": "165",
+  "swissId": "culinary-spanish",
+  "name": {
+   "de": "Spanisch",
+   "en": "Spanish",
+   "fr": "Espagnol",
+   "it": "Spagnolo"
+  },
+  "path": "/api/v2/data?id=186",
+  "_object_count": 7
+ },
+ {
+  "id": "75",
+  "parent": "0",
+  "swissId": "",
+  "name": {
+   "de": "Events",
+   "en": "Events",
+   "fr": "Manifestations",
+   "it": "Eventi"
+  },
+  "path": "/api/v2/data?id=75",
+  "_object_count": 10
+ },
+ {
+  "id": "153",
+  "parent": "97",
+  "swissId": "sui_011010",
+  "name": {
+   "de": "Schlitteln & Rodeln",
+   "en": "Tobogganing",
+   "fr": "Faire de la luge hiver",
+   "it": "Slittare inverno"
+  },
+  "path": "/api/v2/data?id=153",
+  "_object_count": 28
+ },
+ {
+  "id": "149",
+  "parent": "97",
+  "swissId": "sui_010908",
+  "name": {
+   "de": "Segeln",
+   "en": "Sailing",
+   "fr": "Faire de la voile",
+   "it": "Fare della vela"
+  },
+  "path": "/api/v2/data?id=149",
+  "_object_count": 4
+ },
+ {
+  "id": "142",
+  "parent": "97",
+  "swissId": "sui_010301",
+  "name": {
+   "de": "Inline Skating",
+   "en": "Inline Skating",
+   "fr": "Faire du roller",
+   "it": "Pattinaggio"
+  },
+  "path": "/api/v2/data?id=142",
+  "_object_count": 4
+ },
+ {
+  "id": "127",
+  "parent": "95",
+  "swissId": "sui_0505",
+  "name": {
+   "de": "Fashion & Accessoires",
+   "en": "Fashion & Accessoires",
+   "fr": "Mode & Accessoires",
+   "it": "Moda & Accessori"
+  },
+  "path": "/api/v2/data?id=127",
+  "_object_count": 45
+ },
+ {
+  "id": "110",
+  "parent": "75",
+  "swissId": "",
+  "name": {
+   "de": "Party",
+   "en": "Parties",
+   "fr": "Fête",
+   "it": "Festa"
+  },
+  "path": "/api/v2/data?id=110",
+  "_object_count": 4
+ },
+ {
+  "id": "111",
+  "parent": "75",
+  "swissId": "",
+  "name": {
+   "de": "Festival",
+   "en": "Festivals",
+   "fr": "Festival",
+   "it": "Festival"
+  },
+  "path": "/api/v2/data?id=111",
+  "_object_count": 0
+ },
+ {
+  "id": "404",
+  "parent": "75",
+  "swissId": "",
+  "name": {
+   "de": "Messen / Märkte",
+   "en": "Trade Fair / Market",
+   "fr": "Salon / Marché",
+   "it": "Fiera / Mercato"
+  },
+  "path": "/api/v2/data?id=404",
+  "_object_count": 1
+ },
+ {
+  "id": "133",
+  "parent": "96",
+  "swissId": "",
+  "name": {
+   "de": "Film",
+   "en": "Movie",
+   "fr": "Film",
+   "it": "Film"
+  },
+  "path": "/api/v2/data?id=133",
+  "_object_count": 9
+ },
+ {
+  "id": "196",
+  "parent": "165",
+  "swissId": "culinary-fish",
+  "name": {
+   "de": "Fisch",
+   "en": "Fish",
+   "fr": "Poisson",
+   "it": "Pesce"
+  },
+  "path": "/api/v2/data?id=196",
+  "_object_count": 37
+ },
+ {
+  "id": "203",
+  "parent": "184",
+  "swissId": "",
+  "name": {
+   "de": "Fondue",
+   "en": "Fondue",
+   "fr": "Fondue",
+   "it": "Fonduta"
+  },
+  "path": "/api/v2/data?id=203",
+  "_object_count": 22
+ },
+ {
+  "id": "131",
+  "parent": "95",
+  "swissId": "sui_0502",
+  "name": {
+   "de": "Lebensmittel & Delikatessen",
+   "en": "Food & Delicacy",
+   "fr": "Food & Gourmandises",
+   "it": "Food & Delizie"
+  },
+  "path": "/api/v2/data?id=131",
+  "_object_count": 48
+ },
+ {
+  "id": "179",
+  "parent": "136",
+  "swissId": "sui_0208",
+  "name": {
+   "de": "Fotografie",
+   "en": "Photography",
+   "fr": "Photographie",
+   "it": "Fotografia"
+  },
+  "path": "/api/v2/data?id=179",
+  "_object_count": 3
+ },
+ {
+  "id": "187",
+  "parent": "165",
+  "swissId": "culinary-french",
+  "name": {
+   "de": "Französisch",
+   "en": "French",
+   "fr": "Français",
+   "it": "Francese"
+  },
+  "path": "/api/v2/data?id=187",
+  "_object_count": 23
+ },
+ {
+  "id": "178",
+  "parent": "96",
+  "swissId": "",
+  "name": {
+   "de": "Galerien",
+   "en": "Galleries",
+   "fr": "Galeries",
+   "it": "Gallerie"
+  },
+  "path": "/api/v2/data?id=178",
+  "_object_count": 8
+ },
+ {
+  "id": "204",
+  "parent": "184",
+  "swissId": "",
+  "name": {
+   "de": "Rösti",
+   "en": "Hashbrown (Rösti)",
+   "fr": "Galette de pommes de terre (Rösti)",
+   "it": "Patate arrostite alla maniera Svizzera (Rösti)"
+  },
+  "path": "/api/v2/data?id=204",
+  "_object_count": 17
+ },
+ {
+  "id": "74",
+  "parent": "0",
+  "swissId": "",
+  "name": {
+   "de": "Gastronomie",
+   "en": "Gastronomy",
+   "fr": "Gastronomie",
+   "it": "Gastronomia"
+  },
+  "path": "/api/v2/data?id=74",
+  "_object_count": 616
+ },
+ {
+  "id": "138",
+  "parent": "97",
+  "swissId": "sui_010112",
+  "name": {
+   "de": "Wanderung",
+   "en": "Hikes",
+   "fr": "Randonnée",
+   "it": "Gita"
+  },
+  "path": "/api/v2/data?id=138",
+  "_object_count": 58
+ },
+ {
+  "id": "1483",
+  "parent": "1471",
+  "swissId": "atmosphere-glamurous-and-chic",
+  "name": {
+   "de": "Glam Chic",
+   "en": "Glamorous and Chic",
+   "fr": "Glamour et chic",
+   "it": "Glamour/Chic"
+  },
+  "path": "/api/v2/data?id=1483",
+  "_object_count": 31
+ },
+ {
+  "id": "146",
+  "parent": "97",
+  "swissId": "sui_010806",
+  "name": {
+   "de": "Golf",
+   "en": "Golf",
+   "fr": "Golf",
+   "it": "Golf"
+  },
+  "path": "/api/v2/data?id=146",
+  "_object_count": 3
+ },
+ {
+  "id": "194",
+  "parent": "165",
+  "swissId": "culinary-gourmet",
+  "name": {
+   "de": "Gourmet",
+   "en": "Gourmet",
+   "fr": "Gourmet",
+   "it": "Gourmet"
+  },
+  "path": "/api/v2/data?id=194",
+  "_object_count": 33
+ },
+ {
+  "id": "1417",
+  "parent": "162",
+  "swissId": "",
+  "name": {
+   "de": "Hip-Hop / Rap / Reggae",
+   "en": "Hip-Hop / Rap / Reggae",
+   "fr": "Hip-Hop / Rap / Reggae",
+   "it": "Hip-Hop / Rap / Reggae"
+  },
+  "path": "/api/v2/data?id=1417",
+  "_object_count": 12
+ },
+ {
+  "id": "76",
+  "parent": "71",
+  "swissId": "",
+  "name": {
+   "de": "Hotel",
+   "en": "Hotels",
+   "fr": "Hôtels",
+   "it": "Hotel"
+  },
+  "path": "/api/v2/data?id=76",
+  "_object_count": 163
+ },
+ {
+  "id": "1414",
+  "parent": "162",
+  "swissId": "",
+  "name": {
+   "de": "House / Techno / Electro",
+   "en": "House / Techno / Electro",
+   "fr": "House / Techno / Electro",
+   "it": "House / Tecno / Electro"
+  },
+  "path": "/api/v2/data?id=1414",
+  "_object_count": 17
+ },
+ {
+  "id": "11676",
+  "parent": "165",
+  "swissId": "",
+  "name": {
+   "de": "Indisch",
+   "en": "Indian",
+   "fr": "Indien",
+   "it": "Indiano"
+  },
+  "path": "/api/v2/data?id=11676",
+  "_object_count": 2
+ },
+ {
+  "id": "415",
+  "parent": "165",
+  "swissId": "culinary-international",
+  "name": {
+   "de": "International",
+   "en": "International",
+   "fr": "International",
+   "it": "Internazionale"
+  },
+  "path": "/api/v2/data?id=415",
+  "_object_count": 45
+ },
+ {
+  "id": "185",
+  "parent": "165",
+  "swissId": "culinary-italian",
+  "name": {
+   "de": "Italienisch",
+   "en": "Italian",
+   "fr": "Italien",
+   "it": "Italiano"
+  },
+  "path": "/api/v2/data?id=185",
+  "_object_count": 67
+ },
+ {
+  "id": "1432",
+  "parent": "162",
+  "swissId": "",
+  "name": {
+   "de": "Jazz / World Music",
+   "en": "Jazz / World Music",
+   "fr": "Jazz / Musiques du monde",
+   "it": "Jazz / World Music"
+  },
+  "path": "/api/v2/data?id=1432",
+  "_object_count": 13
+ },
+ {
+  "id": "134",
+  "parent": "96",
+  "swissId": "music-classic",
+  "name": {
+   "de": "Klassische Musik",
+   "en": "Music",
+   "fr": "Musique classique",
+   "it": "Musica"
+  },
+  "path": "/api/v2/data?id=134",
+  "_object_count": 4
+ },
+ {
+  "id": "90",
+  "parent": "72",
+  "swissId": "",
+  "name": {
+   "de": "Kunstobjekte",
+   "en": "Works of Art",
+   "fr": "Objets d'art",
+   "it": "Oggetti d’arte"
+  },
+  "path": "/api/v2/data?id=90",
+  "_object_count": 17
+ },
+ {
+  "id": "1426",
+  "parent": "162",
+  "swissId": "",
+  "name": {
+   "de": "Latin / Salsa",
+   "en": "Latin / Salsa",
+   "fr": "Musique latine / salsa",
+   "it": "Latino-Americano / Salsa"
+  },
+  "path": "/api/v2/data?id=1426",
+  "_object_count": 3
+ },
+ {
+  "id": "1489",
+  "parent": "1471",
+  "swissId": "atmosphere-lgbtq",
+  "name": {
+   "de": "LGBTQ+*",
+   "en": "LGBTQ+*",
+   "fr": "LGBTQ+*",
+   "it": "LGBTQ+*"
+  },
+  "path": "/api/v2/data?id=1489",
+  "_object_count": 7
+ },
+ {
+  "id": "73",
+  "parent": "0",
+  "swissId": "",
+  "name": {
+   "de": "Orte",
+   "en": "Place",
+   "fr": "Lieu",
+   "it": "Località"
+  },
+  "path": "/api/v2/data?id=73",
+  "_object_count": 635
+ },
+ {
+  "id": "163",
+  "parent": "162",
+  "swissId": "",
+  "name": {
+   "de": "Live Musik",
+   "en": "Live Music",
+   "fr": "Musique en direct",
+   "it": "Musica dal vivo"
+  },
+  "path": "/api/v2/data?id=163",
+  "_object_count": 33
+ },
+ {
+  "id": "148",
+  "parent": "97",
+  "swissId": "",
+  "name": {
+   "de": "Motorbootsmiete",
+   "en": "Motor Boat Hire",
+   "fr": "Location bateau à moteur",
+   "it": "Noleggio motoscafo"
+  },
+  "path": "/api/v2/data?id=148",
+  "_object_count": 7
+ },
+ {
+  "id": "10002",
+  "parent": "1531",
+  "swissId": "swissness-local-product",
+  "name": {
+   "de": "Made in Zurich",
+   "en": "Made in Zurich",
+   "fr": "Made in Zurich",
+   "it": "Made in Zurich"
+  },
+  "path": "/api/v2/data?id=10002",
+  "_object_count": 6
+ },
+ {
+  "id": "166",
+  "parent": "101",
+  "swissId": "",
+  "name": {
+   "de": "Mahlzeit",
+   "en": "Meal",
+   "fr": "Repas",
+   "it": "Pasto"
+  },
+  "path": "/api/v2/data?id=166",
+  "_object_count": 241
+ },
+ {
+  "id": "113",
+  "parent": "75",
+  "swissId": "",
+  "name": {
+   "de": "Sportveranstaltung",
+   "en": "Sports Events",
+   "fr": "Manifestation sportive",
+   "it": "Manifestazione sportiva"
+  },
+  "path": "/api/v2/data?id=113",
+  "_object_count": 1
+ },
+ {
+  "id": "132",
+  "parent": "95",
+  "swissId": "",
+  "name": {
+   "de": "Markt",
+   "en": "Markets",
+   "fr": "Marché",
+   "it": "Mercato"
+  },
+  "path": "/api/v2/data?id=132",
+  "_object_count": 20
+ },
+ {
+  "id": "191",
+  "parent": "165",
+  "swissId": "culinary-mediterranean",
+  "name": {
+   "de": "Mediterran",
+   "en": "Mediterranean",
+   "fr": "Méditerranéen",
+   "it": "Mediterraneo"
+  },
+  "path": "/api/v2/data?id=191",
+  "_object_count": 57
+ },
+ {
+  "id": "190",
+  "parent": "165",
+  "swissId": "culinary-mexican",
+  "name": {
+   "de": "Mexikanisch",
+   "en": "Mexican",
+   "fr": "Mexicaine",
+   "it": "Messicano"
+  },
+  "path": "/api/v2/data?id=190",
+  "_object_count": 3
+ },
+ {
+  "id": "129",
+  "parent": "95",
+  "swissId": "",
+  "name": {
+   "de": "Uhren & Schmuck",
+   "en": "Watches & Jewelry",
+   "fr": "Montres & Joaillerie",
+   "it": "Orologi & Gioielli"
+  },
+  "path": "/api/v2/data?id=129",
+  "_object_count": 22
+ },
+ {
+  "id": "140",
+  "parent": "97",
+  "swissId": "sui_010205",
+  "name": {
+   "de": "Mountainbiken",
+   "en": "Mountain Biking",
+   "fr": "VTT",
+   "it": "Mountain Bike"
+  },
+  "path": "/api/v2/data?id=140",
+  "_object_count": 22
+ },
+ {
+  "id": "136",
+  "parent": "96",
+  "swissId": "",
+  "name": {
+   "de": "Museum",
+   "en": "Museums",
+   "fr": "Musées",
+   "it": "Musei"
+  },
+  "path": "/api/v2/data?id=136",
+  "_object_count": 94
+ },
+ {
+  "id": "10003",
+  "parent": "1531",
+  "swissId": "swissness-sustainable-production",
+  "name": {
+   "de": "Nachhaltige Produktion",
+   "en": "Sustainable Production",
+   "fr": "Production durable",
+   "it": "Produzione sostenibile"
+  },
+  "path": "/api/v2/data?id=10003",
+  "_object_count": 6
+ },
+ {
+  "id": "141",
+  "parent": "97",
+  "swissId": "sui_010907",
+  "name": {
+   "de": "Schwimmen",
+   "en": "Swimming",
+   "fr": "Nager",
+   "it": "Nuotare"
+  },
+  "path": "/api/v2/data?id=141",
+  "_object_count": 40
+ },
+ {
+  "id": "99",
+  "parent": "73",
+  "swissId": "",
+  "name": {
+   "de": "Natur",
+   "en": "Nature",
+   "fr": "Nature",
+   "it": "Natura"
+  },
+  "path": "/api/v2/data?id=99",
+  "_object_count": 164
+ },
+ {
+  "id": "100",
+  "parent": "74",
+  "swissId": "",
+  "name": {
+   "de": "Nightlife",
+   "en": "Nightlife",
+   "fr": "Nightlife",
+   "it": "Vita notturna"
+  },
+  "path": "/api/v2/data?id=100",
+  "_object_count": 227
+ },
+ {
+  "id": "104",
+  "parent": "10026",
+  "swissId": "reservation-online",
+  "name": {
+   "de": "Online Reservieren",
+   "en": "Online Bookings",
+   "fr": "Réservation online",
+   "it": "Prenotazione online"
+  },
+  "path": "/api/v2/data?id=104",
+  "_object_count": 49
+ },
+ {
+  "id": "175",
+  "parent": "135",
+  "swissId": "",
+  "name": {
+   "de": "Oper",
+   "en": "Opera",
+   "fr": "Opéra",
+   "it": "Opera"
+  },
+  "path": "/api/v2/data?id=175",
+  "_object_count": 1
+ },
+ {
+  "id": "413",
+  "parent": "75",
+  "swissId": "",
+  "name": {
+   "de": "Oper",
+   "en": "Opera",
+   "fr": "Opéra",
+   "it": "Opera"
+  },
+  "path": "/api/v2/data?id=413",
+  "_object_count": 0
+ },
+ {
+  "id": "189",
+  "parent": "165",
+  "swissId": "culinary-oriental",
+  "name": {
+   "de": "Orientalisch",
+   "en": "Oriental",
+   "fr": "Orientale",
+   "it": "Orientale"
+  },
+  "path": "/api/v2/data?id=189",
+  "_object_count": 13
+ },
+ {
+  "id": "160",
+  "parent": "99",
+  "swissId": "",
+  "name": {
+   "de": "Parks & Gärten",
+   "en": "Parks & Gardens",
+   "fr": "Parcs & jardins",
+   "it": "Parchi & giardini"
+  },
+  "path": "/api/v2/data?id=160",
+  "_object_count": 36
+ },
+ {
+  "id": "1435",
+  "parent": "162",
+  "swissId": "",
+  "name": {
+   "de": "Partybeats",
+   "en": "Party Beats",
+   "fr": "Partybeats",
+   "it": "Party-beat"
+  },
+  "path": "/api/v2/data?id=1435",
+  "_object_count": 11
+ },
+ {
+  "id": "137",
+  "parent": "97",
+  "swissId": "sui_010110",
+  "name": {
+   "de": "Spaziergang",
+   "en": "Walks",
+   "fr": "Promenade",
+   "it": "Passeggiata"
+  },
+  "path": "/api/v2/data?id=137",
+  "_object_count": 57
+ },
+ {
+  "id": "207",
+  "parent": "185",
+  "swissId": "culinary-pizza",
+  "name": {
+   "de": "Pasta",
+   "en": "Pasta",
+   "fr": "Pasta",
+   "it": "Pasta"
+  },
+  "path": "/api/v2/data?id=207",
+  "_object_count": 31
+ },
+ {
+  "id": "151",
+  "parent": "97",
+  "swissId": "sui_010916",
+  "name": {
+   "de": "Pedalos",
+   "en": "Pedalos",
+   "fr": "Pédalo",
+   "it": "Pedalò"
+  },
+  "path": "/api/v2/data?id=151",
+  "_object_count": 5
+ },
+ {
+  "id": "91",
+  "parent": "72",
+  "swissId": "",
+  "name": {
+   "de": "Plätze & Strassen",
+   "en": "Squares & Streets",
+   "fr": "Places & rues",
+   "it": "Piazze & vie"
+  },
+  "path": "/api/v2/data?id=91",
+  "_object_count": 23
+ },
+ {
+  "id": "206",
+  "parent": "185",
+  "swissId": "culinary-pasta",
+  "name": {
+   "de": "Pizza",
+   "en": "Pizza",
+   "fr": "Pizza",
+   "it": "Pizza"
+  },
+  "path": "/api/v2/data?id=206",
+  "_object_count": 20
+ },
+ {
+  "id": "407",
+  "parent": "75",
+  "swissId": "",
+  "name": {
+   "de": "Pop, Rock, Jazz",
+   "en": "Pop, Rock, Jazz",
+   "fr": "Pop, Rock, Jazz",
+   "it": "Pop, Rock, Jazz"
+  },
+  "path": "/api/v2/data?id=407",
+  "_object_count": 2
+ },
+ {
+  "id": "1531",
+  "parent": "73",
+  "swissId": "",
+  "name": {
+   "de": "Produkte",
+   "en": "Products",
+   "fr": "Produits",
+   "it": "Prodotti"
+  },
+  "path": "/api/v2/data?id=1531",
+  "_object_count": 11
+ },
+ {
+  "id": "1444",
+  "parent": "103",
+  "swissId": "",
+  "name": {
+   "de": "Pub/Spezielle Biere",
+   "en": "Pub / Special Beer Types",
+   "fr": "Pub / Bières spéciales",
+   "it": "Pub / Birre speciali"
+  },
+  "path": "/api/v2/data?id=1444",
+  "_object_count": 19
+ },
+ {
+  "id": "202",
+  "parent": "184",
+  "swissId": "",
+  "name": {
+   "de": "Raclette",
+   "en": "Raclette",
+   "fr": "Raclette",
+   "it": "Raclette"
+  },
+  "path": "/api/v2/data?id=202",
+  "_object_count": 5
+ },
+ {
+  "id": "1447",
+  "parent": "103",
+  "swissId": "",
+  "name": {
+   "de": "Restaurant-Bar",
+   "en": "Restaurant & Bar",
+   "fr": "Restaurant-bar",
+   "it": "Ristorante-bar"
+  },
+  "path": "/api/v2/data?id=1447",
+  "_object_count": 99
+ },
+ {
+  "id": "10026",
+  "parent": "101",
+  "swissId": "",
+  "name": {
+   "de": null,
+   "en": "Restaurant Features",
+   "fr": null,
+   "it": null
+  },
+  "path": "/api/v2/data?id=10026",
+  "_object_count": 70
+ },
+ {
+  "id": "101",
+  "parent": "74",
+  "swissId": "",
+  "name": {
+   "de": "Restaurants",
+   "en": "Restaurants",
+   "fr": "Restaurants",
+   "it": "Ristoranti"
+  },
+  "path": "/api/v2/data?id=101",
+  "_object_count": 505
+ },
+ {
+  "id": "1423",
+  "parent": "162",
+  "swissId": "",
+  "name": {
+   "de": "Rock / Alternative",
+   "en": "Rock / Alternative",
+   "fr": "Rock / Musique alternative",
+   "it": "Rock / Alternative"
+  },
+  "path": "/api/v2/data?id=1423",
+  "_object_count": 6
+ },
+ {
+  "id": "155",
+  "parent": "97",
+  "swissId": "sui_011011",
+  "name": {
+   "de": "Schneeschuhwanderung",
+   "en": "Snowshoe Trekking",
+   "fr": "Tour en Raquette à neige",
+   "it": "Tour con racchette da neve"
+  },
+  "path": "/api/v2/data?id=155",
+  "_object_count": 15
+ },
+ {
+  "id": "184",
+  "parent": "165",
+  "swissId": "culinary-local-specialities",
+  "name": {
+   "de": "Schweizer Spezialitäten",
+   "en": "Swiss Specialties",
+   "fr": "Typiquement Suisse",
+   "it": "Tipica Svizzera"
+  },
+  "path": "/api/v2/data?id=184",
+  "_object_count": 118
+ },
+ {
+  "id": "152",
+  "parent": "97",
+  "swissId": "sui_011012",
+  "name": {
+   "de": "Skifahren & Snowboarden",
+   "en": "Skiing/Snowboarding",
+   "fr": "Ski & Snowbaord",
+   "it": "Sci & Snowboard"
+  },
+  "path": "/api/v2/data?id=152",
+  "_object_count": 16
+ },
+ {
+  "id": "154",
+  "parent": "97",
+  "swissId": "sui_011014",
+  "name": {
+   "de": "Skitour",
+   "en": "Ski Touring",
+   "fr": "Ski de randonnée",
+   "it": "Sci alpinismo"
+  },
+  "path": "/api/v2/data?id=154",
+  "_object_count": 6
+ },
+ {
+  "id": "147",
+  "parent": "97",
+  "swissId": "sui_010914",
+  "name": {
+   "de": "Wakeboard & Wasserski",
+   "en": "Waterskiing/Wakeboarding",
+   "fr": "Ski nautique & Wakeboard",
+   "it": "Sci nautico & Wakeboard"
+  },
+  "path": "/api/v2/data?id=147",
+  "_object_count": 2
+ },
+ {
+  "id": "95",
+  "parent": "73",
+  "swissId": "",
+  "name": {
+   "de": "Shopping",
+   "en": "Shopping",
+   "fr": "Shopping",
+   "it": "Shopping"
+  },
+  "path": "/api/v2/data?id=95",
+  "_object_count": 170
+ },
+ {
+  "id": "130",
+  "parent": "95",
+  "swissId": "sui_0503",
+  "name": {
+   "de": "Souvenirs & Geschenke",
+   "en": "Souvenirs & Gifts",
+   "fr": "Souvenirs & Cadeaux",
+   "it": "Souvenirs & Regali"
+  },
+  "path": "/api/v2/data?id=130",
+  "_object_count": 21
+ },
+ {
+  "id": "97",
+  "parent": "73",
+  "swissId": "sui_01",
+  "name": {
+   "de": "Sport",
+   "en": "Sport",
+   "fr": "Sport",
+   "it": "Sport"
+  },
+  "path": "/api/v2/data?id=97",
+  "_object_count": 214
+ },
+ {
+  "id": "128",
+  "parent": "95",
+  "swissId": "swissness-Made-in-Switzerland",
+  "name": {
+   "de": "Swissness",
+   "en": "Swissness",
+   "fr": "Suissitude",
+   "it": "Swissness"
+  },
+  "path": "/api/v2/data?id=128",
+  "_object_count": 20
+ },
+ {
+  "id": "150",
+  "parent": "97",
+  "swissId": "sui_010911",
+  "name": {
+   "de": "SUP Stand Up Paddling",
+   "en": "SUP Stand Up Paddling",
+   "fr": "SUP Stand Up Paddling",
+   "it": "SUP Stand Up Paddling"
+  },
+  "path": "/api/v2/data?id=150",
+  "_object_count": 8
+ },
+ {
+  "id": "1162",
+  "parent": "97",
+  "swissId": "sui_010912",
+  "name": {
+   "de": "Surfen",
+   "en": "Surfing",
+   "fr": "Surf",
+   "it": "Surf"
+  },
+  "path": "/api/v2/data?id=1162",
+  "_object_count": 1
+ },
+ {
+  "id": "208",
+  "parent": "188",
+  "swissId": "culinary-japanese-sushi",
+  "name": {
+   "de": "Sushi",
+   "en": "Sushi",
+   "fr": "Sushi",
+   "it": "Sushi"
+  },
+  "path": "/api/v2/data?id=208",
+  "_object_count": 17
+ },
+ {
+  "id": "170",
+  "parent": "102",
+  "swissId": "",
+  "name": {
+   "de": "Tee",
+   "en": "Tea",
+   "fr": "Thé",
+   "it": "Té"
+  },
+  "path": "/api/v2/data?id=170",
+  "_object_count": 17
+ },
+ {
+  "id": "176",
+  "parent": "135",
+  "swissId": "",
+  "name": {
+   "de": "Theater",
+   "en": "Theater",
+   "fr": "Théâtre",
+   "it": "Teatro"
+  },
+  "path": "/api/v2/data?id=176",
+  "_object_count": 13
+ },
+ {
+  "id": "412",
+  "parent": "75",
+  "swissId": "",
+  "name": {
+   "de": "Theater",
+   "en": "Theater",
+   "fr": "Théâtre",
+   "it": "Teatro"
+  },
+  "path": "/api/v2/data?id=412",
+  "_object_count": 2
+ },
+ {
+  "id": "359",
+  "parent": "0",
+  "swissId": "",
+  "name": {
+   "de": "Touren & Ausflüge",
+   "en": "Tours & Excursions",
+   "fr": "Visites Guidées & Excursions",
+   "it": "Visite Guidate & Escursioni"
+  },
+  "path": "/api/v2/data?id=359",
+  "_object_count": 1
+ },
+ {
+  "id": "1057",
+  "parent": "95",
+  "swissId": "",
+  "name": {
+   "de": null,
+   "en": "Tourist Information",
+   "fr": null,
+   "it": null
+  },
+  "path": "/api/v2/data?id=1057",
+  "_object_count": 0
+ },
+ {
+  "id": "408",
+  "parent": "75",
+  "swissId": "",
+  "name": {
+   "de": "Traditionell",
+   "en": "Traditional",
+   "fr": "Traditionnel",
+   "it": "Tradizionale"
+  },
+  "path": "/api/v2/data?id=408",
+  "_object_count": 1
+ },
+ {
+  "id": "1495",
+  "parent": "1471",
+  "swissId": "atmosphere-traditional",
+  "name": {
+   "de": "Traditionell-urchig",
+   "en": "Traditional and Down-to-earth",
+   "fr": "Traditionnel et rustique",
+   "it": "Tradizionale/Originale"
+  },
+  "path": "/api/v2/data?id=1495",
+  "_object_count": 6
+ },
+ {
+  "id": "409",
+  "parent": "165",
+  "swissId": "culinary-vegan",
+  "name": {
+   "de": "Vegan",
+   "en": "Vegan friendly",
+   "fr": "Végétalien",
+   "it": "Vegano"
+  },
+  "path": "/api/v2/data?id=409",
+  "_object_count": 23
+ },
+ {
+  "id": "197",
+  "parent": "165",
+  "swissId": "culinary-vegetarian",
+  "name": {
+   "de": "Vegetarisch",
+   "en": "Vegetarian",
+   "fr": "Végétarienne",
+   "it": "Vegetariano"
+  },
+  "path": "/api/v2/data?id=197",
+  "_object_count": 31
+ },
+ {
+  "id": "161",
+  "parent": "99",
+  "swissId": "",
+  "name": {
+   "de": "Zoo & Tiere",
+   "en": "Zoos & Animals",
+   "fr": "Zoo & Animaux",
+   "it": "Zoo & Animali"
+  },
+  "path": "/api/v2/data?id=161",
+  "_object_count": 13
+ }
+]
