@@ -1,0 +1,420 @@
+{
+ "kreise.geojson": [
+  {
+   "bezeichnung": "Kreis 6",
+   "entstehung": "5",
+   "name": 6.0,
+   "objectid": 1,
+   "objid": "1",
+   "lon": 8.546178,
+   "lat": 47.392906
+  },
+  {
+   "bezeichnung": "Kreis 11",
+   "entstehung": "10",
+   "name": 11.0,
+   "objectid": 2,
+   "objid": "10",
+   "lon": 8.527581,
+   "lat": 47.419858
+  },
+  {
+   "bezeichnung": "Kreis 12",
+   "entstehung": "5",
+   "name": 12.0,
+   "objectid": 3,
+   "objid": "11",
+   "lon": 8.57469,
+   "lat": 47.402897
+  },
+  {
+   "bezeichnung": "Kreis 10",
+   "entstehung": "5",
+   "name": 10.0,
+   "objectid": 4,
+   "objid": "12",
+   "lon": 8.502651,
+   "lat": 47.405648
+  },
+  {
+   "bezeichnung": "Kreis 4",
+   "entstehung": "1",
+   "name": 4.0,
+   "objectid": 5,
+   "objid": "2",
+   "lon": 8.519006,
+   "lat": 47.380085
+  },
+  {
+   "bezeichnung": "Kreis 1",
+   "entstehung": "5",
+   "name": 1.0,
+   "objectid": 6,
+   "objid": "3",
+   "lon": 8.541809,
+   "lat": 47.372025
+  },
+  {
+   "bezeichnung": "Kreis 9",
+   "entstehung": "2",
+   "name": 9.0,
+   "objectid": 7,
+   "objid": "4",
+   "lon": 8.481296,
+   "lat": 47.381953
+  },
+  {
+   "bezeichnung": "Kreis 5",
+   "entstehung": "1",
+   "name": 5.0,
+   "objectid": 8,
+   "objid": "5",
+   "lon": 8.520394,
+   "lat": 47.388009
+  },
+  {
+   "bezeichnung": "Kreis 7",
+   "entstehung": "8",
+   "name": 7.0,
+   "objectid": 9,
+   "objid": "6",
+   "lon": 8.582076,
+   "lat": 47.369951
+  },
+  {
+   "bezeichnung": "Kreis 3",
+   "entstehung": "5",
+   "name": 3.0,
+   "objectid": 10,
+   "objid": "7",
+   "lon": 8.506672,
+   "lat": 47.359683
+  },
+  {
+   "bezeichnung": "Kreis 2",
+   "entstehung": "5",
+   "name": 2.0,
+   "objectid": 11,
+   "objid": "8",
+   "lon": 8.52616,
+   "lat": 47.342566
+  },
+  {
+   "bezeichnung": "Kreis 8",
+   "entstehung": "7",
+   "name": 8.0,
+   "objectid": 12,
+   "objid": "9",
+   "lon": 8.558744,
+   "lat": 47.353727
+  }
+ ],
+ "quartiere.geojson": [
+  {
+   "kname": "Kreis 7",
+   "knr": 7,
+   "objectid": 1,
+   "qname": "Hirslanden",
+   "qnr": 73,
+   "lon": 8.5754,
+   "lat": 47.364757
+  },
+  {
+   "kname": "Kreis 8",
+   "knr": 8,
+   "objectid": 2,
+   "qname": "Weinegg",
+   "qnr": 83,
+   "lon": 8.569415,
+   "lat": 47.353971
+  },
+  {
+   "kname": "Kreis 8",
+   "knr": 8,
+   "objectid": 3,
+   "qname": "Mühlebach",
+   "qnr": 82,
+   "lon": 8.556663,
+   "lat": 47.357866
+  },
+  {
+   "kname": "Kreis 8",
+   "knr": 8,
+   "objectid": 4,
+   "qname": "Seefeld",
+   "qnr": 81,
+   "lon": 8.551607,
+   "lat": 47.352463
+  },
+  {
+   "kname": "Kreis 2",
+   "knr": 2,
+   "objectid": 5,
+   "qname": "Wollishofen",
+   "qnr": 21,
+   "lon": 8.531645,
+   "lat": 47.340565
+  },
+  {
+   "kname": "Kreis 2",
+   "knr": 2,
+   "objectid": 6,
+   "qname": "Leimbach",
+   "qnr": 23,
+   "lon": 8.509948,
+   "lat": 47.332168
+  },
+  {
+   "kname": "Kreis 4",
+   "knr": 4,
+   "objectid": 7,
+   "qname": "Werd",
+   "qnr": 41,
+   "lon": 8.526817,
+   "lat": 47.372089
+  },
+  {
+   "kname": "Kreis 3",
+   "knr": 3,
+   "objectid": 8,
+   "qname": "Sihlfeld",
+   "qnr": 34,
+   "lon": 8.510394,
+   "lat": 47.373241
+  },
+  {
+   "kname": "Kreis 9",
+   "knr": 9,
+   "objectid": 9,
+   "qname": "Albisrieden",
+   "qnr": 91,
+   "lon": 8.48414,
+   "lat": 47.370965
+  },
+  {
+   "kname": "Kreis 7",
+   "knr": 7,
+   "objectid": 10,
+   "qname": "Hottingen",
+   "qnr": 72,
+   "lon": 8.577779,
+   "lat": 47.375049
+  },
+  {
+   "kname": "Kreis 2",
+   "knr": 2,
+   "objectid": 11,
+   "qname": "Enge",
+   "qnr": 24,
+   "lon": 8.532767,
+   "lat": 47.360286
+  },
+  {
+   "kname": "Kreis 4",
+   "knr": 4,
+   "objectid": 12,
+   "qname": "Langstrasse",
+   "qnr": 42,
+   "lon": 8.526846,
+   "lat": 47.378462
+  },
+  {
+   "kname": "Kreis 5",
+   "knr": 5,
+   "objectid": 13,
+   "qname": "Escher Wyss",
+   "qnr": 52,
+   "lon": 8.514442,
+   "lat": 47.390248
+  },
+  {
+   "kname": "Kreis 7",
+   "knr": 7,
+   "objectid": 14,
+   "qname": "Witikon",
+   "qnr": 74,
+   "lon": 8.599741,
+   "lat": 47.359903
+  },
+  {
+   "kname": "Kreis 4",
+   "knr": 4,
+   "objectid": 15,
+   "qname": "Hard",
+   "qnr": 44,
+   "lon": 8.510492,
+   "lat": 47.383246
+  },
+  {
+   "kname": "Kreis 1",
+   "knr": 1,
+   "objectid": 16,
+   "qname": "Lindenhof",
+   "qnr": 13,
+   "lon": 8.54042,
+   "lat": 47.371847
+  },
+  {
+   "kname": "Kreis 10",
+   "knr": 10,
+   "objectid": 17,
+   "qname": "Wipkingen",
+   "qnr": 102,
+   "lon": 8.525602,
+   "lat": 47.39686
+  },
+  {
+   "kname": "Kreis 6",
+   "knr": 6,
+   "objectid": 18,
+   "qname": "Unterstrass",
+   "qnr": 61,
+   "lon": 8.538419,
+   "lat": 47.395503
+  },
+  {
+   "kname": "Kreis 10",
+   "knr": 10,
+   "objectid": 19,
+   "qname": "Höngg",
+   "qnr": 101,
+   "lon": 8.495745,
+   "lat": 47.408293
+  },
+  {
+   "kname": "Kreis 11",
+   "knr": 11,
+   "objectid": 20,
+   "qname": "Oerlikon",
+   "qnr": 115,
+   "lon": 8.544769,
+   "lat": 47.408739
+  },
+  {
+   "kname": "Kreis 11",
+   "knr": 11,
+   "objectid": 21,
+   "qname": "Affoltern",
+   "qnr": 111,
+   "lon": 8.509068,
+   "lat": 47.422415
+  },
+  {
+   "kname": "Kreis 1",
+   "knr": 1,
+   "objectid": 22,
+   "qname": "City",
+   "qnr": 14,
+   "lon": 8.536628,
+   "lat": 47.373526
+  },
+  {
+   "kname": "Kreis 1",
+   "knr": 1,
+   "objectid": 23,
+   "qname": "Rathaus",
+   "qnr": 11,
+   "lon": 8.544284,
+   "lat": 47.371471
+  },
+  {
+   "kname": "Kreis 7",
+   "knr": 7,
+   "objectid": 24,
+   "qname": "Fluntern",
+   "qnr": 71,
+   "lon": 8.564211,
+   "lat": 47.38231
+  },
+  {
+   "kname": "Kreis 6",
+   "knr": 6,
+   "objectid": 25,
+   "qname": "Oberstrass",
+   "qnr": 63,
+   "lon": 8.55344,
+   "lat": 47.390476
+  },
+  {
+   "kname": "Kreis 12",
+   "knr": 12,
+   "objectid": 26,
+   "qname": "Saatlen",
+   "qnr": 121,
+   "lon": 8.565903,
+   "lat": 47.412249
+  },
+  {
+   "kname": "Kreis 11",
+   "knr": 11,
+   "objectid": 27,
+   "qname": "Seebach",
+   "qnr": 119,
+   "lon": 8.541577,
+   "lat": 47.422893
+  },
+  {
+   "kname": "Kreis 3",
+   "knr": 3,
+   "objectid": 28,
+   "qname": "Friesenberg",
+   "qnr": 33,
+   "lon": 8.502439,
+   "lat": 47.354384
+  },
+  {
+   "kname": "Kreis 1",
+   "knr": 1,
+   "objectid": 29,
+   "qname": "Hochschulen",
+   "qnr": 12,
+   "lon": 8.546229,
+   "lat": 47.370911
+  },
+  {
+   "kname": "Kreis 9",
+   "knr": 9,
+   "objectid": 30,
+   "qname": "Altstetten",
+   "qnr": 92,
+   "lon": 8.479541,
+   "lat": 47.388732
+  },
+  {
+   "kname": "Kreis 12",
+   "knr": 12,
+   "objectid": 31,
+   "qname": "Hirzenbach",
+   "qnr": 123,
+   "lon": 8.585452,
+   "lat": 47.400156
+  },
+  {
+   "kname": "Kreis 12",
+   "knr": 12,
+   "objectid": 32,
+   "qname": "Schwamendingen-Mitte",
+   "qnr": 122,
+   "lon": 8.570359,
+   "lat": 47.401107
+  },
+  {
+   "kname": "Kreis 3",
+   "knr": 3,
+   "objectid": 33,
+   "qname": "Alt-Wiedikon",
+   "qnr": 31,
+   "lon": 8.516272,
+   "lat": 47.362962
+  },
+  {
+   "kname": "Kreis 5",
+   "knr": 5,
+   "objectid": 34,
+   "qname": "Gewerbeschule",
+   "qnr": 51,
+   "lon": 8.530436,
+   "lat": 47.384232
+  }
+ ]
+}

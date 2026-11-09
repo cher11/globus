@@ -1,0 +1,781 @@
+{
+ "source": "https://data.stadt-zuerich.ch/ (WFS https://www.ogd.stadt-zuerich.ch/wfs/geoportal/)",
+ "fetched": "2026-11-09",
+ "features": 10944,
+ "by_dataset": {
+  "Stadtkreise": 12,
+  "Statistische_Quartiere": 34,
+  "Sport": 175,
+  "Erholungs__und_Sporteinrichtungen": 338,
+  "Brunnen": 1286,
+  "Park": 126,
+  "POI_oeffentliche_Spielplaetze": 188,
+  "Zueri_WC": 139,
+  "Kunst_im_Stadtraum": 2239,
+  "Gastwirtschaftsbetriebe": 3493,
+  "Gemeinschaftszentrum": 26,
+  "Bauernhofladen": 18,
+  "Stadtspaziergaenge_Zueri_zFuess": 590,
+  "Liste_der_Informationstafeln_an_Denkmalschutz_Objekten": 764,
+  "Auszeichnung_fuer_gute_Bauten": 452,
+  "Gemeindefriedhoefe": 42,
+  "Standorte_ZueriVelo": 294,
+  "Hundezonen": 728
+ },
+ "datasets": {
+  "Stadtkreise": {
+   "ckan_id": "geo_stadtkreise",
+   "wfs": "https://www.ogd.stadt-zuerich.ch/wfs/geoportal/Stadtkreise",
+   "layers": {
+    "adm_stadtkreise_a": {
+     "features": 12,
+     "geometry": {
+      "Polygon": 12
+     },
+     "saved_as": "kreise.geojson"
+    },
+    "adm_stadtkreise_beschr_p": {
+     "features": 12,
+     "geometry": {
+      "Point": 12
+     },
+     "kept": 12
+    },
+    "adm_stadtkreise_v": {
+     "features": 12,
+     "geometry": {
+      "Polygon": 12
+     }
+    }
+   },
+   "title": "Stadtkreise",
+   "license_id": "cc-zero",
+   "license_title": "Creative Commons CCZero",
+   "author": "GIS-Zentrum, Geomatik + Vermessung, Tiefbau- und Entsorgungsdepartement",
+   "modified": "2026-11-09",
+   "url": "https://data.stadt-zuerich.ch/dataset/geo_stadtkreise"
+  },
+  "Statistische_Quartiere": {
+   "ckan_id": "geo_statistische_quartiere",
+   "wfs": "https://www.ogd.stadt-zuerich.ch/wfs/geoportal/Statistische_Quartiere",
+   "layers": {
+    "adm_statistische_quartiere_b_p": {
+     "features": 34,
+     "geometry": {
+      "Point": 34
+     },
+     "kept": 34
+    },
+    "adm_statistische_quartiere_map": {
+     "features": 34,
+     "geometry": {
+      "Polygon": 34
+     },
+     "saved_as": "quartiere.geojson"
+    },
+    "adm_statistische_quartiere_v": {
+     "features": 34,
+     "geometry": {
+      "Polygon": 34
+     }
+    }
+   },
+   "title": "Statistische Quartiere",
+   "license_id": "cc-zero",
+   "license_title": "Creative Commons CCZero",
+   "author": "Co-Leitung Direktion Statistik, Statistik Stadt Zürich, Präsidialdepartement",
+   "modified": "2026-11-09",
+   "url": "https://data.stadt-zuerich.ch/dataset/geo_statistische_quartiere"
+  },
+  "Sport": {
+   "ckan_id": "geo_sport",
+   "wfs": "https://www.ogd.stadt-zuerich.ch/wfs/geoportal/Sport",
+   "layers": {
+    "poi_beachvolleyball_view": {
+     "features": 15,
+     "geometry": {
+      "Point": 15
+     },
+     "kept": 15
+    },
+    "poi_bikepark_view": {
+     "features": 3,
+     "geometry": {
+      "Point": 3
+     },
+     "kept": 3
+    },
+    "poi_eisbahn_view": {
+     "features": 4,
+     "geometry": {
+      "Point": 4
+     },
+     "kept": 4
+    },
+    "poi_flussbad_view": {
+     "features": 6,
+     "geometry": {
+      "Point": 6
+     },
+     "kept": 6
+    },
+    "poi_freibad_view": {
+     "features": 7,
+     "geometry": {
+      "Point": 7
+     },
+     "kept": 7
+    },
+    "poi_fussballplatz_att": {
+     "features": 21,
+     "geometry": {
+      "null": 21
+     },
+     "kept": 0
+    },
+    "poi_fussballplatz_view": {
+     "features": 21,
+     "geometry": {
+      "Point": 21
+     },
+     "kept": 21
+    },
+    "poi_hallenbad_view": {
+     "features": 7,
+     "geometry": {
+      "Point": 7
+     },
+     "kept": 7
+    },
+    "poi_parkour_view": {
+     "features": 4,
+     "geometry": {
+      "Point": 4
+     },
+     "kept": 4
+    },
+    "poi_planschbecken_view": {
+     "features": 13,
+     "geometry": {
+      "Point": 13
+     },
+     "kept": 13
+    },
+    "poi_schulschwimmanlage_view": {
+     "features": 18,
+     "geometry": {
+      "Point": 18
+     },
+     "kept": 18
+    },
+    "poi_seebad_view": {
+     "features": 6,
+     "geometry": {
+      "Point": 6
+     },
+     "kept": 6
+    },
+    "poi_skateranlage_view": {
+     "features": 8,
+     "geometry": {
+      "Point": 8
+     },
+     "kept": 8
+    },
+    "poi_slackline_view": {
+     "features": 2,
+     "geometry": {
+      "Point": 2
+     },
+     "kept": 2
+    },
+    "poi_sportgarderobe_att": {
+     "features": 7,
+     "geometry": {
+      "null": 7
+     },
+     "kept": 0
+    },
+    "poi_sportgarderobe_view": {
+     "features": 7,
+     "geometry": {
+      "Point": 7
+     },
+     "kept": 7
+    },
+    "poi_sporthalle_view": {
+     "features": 32,
+     "geometry": {
+      "Point": 32
+     },
+     "kept": 32
+    },
+    "poi_stadion_view": {
+     "features": 2,
+     "geometry": {
+      "Point": 2
+     },
+     "kept": 2
+    },
+    "poi_tennisplatz_view": {
+     "features": 8,
+     "geometry": {
+      "Point": 8
+     },
+     "kept": 8
+    },
+    "poi_zuerifit_view": {
+     "features": 12,
+     "geometry": {
+      "Point": 12
+     },
+     "kept": 12
+    }
+   },
+   "title": "Sport",
+   "license_id": "cc-zero",
+   "license_title": "Creative Commons CCZero",
+   "author": "Information + Beratung, Sportamt, Schul- und Sportdepartement",
+   "modified": "2026-11-09",
+   "url": "https://data.stadt-zuerich.ch/dataset/geo_sport"
+  },
+  "Erholungs__und_Sporteinrichtungen": {
+   "ckan_id": "geo_erholungs__und_sporteinrichtungen",
+   "wfs": "https://www.ogd.stadt-zuerich.ch/wfs/geoportal/Erholungs__und_Sporteinrichtungen",
+   "layers": {
+    "poi_aussichtspunkt_view": {
+     "features": 47,
+     "geometry": {
+      "Point": 47
+     },
+     "kept": 47
+    },
+    "poi_finnenbahn_att": {
+     "features": 8,
+     "geometry": {
+      "null": 8
+     },
+     "kept": 0
+    },
+    "poi_finnenbahn_l": {
+     "features": 15,
+     "geometry": {
+      "MultiLineString": 15
+     },
+     "kept": 15
+    },
+    "poi_finnenbahn_view": {
+     "features": 8,
+     "geometry": {
+      "Point": 8
+     },
+     "kept": 8
+    },
+    "poi_mountainbike_att": {
+     "features": 6,
+     "geometry": {
+      "null": 6
+     },
+     "kept": 0
+    },
+    "poi_mountainbike_l": {
+     "features": 6,
+     "geometry": {
+      "MultiLineString": 6
+     },
+     "kept": 6
+    },
+    "poi_mountainbike_view": {
+     "features": 6,
+     "geometry": {
+      "Point": 6
+     },
+     "kept": 6
+    },
+    "poi_picknickplatz_att": {
+     "features": 95,
+     "geometry": {
+      "null": 95
+     },
+     "kept": 0
+    },
+    "poi_picknickplatz_view": {
+     "features": 95,
+     "geometry": {
+      "Point": 95
+     },
+     "kept": 95
+    },
+    "poi_schlittelweg_att": {
+     "features": 1,
+     "geometry": {
+      "null": 1
+     },
+     "kept": 0
+    },
+    "poi_schlittelweg_l": {
+     "features": 1,
+     "geometry": {
+      "MultiLineString": 1
+     },
+     "kept": 1
+    },
+    "poi_schlittelweg_view": {
+     "features": 1,
+     "geometry": {
+      "Point": 1
+     },
+     "kept": 1
+    },
+    "poi_vitaparcours_att": {
+     "features": 6,
+     "geometry": {
+      "null": 6
+     },
+     "kept": 0
+    },
+    "poi_vitaparcours_l": {
+     "features": 30,
+     "geometry": {
+      "MultiLineString": 30
+     },
+     "kept": 30
+    },
+    "poi_vitaparcours_view": {
+     "features": 6,
+     "geometry": {
+      "Point": 6
+     },
+     "kept": 6
+    },
+    "poi_waldhuette_att": {
+     "features": 16,
+     "geometry": {
+      "null": 16
+     },
+     "kept": 0
+    },
+    "poi_waldhuette_view": {
+     "features": 16,
+     "geometry": {
+      "Point": 16
+     },
+     "kept": 16
+    },
+    "poi_waldlauf_att": {
+     "features": 14,
+     "geometry": {
+      "null": 14
+     },
+     "kept": 0
+    },
+    "poi_waldlauf_l": {
+     "features": 93,
+     "geometry": {
+      "MultiLineString": 93
+     },
+     "kept": 93
+    },
+    "poi_waldlauf_view": {
+     "features": 14,
+     "geometry": {
+      "Point": 14
+     },
+     "kept": 14
+    }
+   },
+   "title": "Erholungs- und Sporteinrichtungen",
+   "license_id": "cc-zero",
+   "license_title": "Creative Commons CCZero",
+   "author": "Wald, Landwirtschaft und Pachten, Grün Stadt Zürich, Tiefbau- und Entsorgungsdepartement",
+   "modified": "2026-11-09",
+   "url": "https://data.stadt-zuerich.ch/dataset/geo_erholungs__und_sporteinrichtungen"
+  },
+  "Brunnen": {
+   "ckan_id": "geo_brunnen",
+   "wfs": "https://www.ogd.stadt-zuerich.ch/wfs/geoportal/Brunnen",
+   "layers": {
+    "wvz_brunnen": {
+     "features": 1286,
+     "geometry": {
+      "Point": 1286
+     },
+     "kept": 1286
+    }
+   },
+   "title": "Brunnen",
+   "license_id": "cc-zero",
+   "license_title": "Creative Commons CCZero",
+   "author": "GIS, Wasserversorgung, Departement der Industriellen Betriebe",
+   "modified": "2026-11-09",
+   "url": "https://data.stadt-zuerich.ch/dataset/geo_brunnen"
+  },
+  "Park": {
+   "ckan_id": "geo_park",
+   "wfs": "https://www.ogd.stadt-zuerich.ch/wfs/geoportal/Park",
+   "layers": {
+    "poi_park_view": {
+     "features": 126,
+     "geometry": {
+      "Point": 126
+     },
+     "kept": 126
+    }
+   },
+   "title": "Park",
+   "license_id": "cc-zero",
+   "license_title": "Creative Commons CCZero",
+   "author": "Park- und Grünanlagen, Grün Stadt Zürich, Tiefbau- und Entsorgungsdepartement",
+   "modified": "2026-11-09",
+   "url": "https://data.stadt-zuerich.ch/dataset/geo_park"
+  },
+  "POI_oeffentliche_Spielplaetze": {
+   "ckan_id": "geo_poi_oeffentliche_spielplaetze",
+   "wfs": "https://www.ogd.stadt-zuerich.ch/wfs/geoportal/POI_oeffentliche_Spielplaetze",
+   "layers": {
+    "poi_spielplatz_att": {
+     "features": 188,
+     "geometry": {
+      "null": 188
+     },
+     "kept": 0
+    },
+    "poi_spielplatz_view": {
+     "features": 188,
+     "geometry": {
+      "Point": 188
+     },
+     "kept": 188
+    }
+   },
+   "title": "POI öffentliche Spielplätze",
+   "license_id": "cc-zero",
+   "license_title": "Creative Commons CCZero",
+   "author": "Produkteverantw.  & Unterstützungsfunk., Grün Stadt Zürich, Tiefbau- und Entsorgungsdepartement",
+   "modified": "2026-11-09",
+   "url": "https://data.stadt-zuerich.ch/dataset/geo_poi_oeffentliche_spielplaetze"
+  },
+  "Zueri_WC": {
+   "ckan_id": "geo_zueri_wc",
+   "wfs": "https://www.ogd.stadt-zuerich.ch/wfs/geoportal/Zueri_WC",
+   "layers": {
+    "poi_zueriwc_att": {
+     "features": 26,
+     "geometry": {
+      "null": 26
+     },
+     "kept": 0
+    },
+    "poi_zueriwc_mobil_rs_view": {
+     "features": 3,
+     "geometry": {
+      "Point": 3
+     },
+     "kept": 3
+    },
+    "poi_zueriwc_mobil_view": {
+     "features": 20,
+     "geometry": {
+      "Point": 20
+     },
+     "kept": 20
+    },
+    "poi_zueriwc_rs_att": {
+     "features": 91,
+     "geometry": {
+      "null": 91
+     },
+     "kept": 0
+    },
+    "poi_zueriwc_rs_view": {
+     "features": 91,
+     "geometry": {
+      "Point": 91
+     },
+     "kept": 91
+    },
+    "poi_zueriwc_view": {
+     "features": 25,
+     "geometry": {
+      "Point": 25
+     },
+     "kept": 25
+    }
+   },
+   "title": "Züri WC",
+   "license_id": "cc-zero",
+   "license_title": "Creative Commons CCZero",
+   "author": "Modellierungen Lärm Verkehr, Umwelt- und Gesundheitsschutz, Gesundheits- und Umweltdepartement",
+   "modified": "2026-11-09",
+   "url": "https://data.stadt-zuerich.ch/dataset/geo_zueri_wc"
+  },
+  "Kunst_im_Stadtraum": {
+   "ckan_id": "geo_kunst_im_stadtraum",
+   "wfs": "https://www.ogd.stadt-zuerich.ch/wfs/geoportal/Kunst_im_Stadtraum",
+   "layers": {
+    "view_kioer": {
+     "features": 380,
+     "geometry": {
+      "Point": 379,
+      "null": 1
+     },
+     "kept": 379
+    },
+    "view_kioer_alle": {
+     "features": 421,
+     "geometry": {
+      "Point": 395,
+      "null": 26
+     },
+     "kept": 395
+    },
+    "view_kub": {
+     "features": 311,
+     "geometry": {
+      "Point": 311
+     },
+     "kept": 311
+    },
+    "view_kub_alle": {
+     "features": 1742,
+     "geometry": {
+      "Point": 1154,
+      "null": 588
+     },
+     "kept": 1154
+    }
+   },
+   "title": "Kunst im Stadtraum",
+   "license_id": "cc-zero",
+   "license_title": "Creative Commons CCZero",
+   "author": "Fachstelle Kunst im öffentlichen Raum, Tiefbauamt, Tiefbau- und Entsorgungsdepartement",
+   "modified": "2026-11-09",
+   "url": "https://data.stadt-zuerich.ch/dataset/geo_kunst_im_stadtraum"
+  },
+  "Gastwirtschaftsbetriebe": {
+   "ckan_id": "geo_gastwirtschaftsbetriebe",
+   "wfs": "https://www.ogd.stadt-zuerich.ch/wfs/geoportal/Gastwirtschaftsbetriebe",
+   "layers": {
+    "gastwirtschaftsbetriebe": {
+     "features": 3493,
+     "geometry": {
+      "Point": 3493
+     },
+     "kept": 3493
+    }
+   },
+   "title": "Gastwirtschaftsbetriebe",
+   "license_id": "cc-zero",
+   "license_title": "Creative Commons CCZero",
+   "author": "FG Bewilligungen, Stadtpolizei, Sicherheitsdepartement",
+   "modified": "2026-11-09",
+   "url": "https://data.stadt-zuerich.ch/dataset/geo_gastwirtschaftsbetriebe"
+  },
+  "Gemeinschaftszentrum": {
+   "ckan_id": "geo_gemeinschaftszentrum",
+   "wfs": "https://www.ogd.stadt-zuerich.ch/wfs/geoportal/Gemeinschaftszentrum",
+   "layers": {
+    "poi_gemeinschaftszentrum_view": {
+     "features": 26,
+     "geometry": {
+      "Point": 26
+     },
+     "kept": 26
+    }
+   },
+   "title": "Gemeinschaftszentrum",
+   "license_id": "cc-zero",
+   "license_title": "Creative Commons CCZero",
+   "author": "Integration & Soziokultur, Departementssekretariat SD, Sozialdepartement",
+   "modified": "2026-11-09",
+   "url": "https://data.stadt-zuerich.ch/dataset/geo_gemeinschaftszentrum"
+  },
+  "Bauernhofladen": {
+   "ckan_id": "geo_bauernhofladen",
+   "wfs": "https://www.ogd.stadt-zuerich.ch/wfs/geoportal/Bauernhofladen",
+   "layers": {
+    "poi_bauernhofladen_att": {
+     "features": 18,
+     "geometry": {
+      "null": 18
+     },
+     "kept": 0
+    },
+    "poi_bauernhofladen_view": {
+     "features": 18,
+     "geometry": {
+      "Point": 18
+     },
+     "kept": 18
+    }
+   },
+   "title": "Bauernhofladen",
+   "license_id": "cc-zero",
+   "license_title": "Creative Commons CCZero",
+   "author": "Landwirtschaft, Grün Stadt Zürich, Tiefbau- und Entsorgungsdepartement",
+   "modified": "2026-11-09",
+   "url": "https://data.stadt-zuerich.ch/dataset/geo_bauernhofladen"
+  },
+  "Lehrpfade": {
+   "ckan_id": "geo_lehrpfade",
+   "wfs": "https://www.ogd.stadt-zuerich.ch/wfs/geoportal/Lehrpfade",
+   "layers": {
+    "fusstouren_line": {
+     "features": 8,
+     "geometry": {
+      "null": 8
+     },
+     "kept": 0
+    },
+    "fusstouren_punkt": {
+     "features": 37,
+     "geometry": {
+      "null": 37
+     },
+     "kept": 0
+    }
+   },
+   "title": "Lehrpfade",
+   "license_id": "cc-zero",
+   "license_title": "Creative Commons CCZero",
+   "author": "Unternehmensentwicklung, Grün Stadt Zürich, Tiefbau- und Entsorgungsdepartement",
+   "modified": "2026-11-09",
+   "url": "https://data.stadt-zuerich.ch/dataset/geo_lehrpfade"
+  },
+  "Stadtspaziergaenge_Zueri_zFuess": {
+   "ckan_id": "geo_stadtspaziergaenge_zueri_zfuess",
+   "wfs": "https://www.ogd.stadt-zuerich.ch/wfs/geoportal/Stadtspaziergaenge_Zueri_zFuess",
+   "layers": {
+    "view_zzf_fuss_poi": {
+     "features": 555,
+     "geometry": {
+      "Point": 555
+     },
+     "kept": 555
+    },
+    "view_zzf_fusstouren": {
+     "features": 35,
+     "geometry": {
+      "MultiLineString": 35
+     },
+     "kept": 35
+    }
+   },
+   "title": "Stadtspaziergänge Züri zFuess",
+   "license_id": "cc-zero",
+   "license_title": "Creative Commons CCZero",
+   "author": "Grundlagen + Strategien, Tiefbauamt, Tiefbau- und Entsorgungsdepartement",
+   "modified": "2026-11-09",
+   "url": "https://data.stadt-zuerich.ch/dataset/geo_stadtspaziergaenge_zueri_zfuess"
+  },
+  "Liste_der_Informationstafeln_an_Denkmalschutz_Objekten": {
+   "ckan_id": "geo_liste_der_informationstafeln_an_denkmalschutz_objekten",
+   "wfs": "https://www.ogd.stadt-zuerich.ch/wfs/geoportal/Liste_der_Informationstafeln_an_Denkmalschutz_Objekten",
+   "layers": {
+    "blaue_tafeln_p": {
+     "features": 764,
+     "geometry": {
+      "Point": 764
+     },
+     "kept": 764
+    }
+   },
+   "title": "Liste der Informationstafeln an Denkmalschutz-Objekten",
+   "license_id": "cc-zero",
+   "license_title": "Creative Commons CCZero",
+   "author": "Inventarisation Denkmalpflege, Amt für Städtebau, Hochbaudepartement",
+   "modified": "2026-11-09",
+   "url": "https://data.stadt-zuerich.ch/dataset/geo_liste_der_informationstafeln_an_denkmalschutz_objekten"
+  },
+  "Auszeichnung_fuer_gute_Bauten": {
+   "ckan_id": "geo_auszeichnung_fuer_gute_bauten",
+   "wfs": "https://www.ogd.stadt-zuerich.ch/wfs/geoportal/Auszeichnung_fuer_gute_Bauten",
+   "layers": {
+    "agb_objektinventar_a": {
+     "features": 226,
+     "geometry": {
+      "MultiPolygon": 226
+     },
+     "kept": 226
+    },
+    "poi_agb_objektinventar_att": {
+     "features": 226,
+     "geometry": {
+      "null": 226
+     },
+     "kept": 0
+    },
+    "poi_agb_objektinventar_view": {
+     "features": 226,
+     "geometry": {
+      "Point": 226
+     },
+     "kept": 226
+    }
+   },
+   "title": "Auszeichnung für gute Bauten",
+   "license_id": "cc-zero",
+   "license_title": "Creative Commons CCZero",
+   "author": "Plan-Bild-Grafik, Amt für Städtebau, Hochbaudepartement",
+   "modified": "2026-11-09",
+   "url": "https://data.stadt-zuerich.ch/dataset/geo_auszeichnung_fuer_gute_bauten"
+  },
+  "Gemeindefriedhoefe": {
+   "ckan_id": "geo_gemeindefriedhoefe",
+   "wfs": "https://www.ogd.stadt-zuerich.ch/wfs/geoportal/Gemeindefriedhoefe",
+   "layers": {
+    "poi_friedhof_view": {
+     "features": 42,
+     "geometry": {
+      "Point": 42
+     },
+     "kept": 42
+    }
+   },
+   "title": "Gemeindefriedhöfe",
+   "license_id": "cc-zero",
+   "license_title": "Creative Commons CCZero",
+   "author": "Organisation / IT, Bevölkerungsamt, Präsidialdepartement",
+   "modified": "2026-11-09",
+   "url": "https://data.stadt-zuerich.ch/dataset/geo_gemeindefriedhoefe"
+  },
+  "Standorte_ZueriVelo": {
+   "ckan_id": "geo_standorte_zuerivelo",
+   "wfs": "https://www.ogd.stadt-zuerich.ch/wfs/geoportal/Standorte_ZueriVelo",
+   "layers": {
+    "view_zuerivelo_publibike": {
+     "features": 294,
+     "geometry": {
+      "Point": 294
+     },
+     "kept": 294
+    }
+   },
+   "title": "Standorte ZüriVelo",
+   "license_id": "cc-zero",
+   "license_title": "Creative Commons CCZero",
+   "author": "Grundlagen + Strategien, Tiefbauamt, Tiefbau- und Entsorgungsdepartement",
+   "modified": "2026-11-09",
+   "url": "https://data.stadt-zuerich.ch/dataset/geo_standorte_zuerivelo"
+  },
+  "Hundezonen": {
+   "ckan_id": "geo_hundezonen",
+   "wfs": "https://www.ogd.stadt-zuerich.ch/wfs/geoportal/Hundezonen",
+   "layers": {
+    "hundezone": {
+     "features": 728,
+     "geometry": {
+      "MultiPolygon": 728
+     },
+     "kept": 728
+    }
+   },
+   "title": "Hundezonen",
+   "license_id": "cc-zero",
+   "license_title": "Creative Commons CCZero",
+   "author": "Produkteverantw.  & Unterstützungsfunk., Grün Stadt Zürich, Tiefbau- und Entsorgungsdepartement",
+   "modified": "2026-11-09",
+   "url": "https://data.stadt-zuerich.ch/dataset/geo_hundezonen"
+  }
+ }
+}
