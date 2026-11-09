@@ -1,0 +1,314 @@
+{{pagebanner|Flughafen Zürich - Night - 01 (cropped).jpg}}
+'''Zurich Airport''' ({{IATA|ZRH}}) in Kloten (hence its alternative name, Kloten Airport) is the busiest airport in [[Switzerland]], serving the [[Zurich (region)|Zurich region]]. 
+
+Swiss airlines (a subsidiary of Lufthansa Group) maintains a hub in Zurich. Thanks to the wealth and political neutrality of Switzerland, the relatively small Zurich is able to almost play in a league with London Heathrow, Paris Charles de Gaulle, Amsterdam Schiphol or Frankfurt, thus punching way above its weight and offering a lot of connections on several continents.
+
+==Understand==
+
+The airport is about 13 km north of the city. It is a hub for Star Alliance member Swiss International Air Lines and its subsidiaries, including Edelweiss.
+There are three terminals. The ''Airside Center'' houses check-in and security.
+
+===History ===
+
+Construction of the airport started in 1945, on land in Kloten granted to the Canton of Zurich by the federal government. Swissair, the country's flag carrier, went belly up after disastrous acquisitions and speculations and finally the downturn in flight travel after the September 11 attacks in 2001.
+
+===Airport information ===
+* [https://www.zurich-airport.com/ Zurich Airport] website
+
+==Flights==
+{{mapframe|47.4560|8.5577|height=500|zoom=13}}
+{{mapshapes|Q636091}} <!-- Zurich S-Bahn -->
+{{mapshape|type=geoshape|fill=#ff2c2c|title=Terminal A|wikidata=Q56843129}}
+{{mapshape|type=geoshape|fill=#ff7f00|title=Terminal B/D|wikidata=Q56843130}}
+{{mapshape|type=geoshape|fill=#009600|title=Terminal E|wikidata=Q56843131}}
+{{Mapshape|title=SkyMetro|wikidata=Q2293373|type=geoline|stroke-width=4|stroke-opacity=1}}
+
+Zurich's reputation as a world banking and financial centre makes it a significant airline destination, with flights connecting many major airports on most continents except Oceania, offered especially by the country's flag carrier, '''Swiss International Airlines'''. Its sister airline '''Edelweiss Air''' also serves mainly leisure destinations from Zurich. Besides the Lufthansa Group subsidiaries mentioned above, Zurich is also an important airport for '''[https://www.chair.ch/ chair]{{Dead link|date=November 2024 |bot=InternetArchiveBot }}''' and '''[https://www.easyjet.com/en/ Easyjet]'''.
+
+===Departures===
+Flights depart from one of these three sections.
+{{Regionlist
+|region1name=Terminal A
+|region1color=#ff2c2c
+|region1items=Schengen only
+|region1description= The airport's oldest terminal, built in 1971. It is connected to the ''Airside Centre'' at one end. Most Swiss domestic flights arrive and depart from Terminal A.
+
+|region2name=Terminal B/D
+|region2color=#ff7f00
+|region2items=Schengen and non-Schengen
+|region2description= Terminal B/D was built in 1975 and is also connected to the ''Airside Centre''. It can serve both Schengen and non-Schengen flights at the same time with the same set of gates, depending what type of flight is being served, the gate number is prefixed either with a B (for Schengen) or D (for non-Schengen). There are separate ways to get to the gates so that the passengers don't mix.
+
+|region3name=Terminal E
+|region3color=#009600
+|region3items=Non-Schengen
+|region3description= The newest terminal, finished in 2003. It is also the only terminal not connected to the ''Airside Centre'' (hence its alternative name : ''Midfield Terminal''), so getting there requires a short trip on a driverless train. 
+}}
+
+There are three check-in facilities. Check-in 1 and 3 are used mostly by Lufthansa group airlines (Swiss, Lufthansa, Eurowings, Austrian, Brussels Airlines), Croatia Airlines, while all other airlines use check-in 2 (with the exception of Vueling & easyjet, which uses 3). Check-in 3 is located directly above the railway station while Check-ins 1 and 2 are right at level L1 directly above the arrival halls. Check-in 2 is divided into two floors with rows 1 to 4 on Level 2 and row 5 on Level 1.
+
+==Ground transportation==
+===By public transport===
+[[File:Zürich S-Bahn Kloten -2.jpg|thumb|300px|Zurich Airport railway station, where all the heavy rail is]]
+
+For local transport, the airport belongs to Zone 121 of the ZVV network, which means you will be travelling on 2 zones on your way to the city. The fare is the same regardless of the used transportation mode.
+
+====By train====
+All trains serve the {{marker|type=go|name=Zurich Airport railway station|wikidata=Q40700}} at Level -2 below the Airport Shopping Complex and Check In 3. Train tickets for both the local and intercity trains can be purchased at the kiosk in the station and also beforehand at baggage claim hall.
+
+{{Rint|zurich|S2}}{{Rint|zurich|S16}}{{Rint|zurich|S24}} serve the airport to [[Zurich HB]] via Oerlikon, mostly from platforms 3 and 4. S24 runs from the airport to Winterthur in the north and Zug in the south, while S2 can also take you to stops along the western shores of Lake Zurich until Unterterzen and S16 to the eastern shores until Herrliberg-Feldmeilen station.
+
+Intercity and regional trains are also frequent with services going as far as Munich & Stuttgart in Germany and Bregenz in Austria. Most trains go directly to or pass Zurich main station, but some InterRegio trains stop at Oerlikon before reaching Zurich. In the other direction, many trains stop at Winterthur.
+
+====By tram====
+[[File:Zurich Airport tram stop 2011 01.jpg|thumb|300px|Tram and bus stop]]
+Tram lines '''10''' to Zurich main station and '''12''' to Stettbach train station stop at Level L0 just outside the Airport Centre. If heading to the airport, make sure to stop at the ''Bahnhof'', as the next stop is ''Fracht'' or the cargo terminal still within the airport grounds.
+
+====By bus====
+A local bus station serving Zone 121 of the public transportation network is at the ground floor (Level L0) also outside the Airport Centre. Intercity buses like Flixbus also stop here.
+
+====By taxi====
+Taxis can be hailed from the inside curbs of Arrival Halls 1 and 2. A ride to the city center costs from [[Switzerland#Money|Fr.]] 50.
+
+===By car===
+The airport is accessible from Highway 51 which begins shortly before the airport from Highway 1 and terminates at Bullach. If coming from the city, watch out as exit 6 to the airport is on the left lane. Parking buildings P1 and P3 are adjacent to both terminals; a larger parking building P6 is four minutes away on foot from the terminal building and is equipped with charging outlets for electric cars.
+
+Parking fares start from Fr. 2 for 15 minutes and Fr. 48 for long term parking for at least 24 hours.
+
+Car rental kiosks can be found at level 1 of the Airport Shopping area, accessible from Check In 2.
+
+===By shuttle bus===
+Shuttle buses to hotels, faraway towns, and winter resorts can also be called for pick up from the airport at Arrival 2.
+* {{listing | name=CHECK-IN all-ways | alt= | url=http://checkin-allways.com/news/ | email= | address= | lat= | long= | directions= | phone=+41 848 007 100 | tollfree= | hours= | price= | lastedit=2021-07-02 | content=Drops at hotels around Zurich and faraway towns upon request. Cheaper per person fares if traveling with at least 2 passengers. Bus leaves the airport every 30 minutes.
+}} {{Dead link|date=November 2026 |bot=InternetArchiveBot }}
+* {{listing
+| name=Arlberg Express | alt= | url=https://arlbergexpress.com/en/ | email=info@arlbergexpress.com
+| address= | lat= | long= | directions=
+| phone=+43 55 82 226 | tollfree=
+| hours= | price=€50 one way
+| wikidata=
+| lastedit=2021-07-02
+| content=Serves the Arlberg ski resort.
+}}
+* {{listing
+| name=Flugbus
+| alt=
+| url=https://flugbus.ch/en/en-startseite
+| email=
+| address=
+| lat=
+| long=
+| directions=
+| phone=
+| tollfree=
+| hours=
+| price=To Luzern €40
+| wikidata=
+| lastedit=2021-07-02
+| content=Transfer between Zurich Airport and [[Chur]] or [[Lucerne]].
+}} {{Dead link|date=November 2026 |bot=InternetArchiveBot }}
+
+==Get around==
+[[File:Zurich International Airport (Ank Kumar) 06.jpg|thumb|300px|Airport Shopping area, with access to Check in 2 and ground transportation.]]
+Terminal E is connected to the Airside Centre by the '''SkyMetro''', an underground automated train. It takes about 3 minutes. Look out the window - there are pictures on the corridor that resemble a movie due to the movement of the train. Pay attention however that once you take the train, you will be unable to return to the main terminal building. Passport control is done at the main terminal building.
+
+Otherwise, walking is how you reach most of the terminals.
+
+==Wait==
+[[File:Flughafen Zürich December 2018 03.jpg|thumb|300px|Deck E observation deck at night]]
+* {{see
+| name=Deck E passenger observation deck | alt= | url= | email=
+| address= | lat=47.4613331 | long=8.5518543 | directions=take the westernmost elevator to the 2nd floor
+| phone= | tollfree=
+| hours=08:00-21:30 | price=Free
+| image=Flughafen Zürich Besucherterrasse Dock E im Jahr 2020.jpg
+| lastedit=2025-09-02
+| content=If your flight departs from Terminal E don't miss out on this stunning observation deck with an almost 360°-view of the whole airport. Free binoculars are installed at different locations of the observation deck to help you spot aircraft further away. There is also a play area for children.
+}}
+
+===Lounges===
+Swiss operates a lounge each at the main terminal building and at Terminal E for non-Schengen flights, located on top floors with splendid views of the Alps. They are also accessible to premium passengers and frequent flyers of the Lufthansa group of airlines and Star Alliance carriers.
+* {{listing
+| name=Swiss Arrival Lounge | alt= | url= | email=
+| address= | lat= | long= | directions=
+| phone= | tollfree=
+| hours= | price=
+| wikidata=
+| lastedit=2021-07-22
+| content=After a long flight, you can use the lounge to freshen up with showers and breakfast buffet.
+}}
+* {{listing
+| name=Swiss Lounge A | alt= | url= | email=
+| address= | lat= | long= | directions=Terminal A Level 2
+| phone= | tollfree=
+| hours= | price=
+| lastedit=2021-07-22
+| content=Contains the first class, and business class & senator lounge. Includes a special section called the ''Alpine Lounge'' with designs resembling a rustic Alpine lodge with wooden materials and a fitting view of the Alps.
+}}
+* {{listing
+| name=Swiss Lounge D | alt= | url= | email=
+| address= | lat= | long= | directions=Terminal D Level 0
+| phone= | tollfree=
+| hours= | price=
+| wikidata=
+| lastedit=2021-07-22
+| content=Located in the non-Schengen boarding area, contains the business class, and the senator lounge.
+}}
+* {{listing
+| name=Swiss Lounge E | alt= | url= | email=
+| address= | lat= | long= | directions=Terminal E Level 3
+| phone= | tollfree=
+| hours= | price=
+| wikidata=
+| lastedit=2021-07-22
+| content=Contains the first class, senator, and business class lounge. The first class lounge features two first-come first-served hotel rooms, wine cellar and ala carte meals. Its whisky club with a collection of 200 varieties is also accessible for both First and Senator lounge visitors.
+}}
+
+Other lounges include:
+* {{see
+| name=Aspire Lounges | alt= | url= | email=
+| address= | lat= | long= | directions=Terminal 2 Level 3, access between gates E47 and E53
+| phone= | tollfree=
+| hours= | price=Fr. 35
+| lastedit=2018-10-24
+| content=
+}}
+* {{see
+| name=dnata Skyview Lounge | alt= | url= | email=
+| address=Airside Center Level 3 | lat= | long= | directions=
+| phone=+41 43 815 85 20 | tollfree=
+| hours=06:00-22:00 daily | price=Fr. 38
+| lastedit=2018-10-24
+| content=
+}}
+* {{see
+| name=Emirates Lounge | alt= | url= | email=
+| address= | lat= | long= | directions=
+| phone= | tollfree= | fax=
+| hours= | price=Terminal E Level 3
+| lastedit=2018-10-24
+| content=
+}}
+
+==Eat and drink==
+===Terminal E===
+* {{eat
+| name=Alpenblick Bar | alt= | url= | email=
+| address=near Gate E26 | lat= | long= | directions=
+| phone= | tollfree=
+| hours= | price=Sandwiches from Fr. 6
+| lastedit=2021-07-02
+| content=Bar with splendid views of the tarmac, also of the main terminal building, and the Alps on a lucky sunny day. Sandwiches and beverages, both soft and alcoholic.
+}}
+* {{eat
+| name=Bakeside | alt= | url= | email=
+| address=near Gate E27 | lat= | long= | directions=
+| phone= | tollfree=
+| hours= | price=
+| wikidata=
+| lastedit=2021-07-02
+| content=Sandwiches, vegan snacks, juices, and coffee.
+}}
+* {{eat
+| name=Pret A Manger | alt= | url= | email=
+| address=near Gate E52 | lat= | long= | directions=
+| phone= | tollfree=
+| hours= | price=
+| wikidata=
+| lastedit=2021-07-02
+| content=Wrapped premium sandwiches and salads, yoghurt parfait and cut fruits. 
+}}
+
+==Buy==
+The landside area offers two extensive shopping complexes that resemble a shopping mall, the Airport Shopping area with direct access from the terminal building, and the Circle located on a separate area opposite the tram station. After security, most of the shopping options are centered around an area called the Airside Center, accessible for both Schengen and non-Schengen passengers before passport control.
+
+===Pre-security===
+* {{buy
+| name=Coop Pronto | alt= | url= | email=
+| address=Airport Shopping Public Area Level 1 | lat= | long= | directions=P1 Parking Building
+| phone=+41 43 816 52 22 | tollfree=
+| hours=Daily 05:00-23:00 | price=
+| lastedit=2021-07-12
+| content=For a quick shopping run or even something to eat, there is an express supermarket.
+}}
+* {{buy
+| name=Migros | alt= | url= | email=
+| address=Airport Shopping Area Level 1 | lat= | long= | directions=
+| phone= | tollfree=
+| hours=Daily 06:00-22:00 | price=
+| lastedit=2021-07-12
+| content=A large Swiss franchise containing products of a typical supermarket, including Swiss chocolates and cheese, in some ways cheaper than the gourmet confectionaries.
+}}
+
+==Connect==
+Free Wi-Fi is available for 4 hours, with the usage amount being refreshed every 5 hours. This is a source of frustration for travellers. Additional internet usage is available for a fee. Connect to the '''ZurichAirport''' network and get a verification code via text or phone call, or scanning a boarding pass at one of the scanners throughout the airport building or the information desk to obtain a printed slip with the verification code. Website of the Swiss Railways and electronic travel authorization by the US and Canada do not require access using verification code.
+
+==Cope==
+The airport now has a page on Sina Weibo and a WeChat account to handle queries - useful for Chinese residents and visitors.
+
+==Sleep==
+Sleeping inside the airport building is comfortable enough on a few chairs, especially airside and at Concourses B and E, that do not have armrests & generally the whole airport area is secure. The lighting and music however remain on even though no flights are arriving or departing overnight, so blindfolds and earplugs are helpful. Be aware that the terminal and passport controls close from 23:00 to 05:00, so if you wish to stay at the transit hotel, head there early. 
+* {{sleep
+| name=Transit Hotel at Zurich Airport | alt= | url=https://www.flughafen-zuerich.ch/en/passengers/shopping-and-enjoy/services/all-services/transit-hotel | email=transithotel@zurich-airport.com
+| address=''Transitbereich D'', Level 1 | lat=47.45113 | long=8.56057 | directions=next to Gates D
+| phone=+41 43 816 21 08 | tollfree=
+| checkin=Any time (15:00 at the earliest for overnight stays) | checkout=21:00 (day), 09:00 (night) | price=From Fr. 49 (day, up to 3 hours) to Fr. 99 (overnight) for a single room. Reclining chair: Fr. 25 (up to 3 hours) to Fr. 45 (overnight). Shower only Fr. 15.
+| lastedit=2018-10-22
+| content=If you have plenty of time to kill until your flight, this hotel could be an option.
+}}
+* {{sleep | name=Hyatt Regency Zurich Airport | alt= | url=https://www.hyatt.com/en-US/hotel/switzerland/hyatt-regency-zurich-airport-the-circle/zrhrz?src=corp_lclb_gmb_seo_zrhrz | email= | address=The Circle 41 | lat= | long= | directions= | phone= | tollfree= | fax= | checkin= | checkout= | price=From Fr. 200 | wikidata= | lastedit=2021-07-12 | content=A posh hotel with rooms in contemporary design, some with splendid views of the greenery behind the airport building.
+}} {{Dead link|date=October 2026 |bot=InternetArchiveBot }}
+* {{sleep
+| name=Radisson Blu | alt= | url=https://www.radissonhotels.com/en-us/hotels/radisson-blu-zurich-airport?cid=a:se+b:gmb+c:emea+i:local+e:rdb+d:cese+h:ZRHZQ | email=
+| address= | lat= | long= | directions=next to P1 parking lot
+| phone=+41 44 800 4040 | tollfree= | fax=
+| checkin= | checkout= | price=From Fr. 160
+| wikidata=
+| lastedit=2021-07-11
+| content=A fine landside hotel for an overnight stay or meetings adjacent to the airport. Featuring two restaurants and a wine bar for leisure.
+}}
+===Adjacent to airport===
+There are plenty of hotels adjacent to the airport catering to all levels of budget and reachable by public transport or a shuttle service offered by the hotels.
+* {{sleep
+| name=ibis budget Zurich Airport | alt= | url=https://all.accor.com/hotel/8480/index.de.shtml | email=
+| address=Flughofstrasse 45, 8152 Opfikon | lat= | long= | directions=next to Unterriet tram station.
+| phone=+41 448281050 | tollfree= | fax=
+| checkin= | checkout= | price=From Fr. 75
+| wikidata=
+| lastedit=2021-07-11
+| content=Perhaps the cheapest hotel close to the airport. Budget hotel with modern design and simple furniture. Small double and triple rooms.
+}}
+* {{sleep
+| name=Leonardo Hotel Zurich Airport | alt= | url=https://www.leonardo-hotels.com/leonardo-zurich-airport | email=
+| address=Flughafenstrasse 11, 8302 Kloten | lat= | long= | directions=
+| phone=+41 435490600 | tollfree= | fax=
+| checkin= | checkout= | price=From Fr. 95
+| wikidata=
+| lastedit=2021-07-11
+| content=A small but modern hotel featuring large rooms up to 4 people, a buffet breakfast, restaurant, and bar.
+}}
+* {{sleep
+| name=Mövenpick Hotel Zurich Airport | alt= | url=https://all.accor.com/errors/session-expired/index.de.shtml | email=
+| address=Walter Mittelholzerstrasse 8, 8152 Opfikon | lat=47.43946 | long=8.56886 | directions=adjacent to Balberg tram station
+| phone=+41 448088888 | tollfree= | fax=
+| checkin= | checkout= | price=From Fr. 130
+| wikidata=
+| lastedit=2021-07-11
+| content= 5-star hotel minutes from Zurich Airport offering accommodation, 3 restaurants, meeting & conference facilities and a gym.
+}}
+* {{sleep
+| name=Dorint Airport-Hotel Zürich | alt= | url=https://hotel-airport-zuerich.dorint.com/en/ | email=info.zuerich@dorint.com
+| address=Riethofstrasse 40, 8152 Opfikon-Glattbrugg | lat=47.43880415883629 | long=8.565376654492184 | directions=
+| phone=+41 448081000 | tollfree= | fax=
+| checkin= | checkout= | price=from Fr. 120
+| lastedit=2017-09-26
+| content=The hotel (opened in 2014) is near the airport and offers 235 rooms.
+}}
+
+==Nearby==
+While waiting outside the airport, you can head over to '''Flughafenpark''' behind The Circle building to escape the hustle and bustle, a small park atop a hill. To get to the top, there is a cable car that runs from the Circle.<!-- does the cable car charge fares? If so, how much?-->
+
+The main destinations nearby are in the [[Zurich (region)|Zurich region]], including, obviously, [[Zurich]] - but also places like [[Winterthur]] and [[Baden (Switzerland)|Baden]]. The nearest busy towns are '''Oerlikon''' in the south where most train lines north of Zurich intersect, or the smaller '''Kloten''' by bus to the east.
+
+{{IsPartOf|Zurich (region)}}
+{{outlineairport}}
+{{geo|47.464722|8.549167}}
