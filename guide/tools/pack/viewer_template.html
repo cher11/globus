@@ -1,0 +1,332 @@
+<title>Цюрих: проверка базы</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Inter:wght@400;500;600&display=swap">
+<style>/*__LEAFLET_CSS__*/</style>
+<style>
+/* Layout: phone = header, chips, map band, list; wide = map left, panel right. */
+:root {
+  --bg: #F3F6F9; --surface: #FFFFFF; --fg: #13202E; --muted: #5B6979; --line: #D9E1EA;
+  --accent: #0A5BAA; --accent-ink: #FFFFFF; --accent-soft: #E3EEF9;
+  --land: #EDEFEA; --water: #B9D4EC; --green: #D3E4C8; --road: #FFFFFF; --road-casing: #C3CAD3;
+  --rail: #7E8896; --border: #0A5BAA;
+  --good: #1E7F45; --junk: #B4322A; --cat: #B26B00; --dup: #6B46C1; --closed: #5B6979;
+  --f-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --f-body: "Inter", "Helvetica Neue", Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0E141B; --surface: #151E28; --fg: #E4ECF4; --muted: #92A0AF; --line: #263342;
+  --accent: #5DA7F0; --accent-ink: #0B1520; --accent-soft: #1A2C40;
+  --land: #121A22; --water: #1C3854; --green: #18291F; --road: #2C3946; --road-casing: #1A242E;
+  --rail: #546273; --border: #5DA7F0;
+  --good: #4CC27D; --junk: #F07167; --cat: #F0B44C; --dup: #A98BF0; --closed: #92A0AF; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0E141B; --surface: #151E28; --fg: #E4ECF4; --muted: #92A0AF; --line: #263342;
+  --accent: #5DA7F0; --accent-ink: #0B1520; --accent-soft: #1A2C40;
+  --land: #121A22; --water: #1C3854; --green: #18291F; --road: #2C3946; --road-casing: #1A242E;
+  --rail: #546273; --border: #5DA7F0;
+  --good: #4CC27D; --junk: #F07167; --cat: #F0B44C; --dup: #A98BF0; --closed: #92A0AF; color-scheme: dark }
+
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 14px; line-height: 1.45; }
+.app { display: grid; grid-template-rows: auto auto minmax(240px, 44vh) 1fr; height: 100%; }
+@media (min-width: 900px) {
+  .app { grid-template-columns: minmax(0, 1fr) 440px; grid-template-rows: auto auto 1fr; }
+  .app > header, .app > .chips { grid-column: 1 / -1; }
+  #map { grid-row: 3; grid-column: 1; }
+  .panel { grid-row: 3; grid-column: 2; border-left: 1px solid var(--line); }
+}
+header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px;
+  padding-block: 10px 6px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1 { font-family: var(--f-display); font-weight: 800; font-size: 20px; letter-spacing: -0.01em; margin: 0; }
+h1 span { color: var(--accent); }
+.meta { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none;
+  padding-block: 4px 10px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.chips::-webkit-scrollbar { display: none; }
+.chip { flex: none; border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 999px;
+  padding: 6px 11px; font: 500 13px/1 var(--f-body); cursor: pointer; white-space: nowrap; }
+.chip b { font-weight: 600; color: var(--muted); margin-left: 4px; font-variant-numeric: tabular-nums; }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.chip[aria-pressed="true"] b { color: inherit; opacity: 0.8; }
+.chip:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+#map { background: var(--land); min-height: 0; }
+.leaflet-container { background: var(--land); font-family: var(--f-body); }
+.leaflet-control-attribution { background: color-mix(in srgb, var(--surface) 85%, transparent) !important; color: var(--muted) !important; font-size: 10px; }
+.leaflet-control-attribution a { color: var(--accent) !important; }
+.leaflet-bar a { background: var(--surface) !important; color: var(--fg) !important; border-color: var(--line) !important; }
+.panel { display: flex; flex-direction: column; min-height: 0; background: var(--surface); }
+.tools { display: flex; flex-wrap: wrap; gap: 8px; padding-block: 10px; border-bottom: 1px solid var(--line);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.tools input, .tools select { font: 14px var(--f-body); color: var(--fg); background: var(--bg); border: 1px solid var(--line);
+  border-radius: 8px; padding: 7px 10px; min-width: 0; }
+.tools input { flex: 1 1 160px; }
+.summary { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; font-size: 12px; color: var(--muted);
+  padding-block: 8px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.summary strong { color: var(--fg); font-variant-numeric: tabular-nums; }
+.summary .store { margin-left: auto; }
+.list { overflow-y: auto; min-height: 0; flex: 1; }
+.row { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 2px 10px; padding-block: 10px; border-top: 1px solid var(--line);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.row.sel { background: var(--accent-soft); }
+.num { font-family: var(--f-display); font-weight: 700; font-size: 15px; color: var(--accent); font-variant-numeric: tabular-nums; padding-top: 1px; }
+.name { font-weight: 600; font-size: 15px; background: none; border: 0; padding: 0; color: var(--fg); text-align: left; cursor: pointer; overflow-wrap: anywhere; }
+.name:hover { color: var(--accent); }
+.sub { grid-column: 2; display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; font-size: 12px; color: var(--muted); }
+.sub .score { font-variant-numeric: tabular-nums; }
+.tag { border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; font-size: 11px; line-height: 17px; color: var(--muted); }
+.tag.on { color: var(--fg); }
+.tag.warn { border-color: var(--cat); color: var(--cat); }
+.flags { letter-spacing: 0.08em; font-size: 11px; font-weight: 600; }
+.flags i { font-style: normal; color: var(--line); }
+.flags i.on { color: var(--fg); }
+.marks { grid-column: 2; display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px; }
+.mk { border: 1px solid var(--line); background: transparent; color: var(--muted); border-radius: 6px; padding: 3px 8px; font: 500 12px var(--f-body); cursor: pointer; }
+.mk[aria-pressed="true"] { color: #fff; border-color: transparent; }
+:root[data-theme="dark"] .mk[aria-pressed="true"] { color: #0B1520; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .mk[aria-pressed="true"] { color: #0B1520; } }
+.mk[data-m="good"][aria-pressed="true"] { background: var(--good); }
+.mk[data-m="junk"][aria-pressed="true"] { background: var(--junk); }
+.mk[data-m="wrong_cat"][aria-pressed="true"] { background: var(--cat); }
+.mk[data-m="dup"][aria-pressed="true"] { background: var(--dup); }
+.mk[data-m="closed"][aria-pressed="true"] { background: var(--closed); }
+.more { margin: 12px auto 20px; display: block; border: 1px solid var(--line); background: var(--bg); color: var(--fg); border-radius: 8px; padding: 8px 14px; font: 500 13px var(--f-body); cursor: pointer; }
+.detail { padding-block: 12px 24px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 10px; }
+.detail h2 { font-family: var(--f-display); font-size: 20px; margin: 0; text-wrap: balance; }
+.back { justify-self: start; border: 0; background: none; color: var(--accent); font: 600 13px var(--f-body); padding: 0; cursor: pointer; }
+.kv { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 4px 10px; font-size: 13px; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; overflow-wrap: anywhere; }
+.kv a, .detail a { color: var(--accent); }
+.desc { font-size: 14px; max-width: 65ch; }
+.desc small { display: block; color: var(--muted); font-size: 11px; margin-top: 2px; }
+.pin { width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); border: 2px solid var(--surface);
+  font: 700 11px/18px var(--f-body); text-align: center; box-shadow: 0 1px 3px rgb(0 0 0 / 0.35); }
+.pin.sel { transform: scale(1.3); }
+.klabel { color: var(--muted); font: 600 11px var(--f-display); text-transform: uppercase; letter-spacing: 0.08em; white-space: nowrap; }
+.legend { font-size: 11px; color: var(--muted); padding-block: 0 12px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+
+<div class="app">
+  <header>
+    <h1>Цюрих <span>·</span> проверка базы</h1>
+    <div class="meta" id="meta"></div>
+  </header>
+  <nav class="chips" id="chips" aria-label="Группы мест"></nav>
+  <div id="map" role="region" aria-label="Карта"></div>
+  <section class="panel">
+    <div class="tools">
+      <input id="q" type="search" placeholder="Найти место по названию" autocomplete="off">
+      <select id="kreis" aria-label="Район"></select>
+    </div>
+    <div class="summary" id="summary"></div>
+    <div class="list" id="list"></div>
+  </section>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+const DATA = /*__DATA__*/;
+const BASE = /*__BASEMAP__*/;
+
+const GROUPS = {sights:"Достопримечательности", museums_art:"Музеи", nature_views:"Природа и виды",
+  food:"Еда", cafes:"Кафе", bars_nightlife:"Бары и ночь", culture_events:"Культура",
+  sports_active:"Спорт", sports_watch:"Спорт: смотреть", family:"С детьми", wellness:"Купальни и спа",
+  shopping:"Покупки", lodging:"Жильё", practical:"Практичное"};
+const SRC = {osm:"OSM", zuerich_tourism:"Tourism", wikidata:"Wikidata", wikivoyage:"Wikivoyage", wikipedia:"Wikipedia", stadt_zuerich:"Город"};
+const MARKS = [["good","хорошо"],["junk","мусор"],["wrong_cat","не та категория"],["dup","дубль"],["closed","закрыто"]];
+const PAGE = 20;
+
+const P = DATA.places;
+const byId = new Map(P.map(p => [p.i, p]));
+const norm = s => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+P.forEach(p => { p._n = norm(p.n + " " + (p.alt || "")); });
+
+const state = { grp: "sights", kreis: "all", q: "", shown: PAGE, sel: null, marks: new Map() };
+try { const g = localStorage.getItem("zh-grp"); if (g && GROUPS[g]) state.grp = g; } catch (e) {}
+
+// ---------- map ----------
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const [W, S, E, N] = BASE.bbox;
+const map = L.map("map", { preferCanvas: true, zoomControl: true, attributionControl: true, minZoom: 11, maxZoom: 18,
+  maxBounds: [[S - 0.05, W - 0.08], [N + 0.05, E + 0.08]] }).fitBounds([[47.345, 8.47], [47.43, 8.6]]);
+map.attributionControl.setPrefix(false).addAttribution("© OpenStreetMap contributors · © Stadt Zürich");
+const renderer = L.canvas({ padding: 0.3 });
+let baseLayer = null;
+const ll = line => line.map(([x, y]) => [y, x]);
+function drawBase() {
+  if (baseLayer) baseLayer.remove();
+  const g = L.layerGroup();
+  const o = { renderer, interactive: false };
+  BASE.green.forEach(r => L.polygon(ll(r), { ...o, stroke: false, fillColor: css("--green"), fillOpacity: 1 }).addTo(g));
+  BASE.water.forEach(r => L.polygon(ll(r), { ...o, stroke: false, fillColor: css("--water"), fillOpacity: 1 }).addTo(g));
+  BASE.river.forEach(r => L.polyline(ll(r), { ...o, color: css("--water"), weight: 4 }).addTo(g));
+  BASE.road_minor.forEach(r => L.polyline(ll(r), { ...o, color: css("--road"), weight: 2 }).addTo(g));
+  BASE.road_major.forEach(r => L.polyline(ll(r), { ...o, color: css("--road-casing"), weight: 5 }).addTo(g));
+  BASE.road_major.forEach(r => L.polyline(ll(r), { ...o, color: css("--road"), weight: 3 }).addTo(g));
+  BASE.rail.forEach(r => L.polyline(ll(r), { ...o, color: css("--rail"), weight: 1.2, dashArray: "4 3" }).addTo(g));
+  BASE.border.forEach(r => L.polyline(ll(r), { ...o, color: css("--border"), weight: 1, opacity: 0.45, dashArray: "2 4" }).addTo(g));
+  BASE.labels.forEach(l => L.marker([l.lat, l.lon], { interactive: false, keyboard: false,
+    icon: L.divIcon({ className: "klabel", html: "Kreis " + l.t, iconSize: null }) }).addTo(g));
+  baseLayer = g.addTo(map);
+  baseLayer.eachLayer(l => l.bringToBack && l.bringToBack());
+}
+drawBase();
+let dotLayer = L.layerGroup().addTo(map), pinLayer = L.layerGroup().addTo(map);
+
+// ---------- marks store ----------
+let db = null;
+const docId = pid => pid.replace(/[^A-Za-z0-9_-]/g, "_");
+function loadLocal() { try { const m = JSON.parse(localStorage.getItem("zh-marks") || "{}"); Object.entries(m).forEach(([k, v]) => state.marks.set(k, v)); } catch (e) {} }
+function saveLocal() { try { localStorage.setItem("zh-marks", JSON.stringify(Object.fromEntries(state.marks))); } catch (e) {} }
+let storeNote = "отметки хранятся в этом браузере";
+loadLocal();
+async function initStore() {
+  try { db = window.claude && window.claude.use ? await window.claude.use("db") : null; } catch (e) { db = null; }
+  if (!db) { render(); return; }
+  storeNote = "отметки сохраняются для Claude";
+  const timer = setTimeout(() => { storeNote = "хранилище не ответило, отметки только здесь"; render(); }, 10000);
+  db.collection("marks").onSnapshot(snap => {
+    clearTimeout(timer);
+    state.marks.clear();
+    snap.docs.forEach(d => { const v = d.data(); if (v && v.pid && v.mark) state.marks.set(v.pid, v.mark); });
+    render();
+  }, () => { clearTimeout(timer); storeNote = "нет доступа к хранилищу, отметки только здесь"; db = null; render(); });
+}
+async function setMark(p, m) {
+  const cur = state.marks.get(p.i);
+  const next = cur === m ? null : m;
+  if (next) state.marks.set(p.i, next); else state.marks.delete(p.i);
+  render();
+  if (!db) { saveLocal(); return; }
+  try {
+    const ref = db.collection("marks").doc(docId(p.i));
+    if (next) await ref.set({ pid: p.i, name: p.n, grp: p.g, cat: p.c[0] || "", kreis: p.kr || 0, mark: next, at: new Date().toISOString() });
+    else await ref.delete();
+  } catch (e) { storeNote = "не удалось сохранить: " + (e && e.code || "ошибка"); saveLocal(); render(); }
+}
+
+// ---------- selection ----------
+function filtered() {
+  let xs = P.filter(p => p.g === state.grp);
+  if (state.kreis === "out") xs = xs.filter(p => !p.kr);
+  else if (state.kreis !== "all") xs = xs.filter(p => String(p.kr) === state.kreis);
+  return xs.sort((a, b) => b.s - a.s || b.ns - a.ns || (b.k || 0) - (a.k || 0) || a.n.localeCompare(b.n));
+}
+function searched() {
+  const q = norm(state.q.trim());
+  return P.filter(p => p._n.includes(q)).sort((a, b) => b.s - a.s).slice(0, 60);
+}
+
+// ---------- render ----------
+const el = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const fmt = n => n.toLocaleString("ru-RU");
+
+function chips() {
+  const counts = {};
+  P.forEach(p => counts[p.g] = (counts[p.g] || 0) + 1);
+  el("chips").innerHTML = Object.keys(GROUPS).filter(g => counts[g]).map(g =>
+    `<button class="chip" data-g="${g}" aria-pressed="${g === state.grp && !state.q}">${GROUPS[g]}<b>${fmt(counts[g])}</b></button>`).join("");
+}
+function kreisSelect() {
+  const opts = [["all", "Все районы"]].concat(Array.from({ length: 12 }, (_, i) => [String(i + 1), "Kreis " + (i + 1)]), [["out", "Вне города"]]);
+  el("kreis").innerHTML = opts.map(([v, t]) => `<option value="${v}">${t}</option>`).join("");
+}
+function flags(p) {
+  const f = [["О", p.fd, "описание"], ["Ч", p.fh, "часы"], ["Ф", p.ff, "фото со свободной лицензией"], ["С", !!p.w, "сайт"]];
+  return `<span class="flags" title="${f.map(x => (x[1] ? "есть " : "нет: ") + x[2]).join(", ")}">${f.map(x => `<i class="${x[1] ? "on" : ""}">${x[0]}</i>`).join("")}</span>`;
+}
+function row(p, idx) {
+  const m = state.marks.get(p.i);
+  const srcs = p.src.map(s => `<span class="tag on">${SRC[s] || s}</span>`).join("");
+  const kr = p.kr ? "Kreis " + p.kr : "вне города";
+  return `<div class="row${state.sel === p.i ? " sel" : ""}" data-i="${esc(p.i)}">
+    <div class="num">${idx + 1}</div>
+    <button class="name" data-open="${esc(p.i)}">${esc(p.n)}</button>
+    <div class="sub"><span>${esc((p.c[0] || "").split("/")[1] || "")}</span><span>${kr}</span>
+      <span class="score" title="временный рейтинг популярности из слияния">рейтинг ${p.s}</span>${flags(p)}${srcs}${p.r ? '<span class="tag warn">огр. лицензия</span>' : ""}</div>
+    <div class="marks">${MARKS.map(([k, t]) => `<button class="mk" data-m="${k}" data-p="${esc(p.i)}" aria-pressed="${m === k}">${t}</button>`).join("")}</div>
+  </div>`;
+}
+function summary(top) {
+  const c = {}; top.forEach(p => { const m = state.marks.get(p.i); if (m) c[m] = (c[m] || 0) + 1; });
+  const total = state.marks.size;
+  const head = state.q ? `Найдено <strong>${top.length}</strong>` :
+    `В топ-${top.length}: ${MARKS.map(([k, t]) => `${t} <strong>${c[k] || 0}</strong>`).join(" · ")}`;
+  el("summary").innerHTML = `<span>${head}</span><span class="store">всего отмечено <strong>${total}</strong> · ${storeNote}</span>`;
+}
+function drawPoints(all, top) {
+  dotLayer.clearLayers(); pinLayer.clearLayers();
+  const fill = css("--accent"), stroke = css("--surface");
+  const topSet = new Set(top.map(p => p.i));
+  all.forEach(p => { if (topSet.has(p.i)) return;
+    L.circleMarker([p.a, p.o], { renderer, radius: 3 + Math.min(4, Math.sqrt(p.s) / 2), color: stroke, weight: 1, fillColor: fill, fillOpacity: 0.55 })
+      .on("click", () => openDetail(p.i)).addTo(dotLayer); });
+  top.forEach((p, i) => L.marker([p.a, p.o], { title: p.n, riseOnHover: true,
+    icon: L.divIcon({ className: "", html: `<div class="pin${state.sel === p.i ? " sel" : ""}">${i + 1}</div>`, iconSize: [22, 22], iconAnchor: [11, 11] }) })
+    .on("click", () => openDetail(p.i)).addTo(pinLayer));
+}
+let lastAll = [];
+function render() {
+  if (state.detail) return renderDetail();
+  chips();
+  const all = state.q ? searched() : filtered();
+  const top = state.q ? all : all.slice(0, state.shown);
+  lastAll = all;
+  summary(top);
+  el("list").innerHTML = top.map(row).join("") +
+    (!state.q && all.length > top.length ? `<button class="more" id="more">Показать ещё ${Math.min(PAGE, all.length - top.length)} из ${fmt(all.length - top.length)}</button>` : "") +
+    `<p class="legend">О — описание, Ч — часы работы, Ф — фото со свободной лицензией, С — сайт. Рейтинг — временная эвристика слияния; его заменит шаг M1.</p>`;
+  drawPoints(all, top);
+  el("meta").textContent = `${fmt(DATA.counts.core)} основных мест из ${fmt(DATA.counts.all)} · пакет v${DATA.version} · ${DATA.built.slice(0, 10)}`;
+}
+
+// ---------- detail ----------
+function renderDetail() {
+  const p = byId.get(state.detail);
+  const d = p.d || {};
+  const wiki = p.wp ? `<a href="https://${p.wp[0]}.wikipedia.org/wiki/${encodeURIComponent(p.wp[1])}" target="_blank" rel="noopener">Википедия</a>` : "";
+  const kv = [["Категории", p.c.join(", ")], ["Район", p.kr ? `Kreis ${p.kr}${p.q ? ", " + esc(p.q) : ""}` : "вне города"],
+    ["Адрес", esc(p.ad)], ["Часы", p.h ? `<code>${esc(p.h)}</code>` : ""],
+    ["Сайт", p.w ? `<a href="${esc(p.w)}" target="_blank" rel="noopener">${esc(p.w.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, ""))}</a>` : ""],
+    ["Признаки", (p.t || []).join(", ")], ["Источники", p.src.map(s => SRC[s] || s).join(", ") + (wiki ? " · " + wiki : "")],
+    ["Лицензии", esc((p.lic || []).join(", "))], ["Рейтинг", `${p.s} · источников ${p.ns}` + (p.k ? ` · языков Википедии ${p.k}` : "")], ["id", `<code>${esc(p.i)}</code>`]]
+    .filter(x => x[1]);
+  el("summary").innerHTML = "";
+  el("list").innerHTML = `<div class="detail">
+    <button class="back" id="back">← к списку</button>
+    <h2>${esc(p.n)}</h2>
+    ${d.t ? `<p class="desc">${esc(d.t)}<small>${esc(SRC[d.o] || d.o)} · ${esc(d.lic || "")}</small></p>` : '<p class="desc"><small>Описания нет ни в одном источнике.</small></p>'}
+    <dl class="kv">${kv.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>
+    <div class="marks" style="grid-column:auto">${MARKS.map(([k, t]) => `<button class="mk" data-m="${k}" data-p="${esc(p.i)}" aria-pressed="${state.marks.get(p.i) === k}">${t}</button>`).join("")}</div>
+  </div>`;
+  el("list").scrollTop = 0;
+}
+function openDetail(id) {
+  const p = byId.get(id); if (!p) return;
+  state.sel = id; state.detail = id;
+  map.setView([p.a, p.o], Math.max(map.getZoom(), 15), { animate: !matchMedia("(prefers-reduced-motion: reduce)").matches });
+  renderDetail();
+}
+
+// ---------- events ----------
+document.addEventListener("click", e => {
+  const t = e.target.closest("button"); if (!t) return;
+  if (t.dataset.g) { state.grp = t.dataset.g; state.q = ""; el("q").value = ""; state.shown = PAGE; state.detail = null; state.sel = null;
+    try { localStorage.setItem("zh-grp", state.grp); } catch (err) {} render(); el("list").scrollTop = 0; }
+  else if (t.dataset.m) { const p = byId.get(t.dataset.p); if (p) { setMark(p, t.dataset.m); } }
+  else if (t.dataset.open) openDetail(t.dataset.open);
+  else if (t.id === "more") { state.shown += PAGE; render(); }
+  else if (t.id === "back") { state.detail = null; render(); }
+});
+el("q").addEventListener("input", e => { state.q = e.target.value; state.detail = null; render(); });
+el("kreis").addEventListener("change", e => { state.kreis = e.target.value; state.shown = PAGE; state.detail = null; render(); });
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { drawBase(); render(); });
+new MutationObserver(() => { drawBase(); render(); }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
+kreisSelect();
+render();
+initStore();
+</script>

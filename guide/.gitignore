@@ -2,3 +2,6 @@
 data/*/cache/
 __pycache__/
 *.pyc
+
+# build outputs: city packs and the data viewer, rebuilt by tools/pack
+dist/
