@@ -27,16 +27,37 @@
 
 ```
 python3 tools/pack/export_pack.py zurich 1     # dist/zurich/zurich-v1.sqlite(.gz), manifest.json
-python3 tools/pack/build_basemap.py zurich     # dist/zurich/basemap.json — своя подложка из выгрузки OSM
-python3 tools/pack/build_viewer.py zurich 1 <путь к leaflet.css>   # dist/zurich/viewer.html
+python3 tools/pack/build_basemap.py zurich     # dist/zurich/basemap.json — из него страница берёт только границы районов
+pip install pmtiles                            # для build_tiles.py
+python3 tools/pack/build_tiles.py zurich       # dist/zurich/tiles-lo.pmtiles, tiles-hi.pmtiles, glyphs.bin
+mkdir -p /tmp/npm && (cd /tmp/npm && npm i maplibre-gl@5.24.0)    # оттуда берётся CSS
+python3 tools/pack/build_viewer.py zurich 1 --b64 --maplibre-css /tmp/npm/node_modules/maplibre-gl/dist/maplibre-gl.css
 ```
 
+Публикация на claude.ai: `viewer.html` как страница, три файла `*.b64.txt` — как её файлы рядом
+(`files`), объявленная возможность `db` для отметок. Хранилище ассетов и файлы артефакта
+двоичных типов не принимают, поэтому флаг `--b64` пишет копии карты в base64 (на треть больше),
+а страница раскодирует их при загрузке. Без флага страница берёт исходные двоичные файлы
+по относительным адресам или по `--tiles-lo-url`, `--tiles-hi-url`, `--glyphs-url`.
+
+- **Карта страницы** — векторная, MapLibre GL JS 5.24.0 (jsDelivr) на GPU. Страница не может грузить чужие
+  тайлы и шрифты, поэтому три файла публикуются вместе с ней (см. выше про `--b64`). Страница скачивает файлы целиком, держит их в памяти
+  и сама отвечает на запросы MapLibre (`addProtocol("mem")`), в сеть за картой она не ходит.
+  - `tiles-lo.pmtiles` (2,5 МБ) — масштабы до 13; карта появляется после него.
+  - `tiles-hi.pmtiles` (6,5 МБ) — масштаб 14 (улицы, дома, подписи, POI), догружается в фоне;
+    вблизи MapLibre растягивает эти тайлы. Пока файл не пришёл, на карте внизу показана пометка.
+  - `glyphs.bin` (168 КБ) — шрифт Noto Sans (SDF, диапазоны латиница, кириллица, пунктуация).
+  - Тайлы режет `build_tiles.py` из готовой выгрузки BBBike в схеме Shortbread
+    (`https://download.bbbike.org/osm/bbbike/Zuerich/Zuerich.osm.pmtiles-shortbread.zip`, 33 МБ,
+    скачивается в `dist/zurich/_src/`): оставлены тайлы в рамке просмотрщика, масштаб ≤ 14
+    и только слои, которые рисует стиль. Данные © участники OpenStreetMap (ODbL). Шрифт — npm-пакет
+    `smp-noto-glyphs@2.0.0` (SIL OFL); скрипт сам делает `npm pack`, если пакета рядом нет.
+  - Стиль (светлая и тёмная тема от CSS-переменных страницы) написан в шаблоне, в функции `makeStyle()`.
 - **Пакет** — SQLite по схеме из раздела 8 архитектуры, версия схемы 0. Таблицы и столбцы
   целевые, но поля, которые выводит шаг M1 (`kind`, `rank`, `visibility`, `status`,
   `parent_pid`), пока пустые, а `pid` — идентификатор слияния, он может меняться между сборками.
   Лицензии записаны у каждого текста, картинки и источника; ничего не отфильтровано.
 - **Просмотрщик** — одна страница: карта и топ-списки 4 556 основных мест по группам и районам,
-  отметки «хорошо / мусор / не та категория / дубль / закрыто». Страница не может грузить чужие
-  тайлы, поэтому подложка своя: вода, зелень, дороги, железная дорога, границы районов.
-  CSS Leaflet берётся из npm-пакета `leaflet@1.9.4` (`dist/leaflet.css`).
+  отметки «хорошо / мусор / не та категория / дубль / закрыто». Карта — векторная подложка OSM
+  со своими местами поверх (см. выше), CSS MapLibre берётся из npm-пакета `maplibre-gl@5.24.0`.
 - Папка `dist/` в git не попадает: всё в ней пересобирается из `data/`.

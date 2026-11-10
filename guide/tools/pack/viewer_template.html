@@ -2,7 +2,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Inter:wght@400;500;600&display=swap">
-<style>/*__LEAFLET_CSS__*/</style>
+<style>/*__MAPLIBRE_CSS__*/</style>
 <style>
 /* Layout: phone = header, chips, map band, list; wide = map left, panel right. */
 :root {
@@ -10,6 +10,8 @@
   --accent: #0A5BAA; --accent-ink: #FFFFFF; --accent-soft: #E3EEF9;
   --land: #EDEFEA; --water: #B9D4EC; --green: #D3E4C8; --road: #FFFFFF; --road-casing: #C3CAD3;
   --rail: #7E8896; --border: #0A5BAA;
+  --road-major: #FFE7AE; --road-major-casing: #D6B56A; --path: #A9B3BE; --bld: #E3E0D8; --bld-line: #CDC9BF;
+  --landuse: #E5E7E0; --lbl: #354252; --halo: #F6F8F5; --lbl-water: #3F78AE; --lbl-park: #4F7F48; --poi: #6F7B89;
   --good: #1E7F45; --junk: #B4322A; --cat: #B26B00; --dup: #6B46C1; --closed: #5B6979;
   --f-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
   --f-body: "Inter", "Helvetica Neue", Arial, sans-serif;
@@ -19,12 +21,16 @@
   --accent: #5DA7F0; --accent-ink: #0B1520; --accent-soft: #1A2C40;
   --land: #121A22; --water: #1C3854; --green: #18291F; --road: #2C3946; --road-casing: #1A242E;
   --rail: #546273; --border: #5DA7F0;
+  --road-major: #3F5164; --road-major-casing: #1A242E; --path: #44566A; --bld: #19232D; --bld-line: #232F3C;
+  --landuse: #151E27; --lbl: #BCC8D4; --halo: #0E141B; --lbl-water: #7DB0E0; --lbl-park: #7FAE87; --poi: #8696A6;
   --good: #4CC27D; --junk: #F07167; --cat: #F0B44C; --dup: #A98BF0; --closed: #92A0AF; color-scheme: dark } }
 :root[data-theme="dark"] {
   --bg: #0E141B; --surface: #151E28; --fg: #E4ECF4; --muted: #92A0AF; --line: #263342;
   --accent: #5DA7F0; --accent-ink: #0B1520; --accent-soft: #1A2C40;
   --land: #121A22; --water: #1C3854; --green: #18291F; --road: #2C3946; --road-casing: #1A242E;
   --rail: #546273; --border: #5DA7F0;
+  --road-major: #3F5164; --road-major-casing: #1A242E; --path: #44566A; --bld: #19232D; --bld-line: #232F3C;
+  --landuse: #151E27; --lbl: #BCC8D4; --halo: #0E141B; --lbl-water: #7DB0E0; --lbl-park: #7FAE87; --poi: #8696A6;
   --good: #4CC27D; --junk: #F07167; --cat: #F0B44C; --dup: #A98BF0; --closed: #92A0AF; color-scheme: dark }
 
 html, body { height: 100%; }
@@ -33,7 +39,7 @@ body { background: var(--bg); color: var(--fg); font-family: var(--f-body); font
 @media (min-width: 900px) {
   .app { grid-template-columns: minmax(0, 1fr) 440px; grid-template-rows: auto auto 1fr; }
   .app > header, .app > .chips { grid-column: 1 / -1; }
-  #map { grid-row: 3; grid-column: 1; }
+  #mapwrap { grid-row: 3; grid-column: 1; }
   .panel { grid-row: 3; grid-column: 2; border-left: 1px solid var(--line); }
 }
 header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px;
@@ -50,11 +56,24 @@ h1 span { color: var(--accent); }
 .chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 .chip[aria-pressed="true"] b { color: inherit; opacity: 0.8; }
 .chip:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-#map { background: var(--land); min-height: 0; }
-.leaflet-container { background: var(--land); font-family: var(--f-body); }
-.leaflet-control-attribution { background: color-mix(in srgb, var(--surface) 85%, transparent) !important; color: var(--muted) !important; font-size: 10px; }
-.leaflet-control-attribution a { color: var(--accent) !important; }
-.leaflet-bar a { background: var(--surface) !important; color: var(--fg) !important; border-color: var(--line) !important; }
+.maplibregl-map { font-family: var(--f-body); }
+.maplibregl-ctrl-attrib { background: color-mix(in srgb, var(--surface) 85%, transparent) !important; color: var(--muted) !important; font-size: 10px; }
+.maplibregl-ctrl-attrib a { color: var(--accent) !important; }
+.maplibregl-ctrl-attrib-button { background-color: transparent !important; }
+.maplibregl-ctrl-group { background: var(--surface) !important; box-shadow: 0 0 0 1px var(--line) !important; }
+.maplibregl-ctrl-group button + button { border-top: 1px solid var(--line) !important; }
+/* control icons as text: the library's own icons are data: images, which a strict page policy may block */
+.maplibregl-ctrl button .maplibregl-ctrl-icon, .maplibregl-ctrl-attrib-button { background-image: none !important; }
+.maplibregl-ctrl-zoom-in .maplibregl-ctrl-icon::before, .maplibregl-ctrl-zoom-out .maplibregl-ctrl-icon::before, .maplibregl-ctrl-attrib-button::before
+  { display: block; text-align: center; font: 600 20px/29px var(--f-body); color: var(--fg); }
+.maplibregl-ctrl-zoom-in .maplibregl-ctrl-icon::before { content: "+"; }
+.maplibregl-ctrl-zoom-out .maplibregl-ctrl-icon::before { content: "\2212"; }
+.maplibregl-ctrl-attrib-button::before { content: "i"; font-size: 15px; line-height: 24px; }
+#mapnote { position: absolute; left: 8px; bottom: 22px; z-index: 2; pointer-events: none; font-size: 11px; color: var(--muted);
+  background: color-mix(in srgb, var(--surface) 88%, transparent); border: 1px solid var(--line); border-radius: 6px; padding: 2px 7px; font-variant-numeric: tabular-nums; }
+#mapnote[hidden] { display: none; }
+#mapwrap { position: relative; min-height: 0; background: var(--land); }
+#map { position: absolute; inset: 0; }
 .panel { display: flex; flex-direction: column; min-height: 0; background: var(--surface); }
 .tools { display: flex; flex-wrap: wrap; gap: 8px; padding-block: 10px; border-bottom: 1px solid var(--line);
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
@@ -100,10 +119,6 @@ h1 span { color: var(--accent); }
 .kv a, .detail a { color: var(--accent); }
 .desc { font-size: 14px; max-width: 65ch; }
 .desc small { display: block; color: var(--muted); font-size: 11px; margin-top: 2px; }
-.pin { width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); border: 2px solid var(--surface);
-  font: 700 11px/18px var(--f-body); text-align: center; box-shadow: 0 1px 3px rgb(0 0 0 / 0.35); }
-.pin.sel { transform: scale(1.3); }
-.klabel { color: var(--muted); font: 600 11px var(--f-display); text-transform: uppercase; letter-spacing: 0.08em; white-space: nowrap; }
 .legend { font-size: 11px; color: var(--muted); padding-block: 0 12px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
@@ -114,7 +129,7 @@ h1 span { color: var(--accent); }
     <div class="meta" id="meta"></div>
   </header>
   <nav class="chips" id="chips" aria-label="Группы мест"></nav>
-  <div id="map" role="region" aria-label="Карта"></div>
+  <div id="mapwrap"><div id="map" role="region" aria-label="Карта"></div><div id="mapnote" hidden></div></div>
   <section class="panel">
     <div class="tools">
       <input id="q" type="search" placeholder="Найти место по названию" autocomplete="off">
@@ -125,7 +140,34 @@ h1 span { color: var(--accent); }
   </section>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+/* Map files are fetched whole, as early as possible, while the libraries below load. The page answers
+   MapLibre's mem:// tile and glyph requests from these buffers. The small tile file comes first. */
+window.__dl = (() => {
+  const U = { lo: "__TILES_LO_URL__", hi: "__TILES_HI_URL__", gl: "__GLYPHS_URL__" };
+  const st = { prog: {}, onp: null };
+  const get = k => fetch(U[k]).then(async r => {
+    if (!r.ok) throw new Error(k + " " + r.status);
+    const total = +r.headers.get("content-length") || 0, rd = r.body.getReader(), ch = [];
+    let n = 0;
+    for (;;) { const { done, value } = await rd.read(); if (done) break; ch.push(value); n += value.length; st.prog[k] = [n, total]; if (st.onp) st.onp(); }
+    const out = new Uint8Array(n); let o = 0;
+    for (const c of ch) { out.set(c, o); o += c.length; }
+    // Artifacts serve no binary types, so the files may be published as base64 text (*.b64.txt).
+    if (/\.b64\.txt$/.test(U[k])) {
+      const s = atob(new TextDecoder().decode(out).replace(/\s+/g, "")), b = new Uint8Array(s.length);
+      for (let i = 0; i < s.length; i++) b[i] = s.charCodeAt(i);
+      return b.buffer;
+    }
+    return out.buffer;
+  });
+  st.gl = get("gl"); st.lo = get("lo");
+  st.hi = st.lo.catch(() => {}).then(() => get("hi"));
+  return st;
+})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pmtiles@4.5.0/dist/pmtiles.js"></script>
 <script>
 const DATA = /*__DATA__*/;
 const BASE = /*__BASEMAP__*/;
@@ -138,6 +180,7 @@ const SRC = {osm:"OSM", zuerich_tourism:"Tourism", wikidata:"Wikidata", wikivoya
 const MARKS = [["good","хорошо"],["junk","мусор"],["wrong_cat","не та категория"],["dup","дубль"],["closed","закрыто"]];
 const PAGE = 20;
 
+const el = id => document.getElementById(id);
 const P = DATA.places;
 const byId = new Map(P.map(p => [p.i, p]));
 const norm = s => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
@@ -147,33 +190,173 @@ const state = { grp: "sights", kreis: "all", q: "", shown: PAGE, sel: null, mark
 try { const g = localStorage.getItem("zh-grp"); if (g && GROUPS[g]) state.grp = g; } catch (e) {}
 
 // ---------- map ----------
+// Vector basemap: OSM tiles (Shortbread schema) and label glyphs come from two files and one glyph bundle that
+// the page downloads whole and answers MapLibre's "mem://" requests from; it never asks another host for map data.
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const [W, S, E, N] = BASE.bbox;
-const map = L.map("map", { preferCanvas: true, zoomControl: true, attributionControl: true, minZoom: 11, maxZoom: 18,
-  maxBounds: [[S - 0.05, W - 0.08], [N + 0.05, E + 0.08]] }).fitBounds([[47.345, 8.47], [47.43, 8.6]]);
-map.attributionControl.setPrefix(false).addAttribution("© OpenStreetMap contributors · © Stadt Zürich");
-const renderer = L.canvas({ padding: 0.3 });
-let baseLayer = null;
-const ll = line => line.map(([x, y]) => [y, x]);
-function drawBase() {
-  if (baseLayer) baseLayer.remove();
-  const g = L.layerGroup();
-  const o = { renderer, interactive: false };
-  BASE.green.forEach(r => L.polygon(ll(r), { ...o, stroke: false, fillColor: css("--green"), fillOpacity: 1 }).addTo(g));
-  BASE.water.forEach(r => L.polygon(ll(r), { ...o, stroke: false, fillColor: css("--water"), fillOpacity: 1 }).addTo(g));
-  BASE.river.forEach(r => L.polyline(ll(r), { ...o, color: css("--water"), weight: 4 }).addTo(g));
-  BASE.road_minor.forEach(r => L.polyline(ll(r), { ...o, color: css("--road"), weight: 2 }).addTo(g));
-  BASE.road_major.forEach(r => L.polyline(ll(r), { ...o, color: css("--road-casing"), weight: 5 }).addTo(g));
-  BASE.road_major.forEach(r => L.polyline(ll(r), { ...o, color: css("--road"), weight: 3 }).addTo(g));
-  BASE.rail.forEach(r => L.polyline(ll(r), { ...o, color: css("--rail"), weight: 1.2, dashArray: "4 3" }).addTo(g));
-  BASE.border.forEach(r => L.polyline(ll(r), { ...o, color: css("--border"), weight: 1, opacity: 0.45, dashArray: "2 4" }).addTo(g));
-  BASE.labels.forEach(l => L.marker([l.lat, l.lon], { interactive: false, keyboard: false,
-    icon: L.divIcon({ className: "klabel", html: "Kreis " + l.t, iconSize: null }) }).addTo(g));
-  baseLayer = g.addTo(map);
-  baseLayer.eachLayer(l => l.bringToBack && l.bringToBack());
+const FONT = ["Noto Sans Regular"];
+const KREISE = { type: "FeatureCollection", features: [
+  ...BASE.border.map(l => ({ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: l } })),
+  ...BASE.labels.map(l => ({ type: "Feature", properties: { t: "KREIS " + l.t }, geometry: { type: "Point", coordinates: [l.lon, l.lat] } }))] };
+const EMPTY = { type: "FeatureCollection", features: [] };
+const feed = { dots: EMPTY, pins: EMPTY };   // our places, kept so they can be set again once the style is loaded
+
+function makeStyle() {
+  const c = Object.fromEntries(["land", "water", "green", "road", "road-casing", "road-major", "road-major-casing", "path", "rail", "border", "bld",
+    "bld-line", "landuse", "lbl", "halo", "lbl-water", "lbl-park", "poi", "accent", "accent-ink", "surface"].map(k => [k, css("--" + k)]));
+  const zw = (...a) => ["interpolate", ["exponential", 1.5], ["zoom"], ...a];
+  const kind = (...k) => ["match", ["get", "kind"], k, true, false];
+  const named = ["!=", ["coalesce", ["get", "name"], ""], ""];
+  const notTunnel = ["!=", ["get", "tunnel"], true];
+  const MAJOR = ["motorway", "motorway_link", "trunk", "trunk_link", "primary", "primary_link"];
+  const MID = ["secondary", "secondary_link", "tertiary", "tertiary_link"];
+  const MINOR = ["residential", "unclassified", "living_street", "pedestrian", "road"];
+  const PATH = ["footway", "path", "steps", "cycleway", "bridleway", "track", "pedestrian_path"];
+  const RAIL = ["rail", "light_rail", "narrow_gauge", "funicular", "monorail"];
+  const TRAM = ["tram", "subway", "busway"];
+  const name = ["coalesce", ["get", "name"], ["get", "name_de"]];
+  const halo = { "text-color": c.lbl, "text-halo-color": c.halo, "text-halo-width": 1.4, "text-halo-blur": 0.3 };
+  const L = [];
+  const add = (id, sl, type, filter, paint, layout = {}, extra = {}) => L.push({ id, type, source: "osm", "source-layer": sl, ...(filter ? { filter } : {}), paint, layout, ...extra });
+  L.push({ id: "bg", type: "background", paint: { "background-color": c.land } });
+  const GREEN = ["forest", "wood", "park", "grass", "meadow", "garden", "scrub", "grassland", "recreation_ground", "allotments", "playground", "village_green",
+    "cemetery", "golf_course", "pitch", "nature_reserve", "orchard", "vineyard", "greenfield", "heath", "farmland", "dog_park", "common", "flowerbed"];
+  add("landuse", "land", "fill", kind("industrial", "commercial", "retail", "railway", "brownfield", "construction", "quarry", "landfill", "garages"), { "fill-color": c.landuse });
+  add("green", "land", "fill", kind(...GREEN), { "fill-color": c.green, "fill-opacity": ["match", ["get", "kind"], ["farmland", "meadow", "grassland", "greenfield", "grass"], 0.6, 1] });
+  add("water", "water_polygons", "fill", null, { "fill-color": c.water });
+  add("water-line-minor", "water_lines", "line", kind("stream", "ditch", "drain"), { "line-color": c.water, "line-width": zw(13, 0.6, 18, 3) }, {}, { minzoom: 13 });
+  add("water-line", "water_lines", "line", kind("river", "canal"), { "line-color": c.water, "line-width": zw(10, 0.8, 14, 3, 18, 12) });
+  add("street-area", "street_polygons", "fill", null, { "fill-color": c.road, "fill-opacity": 0.9 }, {}, { minzoom: 14 });
+  add("bld", "buildings", "fill", null, { "fill-color": c.bld, "fill-outline-color": c.bld }, {}, { minzoom: 14 });
+  add("bld-line", "buildings", "line", null, { "line-color": c["bld-line"], "line-width": 0.6 }, {}, { minzoom: 16 });
+  // roads: tunnels faint, then casings, then fills, small ways above
+  add("tunnel", "streets", "line", ["all", ["==", ["get", "tunnel"], true], kind(...MAJOR, ...MID, ...MINOR)], { "line-color": c["road-casing"], "line-opacity": 0.55, "line-width": zw(13, 0.8, 18, 8), "line-dasharray": [2, 1] }, { "line-cap": "butt" }, { minzoom: 13 });
+  const road = (id, kinds, w, wc, minzoom, fill, casing) => {
+    const f = ["all", notTunnel, kind(...kinds)];
+    add(id + "-casing", "streets", "line", f, { "line-color": casing, "line-width": wc }, { "line-cap": "round", "line-join": "round" }, { minzoom });
+    add(id, "streets", "line", f, { "line-color": fill, "line-width": w }, { "line-cap": "round", "line-join": "round" }, { minzoom });
+  };
+  add("service-casing", "streets", "line", ["all", notTunnel, kind("service")], { "line-color": c["road-casing"], "line-width": zw(15, 1.6, 18, 7) }, { "line-cap": "round" }, { minzoom: 15 });
+  add("service", "streets", "line", ["all", notTunnel, kind("service")], { "line-color": c.road, "line-width": zw(15, 0.8, 18, 5) }, { "line-cap": "round" }, { minzoom: 15 });
+  road("minor", MINOR, zw(13, 0.6, 15, 3, 18, 12), zw(13, 1.6, 15, 4.4, 18, 14.5), 13, c.road, c["road-casing"]);
+  road("mid", MID, zw(12, 0.8, 15, 4.2, 18, 15), zw(12, 2, 15, 5.6, 18, 17.5), 12, c.road, c["road-casing"]);
+  road("major", MAJOR, zw(9, 0.8, 12, 2, 15, 5.2, 18, 18), zw(9, 1.8, 12, 3.4, 15, 6.8, 18, 20.5), 9, c["road-major"], c["road-major-casing"]);
+  add("path", "streets", "line", ["all", notTunnel, kind(...PATH), ["!=", ["get", "kind"], "steps"]], { "line-color": c.path, "line-width": zw(15, 0.8, 18, 2.2), "line-dasharray": [3, 1.6] }, {}, { minzoom: 15 });
+  add("steps", "streets", "line", kind("steps"), { "line-color": c.path, "line-width": zw(15, 1.6, 18, 4), "line-dasharray": [0.7, 0.7] }, {}, { minzoom: 15.5 });
+  const noSvc = ["==", ["coalesce", ["get", "service"], ""], ""];
+  add("rail-bed", "streets", "line", ["all", notTunnel, noSvc, kind(...RAIL)], { "line-color": c.rail, "line-width": zw(10, 0.6, 14, 1.4, 18, 3.4) }, {}, { minzoom: 10 });
+  add("rail-dash", "streets", "line", ["all", notTunnel, noSvc, kind(...RAIL)], { "line-color": c.land, "line-width": zw(10, 0.3, 14, 0.8, 18, 2), "line-dasharray": [3, 3] }, {}, { minzoom: 14 });
+  add("tram", "streets", "line", ["all", notTunnel, noSvc, kind(...TRAM)], { "line-color": c.rail, "line-width": zw(13, 0.5, 18, 2), "line-opacity": 0.8 }, {}, { minzoom: 13 });
+  // labels
+  const sl = { "text-font": FONT, "symbol-placement": "line", "text-letter-spacing": 0.02, "text-max-angle": 35 };
+  const refOrName = ["case", named, name, ["coalesce", ["get", "ref"], ""]];
+  add("lbl-street-major", "street_labels", "symbol", kind(...MAJOR, ...MID), { ...halo }, { ...sl, "text-field": refOrName, "text-size": zw(12, 10, 18, 14) }, { minzoom: 12 });
+  add("lbl-street-minor", "street_labels", "symbol", ["all", named, kind(...MINOR, "service")], { ...halo }, { ...sl, "text-field": name, "text-size": zw(14, 10, 18, 13) }, { minzoom: 14.5 });
+  add("lbl-street-path", "street_labels", "symbol", ["all", named, kind(...PATH)], { ...halo, "text-color": c.poi }, { ...sl, "text-field": name, "text-size": 10 }, { minzoom: 16.2 });
+  add("lbl-square", "streets_polygons_labels", "symbol", named, { ...halo, "text-color": c.poi }, { "text-font": FONT, "text-field": name, "text-size": 11, "text-max-width": 7 }, { minzoom: 15.5 });
+  add("lbl-water-line", "water_lines_labels", "symbol", named, { ...halo, "text-color": c["lbl-water"], "text-halo-color": c.land }, { ...sl, "text-field": name, "text-size": zw(12, 10, 18, 14), "text-letter-spacing": 0.12 }, { minzoom: 12 });
+  add("lbl-water", "water_polygons_labels", "symbol", named, { ...halo, "text-color": c["lbl-water"], "text-halo-color": c.land }, { "text-font": FONT, "text-field": name, "text-size": 12, "text-letter-spacing": 0.14, "text-max-width": 8 }, { minzoom: 11 });
+  // public transport
+  const station = kind("station", "halt", "ferry_terminal", "bus_station", "tram_stop_station");
+  add("pt-dot", "public_transport", "circle", ["all", station], { "circle-radius": zw(12, 2.5, 17, 5), "circle-color": c.surface, "circle-stroke-color": c.poi, "circle-stroke-width": 1.6 }, {}, { minzoom: 13 });
+  add("pt-stop-dot", "public_transport", "circle", kind("tram_stop", "bus_stop"), { "circle-radius": zw(16, 2, 19, 4), "circle-color": c.poi, "circle-stroke-color": c.halo, "circle-stroke-width": 1 }, {}, { minzoom: 16 });
+  add("lbl-station", "public_transport", "symbol", ["all", named, station], { ...halo, "text-color": c.lbl }, { "text-font": FONT, "text-field": name, "text-size": 11.5, "text-anchor": "top", "text-offset": [0, 0.7], "text-max-width": 8 }, { minzoom: 13.5 });
+  add("lbl-stop", "public_transport", "symbol", ["all", named, kind("tram_stop", "bus_stop")], { ...halo, "text-color": c.poi }, { "text-font": FONT, "text-field": name, "text-size": 10, "text-anchor": "top", "text-offset": [0, 0.6], "text-max-width": 7 }, { minzoom: 17 });
+  add("poi-dot", "pois", "circle", named, { "circle-radius": 2.2, "circle-color": c.poi, "circle-stroke-color": c.halo, "circle-stroke-width": 0.8 }, {}, { minzoom: 16.5 });
+  add("lbl-poi", "pois", "symbol", named, { ...halo, "text-color": c.poi }, { "text-font": FONT, "text-field": name, "text-size": 10, "text-anchor": "top", "text-offset": [0, 0.5], "text-max-width": 7, "text-optional": true }, { minzoom: 16.5 });
+  add("lbl-addr", "addresses", "symbol", ["!=", ["coalesce", ["get", "housenumber"], ""], ""], { ...halo, "text-color": c.poi }, { "text-font": FONT, "text-field": ["get", "housenumber"], "text-size": 9.5 }, { minzoom: 18 });
+  // place names: bigger places first, small ones as the map zooms in
+  const pl = (id, kinds, size, minzoom, maxzoom, upper) => add(id, "place_labels", "symbol", kind(...kinds),
+    halo,
+    { "text-font": FONT, "text-field": name, "text-size": size, "text-max-width": 8, "text-letter-spacing": upper ? 0.08 : 0.02, ...(upper ? { "text-transform": "uppercase" } : {}) }, { minzoom, maxzoom });
+  pl("lbl-city", ["city", "town"], zw(8, 15, 12, 20), 8, 13, false);
+  pl("lbl-suburb", ["suburb"], zw(11, 11.5, 15, 14), 11, 17, true);
+  pl("lbl-quarter", ["quarter", "neighbourhood", "village"], zw(12, 10.5, 16, 13), 12.5, 17, true);
+  pl("lbl-locality", ["locality", "hamlet", "isolated_dwelling", "farm"], zw(14, 10, 17, 12.5), 14, 19, false);
+  // district borders and names (our own data)
+  L.push({ id: "kreis-line", type: "line", source: "kreise", filter: ["==", ["geometry-type"], "LineString"], paint: { "line-color": c.border, "line-opacity": 0.45, "line-width": 1, "line-dasharray": [2, 3] } });
+  L.push({ id: "kreis-label", type: "symbol", source: "kreise", filter: ["==", ["geometry-type"], "Point"], maxzoom: 14,
+    paint: { "text-color": c.poi, "text-halo-color": c.land, "text-halo-width": 1.2 }, layout: { "text-font": FONT, "text-field": ["get", "t"], "text-size": 10.5, "text-letter-spacing": 0.1 } });
+  // our places: dots below, numbered pins for the top list above
+  L.push({ id: "dots", type: "circle", source: "dots", paint: { "circle-radius": ["get", "r"], "circle-color": c.accent, "circle-opacity": 0.55, "circle-stroke-color": c.surface, "circle-stroke-width": 1, "circle-stroke-opacity": 0.7 } });
+  L.push({ id: "pins", type: "circle", source: "pins", paint: { "circle-radius": ["case", ["get", "sel"], 14, 11], "circle-color": c.accent, "circle-stroke-color": c.surface, "circle-stroke-width": 2 } });
+  L.push({ id: "pins-num", type: "symbol", source: "pins", paint: { "text-color": c["accent-ink"] },
+    layout: { "text-font": FONT, "text-field": ["get", "n"], "text-size": 12, "text-allow-overlap": true, "text-ignore-placement": true } });
+  return {
+    version: 8, glyphs: "mem://g/{fontstack}/{range}",
+    sources: {
+      osm: { type: "vector", tiles: ["mem://t/{z}/{x}/{y}"], minzoom: 4, maxzoom: 14, bounds: [W - 0.02, S - 0.02, E + 0.02, N + 0.02] },
+      kreise: { type: "geojson", data: KREISE },
+      dots: { type: "geojson", data: feed.dots }, pins: { type: "geojson", data: feed.pins },
+    },
+    layers: L,
+  };
 }
-drawBase();
-let dotLayer = L.layerGroup().addTo(map), pinLayer = L.layerGroup().addTo(map);
+
+// --- downloads: started in <head> (window.__dl), unpacked here
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const note = t => { const n = el("mapnote"); n.hidden = !t; n.textContent = t || ""; };
+class MemSource {
+  constructor(buf, key) { this.buf = buf; this.key = key; }
+  getKey() { return this.key; }
+  async getBytes(offset, length) { return { data: this.buf.slice(offset, offset + length) }; }
+}
+const gunzip = u8 => new Response(new Blob([u8]).stream().pipeThrough(new DecompressionStream("gzip"))).arrayBuffer();
+const archives = { lo: null, hi: null }, glyphIndex = { v: null }, glyphCache = new Map();
+const tilesReady = window.__dl.lo.then(b => { archives.lo = new pmtiles.PMTiles(new MemSource(b, "lo")); });
+const hiReady = window.__dl.hi.then(b => { archives.hi = new pmtiles.PMTiles(new MemSource(b, "hi")); }).catch(() => note("детали карты не загрузились"));
+const glyphsReady = window.__dl.gl.then(b => {
+  const dv = new DataView(b), n = dv.getUint32(0, true);
+  const idx = JSON.parse(new TextDecoder().decode(new Uint8Array(b, 4, n)));
+  glyphIndex.v = { idx, base: 4 + n, b };
+});
+const glyphPbf = async range => {
+  await glyphsReady.catch(() => {});
+  const g = glyphIndex.v, e = g && g.idx[range];
+  if (!e) return new ArrayBuffer(0);
+  if (!glyphCache.has(range)) glyphCache.set(range, gunzip(new Uint8Array(g.b, g.base + e[0], e[1])));
+  return glyphCache.get(range);
+};
+maplibregl.addProtocol("mem", async (params, abort) => {
+  const u = params.url.replace(/^mem:\/\//, "").split("/");
+  if (u[0] === "g") return { data: await glyphPbf(decodeURIComponent(u[2]).replace(/\.pbf$/, "")) };
+  const [z, x, y] = u.slice(1).map(Number);
+  if (z > 13) await hiReady;               // the detail archive may still be on its way: tiles wait, the parent tile is shown meanwhile
+  else await tilesReady.catch(() => {});
+  const a = z > 13 ? archives.hi : archives.lo;
+  const t = a && await a.getZxy(z, x, y, abort.signal);
+  return { data: t ? t.data : new Uint8Array(0) };
+});
+
+let map;
+try {
+  map = new maplibregl.Map({ container: "map", style: makeStyle(), bounds: [[8.47, 47.345], [8.6, 47.43]], minZoom: 10.5, maxZoom: 19.5,
+    maxBounds: [[W - 0.08, S - 0.05], [E + 0.08, N + 0.05]], attributionControl: false, dragRotate: false, pitchWithRotate: false, renderWorldCopies: false,
+    pixelRatio: Math.min(window.devicePixelRatio || 1, 2), fadeDuration: 120 });
+  map.addControl(new maplibregl.AttributionControl({ compact: true, customAttribution: "© OpenStreetMap contributors · © Stadt Zürich" }));
+  map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
+  map.touchZoomRotate.disableRotation();
+} catch (e) { note("карта не запустилась: нужен WebGL"); map = null; }
+const none = () => {};
+const stub = { getZoom: () => 12, easeTo: none, getSource: () => null, on: none, once: none };
+if (!map) map = stub;
+function restyle() {
+  if (!map.getStyle) return;
+  const st = makeStyle();
+  for (const l of st.layers) for (const [k, v] of Object.entries(l.paint || {})) map.setPaintProperty(l.id, k, v);
+}
+function setFeed(id, fc) { feed[id] = fc; const s = map.getSource(id); if (s) s.setData(fc); }
+map.on("error", e => console.warn("map:", (e && e.error && (e.error.message || e.error)) || e, e && e.sourceId || ""));
+map.on("load", () => { setFeed("dots", feed.dots); setFeed("pins", feed.pins); });
+tilesReady.then(() => { progress(); map.once("idle", () => performance.mark("tiles_ready")); }, () => note("подложка не загрузилась, места остались"));
+const progress = () => {
+  const p = window.__dl.prog, f = k => !p[k] ? "" : p[k][1] ? Math.round(100 * p[k][0] / p[k][1]) + "%" : (p[k][0] / 1e6).toFixed(1) + " МБ";
+  if (!archives.lo) note("карта: " + (f("lo") || "…"));
+  else if (!archives.hi) note("детали карты: " + (f("hi") || "…"));
+  else note("");
+};
+window.__dl.onp = progress;
+hiReady.then(progress);
 
 // ---------- marks store ----------
 let db = null;
@@ -220,7 +403,6 @@ function searched() {
 }
 
 // ---------- render ----------
-const el = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const fmt = n => n.toLocaleString("ru-RU");
 
@@ -258,15 +440,10 @@ function summary(top) {
   el("summary").innerHTML = `<span>${head}</span><span class="store">всего отмечено <strong>${total}</strong> · ${storeNote}</span>`;
 }
 function drawPoints(all, top) {
-  dotLayer.clearLayers(); pinLayer.clearLayers();
-  const fill = css("--accent"), stroke = css("--surface");
   const topSet = new Set(top.map(p => p.i));
-  all.forEach(p => { if (topSet.has(p.i)) return;
-    L.circleMarker([p.a, p.o], { renderer, radius: 3 + Math.min(4, Math.sqrt(p.s) / 2), color: stroke, weight: 1, fillColor: fill, fillOpacity: 0.55 })
-      .on("click", () => openDetail(p.i)).addTo(dotLayer); });
-  top.forEach((p, i) => L.marker([p.a, p.o], { title: p.n, riseOnHover: true,
-    icon: L.divIcon({ className: "", html: `<div class="pin${state.sel === p.i ? " sel" : ""}">${i + 1}</div>`, iconSize: [22, 22], iconAnchor: [11, 11] }) })
-    .on("click", () => openDetail(p.i)).addTo(pinLayer));
+  const pt = (p, props) => ({ type: "Feature", properties: { id: p.i, ...props }, geometry: { type: "Point", coordinates: [p.o, p.a] } });
+  setFeed("dots", { type: "FeatureCollection", features: all.filter(p => !topSet.has(p.i)).map(p => pt(p, { r: 3 + Math.min(4, Math.sqrt(p.s) / 2) })) });
+  setFeed("pins", { type: "FeatureCollection", features: top.map((p, i) => pt(p, { n: String(i + 1), sel: state.sel === p.i })) });
 }
 let lastAll = [];
 function render() {
@@ -307,7 +484,7 @@ function renderDetail() {
 function openDetail(id) {
   const p = byId.get(id); if (!p) return;
   state.sel = id; state.detail = id;
-  map.setView([p.a, p.o], Math.max(map.getZoom(), 15), { animate: !matchMedia("(prefers-reduced-motion: reduce)").matches });
+  map.easeTo({ center: [p.o, p.a], zoom: Math.max(map.getZoom(), 15), duration: reduceMotion ? 0 : 400 });
   renderDetail();
 }
 
@@ -323,8 +500,15 @@ document.addEventListener("click", e => {
 });
 el("q").addEventListener("input", e => { state.q = e.target.value; state.detail = null; render(); });
 el("kreis").addEventListener("change", e => { state.kreis = e.target.value; state.shown = PAGE; state.detail = null; render(); });
-matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { drawBase(); render(); });
-new MutationObserver(() => { drawBase(); render(); }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { restyle(); render(); });
+new MutationObserver(() => { restyle(); render(); }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+// a tap picks the nearest of our places within a finger's width, pins before dots
+map.on("click", e => {
+  const r = 14, fs = map.queryRenderedFeatures([[e.point.x - r, e.point.y - r], [e.point.x + r, e.point.y + r]], { layers: ["pins", "dots"] });
+  if (!fs.length) return;
+  const d = f => { const q = map.project(f.geometry.coordinates); return Math.hypot(q.x - e.point.x, q.y - e.point.y) - (f.layer.id === "pins" ? 8 : 0); };
+  openDetail(fs.sort((a, b) => d(a) - d(b))[0].properties.id);
+});
 
 kreisSelect();
 render();

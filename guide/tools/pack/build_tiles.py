@@ -8,7 +8,7 @@ Tiles: BBBike's ready Zurich extract in the Shortbread schema (PMTiles, 33 MB,
 https://download.bbbike.org/osm/bbbike/Zuerich/Zuerich.osm.pmtiles-shortbread.zip,
 built by tilemaker from OSM, (c) OpenStreetMap contributors, ODbL). The script
 rewrites the archive: only tiles that touch the viewer bounding box, zoom <= 14
-(MapLibre overzooms the rest), and only the layers the style draws.
+(MapLibre overzooms the rest), and only the layers the style draws; written as two files (zoom <= 13 and zoom 14).
 
 Glyphs: pre-built SDF glyph PBFs of Noto Sans (npm package smp-noto-glyphs,
 SIL OFL). Only the ranges needed for German/Latin, Cyrillic and punctuation,
@@ -19,7 +19,7 @@ Usage: python3 build_tiles.py [city] [--src PATH] [--glyphs-dir PATH] [--report]
   --src         the .pmtiles file or the .zip from BBBike (default: downloaded into dist/<city>/_src/)
   --glyphs-dir  .../node_modules/smp-noto-glyphs/fixtures/glyphs (default: ./node_modules or `npm pack`ed copy)
 Needs: pip install pmtiles
-Output: dist/<city>/tiles.pmtiles, dist/<city>/glyphs.bin
+Output: dist/<city>/tiles-lo.pmtiles, tiles-hi.pmtiles, glyphs.bin
 
 glyphs.bin layout: u32 LE header length, JSON header {"<first>-<last>": [offset, length]}
 (offsets from the end of the header), then the concatenated .pbf.gz members.
@@ -46,11 +46,14 @@ SRC_URL = "https://download.bbbike.org/osm/bbbike/Zuerich/Zuerich.osm.pmtiles-sh
 BBOX = (8.44, 47.30, 8.63, 47.465)  # W, S, E, N of the viewer (basemap.json bbox plus a margin)
 MAX_Z = 14
 # Layers the style draws. Dropped: parking/school sites, boundaries (the page draws
-# its own district borders), dams, aerialways, piers, ferries, bridges (casings only).
+# its own district borders), dams, aerialways, piers, ferries, bridge outlines.
+# The archive is written as two files, so the page can show the map after the small
+# one and fetch the big one (all of the detail is in zoom 14) in the background.
+SPLIT_Z = 13  # tiles-lo.pmtiles: zoom <= 13, tiles-hi.pmtiles: zoom 14
 KEEP = {"land", "water_polygons", "water_lines", "water_lines_labels", "water_polygons_labels",
         "streets", "street_polygons", "street_labels", "street_labels_points",
         "buildings", "addresses", "pois", "public_transport", "place_labels",
-        "streets_polygons_labels", "bridges"}
+        "streets_polygons_labels"}
 # Glyph ranges: Basic Latin + Latin-1, Latin Extended-A, Greek/Cyrillic (768-1023 is
 # combining marks + Greek), Cyrillic, General Punctuation.
 GLYPH_RANGES = ["0-255", "256-511", "768-1023", "1024-1279", "8192-8447"]
@@ -140,7 +143,7 @@ def fetch_pmtiles(src, workdir):
     return out
 
 
-def cut_tiles(src_pm, out_path, report):
+def cut_tiles(src_pm, outs, report):
     W, S, E, N = BBOX
     f = open(src_pm, "rb")
     src = MmapSource(f)
@@ -162,6 +165,12 @@ def cut_tiles(src_pm, out_path, report):
         print("raw bytes per layer in the cut area (before dropping):")
         for k, v in sorted(sizes.items(), key=lambda kv: -kv[1]):
             print("  %-26s %8.0f KB %s" % (k, v / 1024, "" if k in KEEP else "(dropped)"))
+    for out_path, pick in outs:
+        write_archive(out_path, [t for t in tiles if pick(t[1])])
+
+
+def write_archive(out_path, tiles):
+    W, S, E, N = BBOX
     with open(out_path, "wb") as of:
         w = Writer(of)
         for tid, z, data in tiles:
@@ -178,7 +187,7 @@ def cut_tiles(src_pm, out_path, report):
                     "attribution": "(c) OpenStreetMap contributors, tilemaker/Shortbread via BBBike",
                     "vector_layers": [{"id": k} for k in sorted(KEEP)]}
         w.finalize(header, metadata)
-    print("tiles.pmtiles: %d tiles, z%d-%d, %.2f MB" % (len(tiles), min(zs), max(zs), os.path.getsize(out_path) / 1e6))
+    print("%s: %d tiles, z%d-%d, %.2f MB" % (os.path.basename(out_path), len(tiles), min(zs), max(zs), os.path.getsize(out_path) / 1e6))
 
 
 def find_glyphs_dir(arg):
@@ -219,7 +228,8 @@ def main():
     cache = os.path.join(dist, "_src")
     os.makedirs(cache, exist_ok=True)
     src = fetch_pmtiles(a.src, cache)
-    cut_tiles(src, os.path.join(dist, "tiles.pmtiles"), a.report)
+    cut_tiles(src, [(os.path.join(dist, "tiles-lo.pmtiles"), lambda z: z <= SPLIT_Z),
+                    (os.path.join(dist, "tiles-hi.pmtiles"), lambda z: z > SPLIT_Z)], a.report)
     build_glyphs(find_glyphs_dir(a.glyphs_dir), os.path.join(dist, "glyphs.bin"))
 
 
